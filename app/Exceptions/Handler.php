@@ -2,15 +2,19 @@
 
 namespace App\Exceptions;
 
+use App\Traits\ApiResponser;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
 use Laravel\Lumen\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
 {
+
+    use ApiResponser;
     /**
      * A list of the exception types that should not be reported.
      *
@@ -49,6 +53,26 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        if($exception instanceof ModelNotFoundException) {
+            return $this->failRespNotFound($exception->getMessage());
+        }
+
+        if($exception instanceof ValidationException) {
+            return $this->failRespUnProcess($exception->getMessage());
+        }
+
+        if($exception instanceof FileException) {
+            return $this->failResponse($exception->getMessage(), 500);
+        }
+
+        if($exception instanceof HttpException) {
+            return $this->failResponse($exception->getMessage(), $exception->getStatusCode());
+        }
+
+        if($exception) {
+            return $this->failResponse($exception->getMessage(), 500);
+        }
+
         return parent::render($request, $exception);
     }
 }

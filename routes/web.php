@@ -16,3 +16,10 @@
 $router->get('/', function () use ($router) {
     return $router->app->version();
 });
+
+$router->post('login', 'AuthController@login');
+
+$router->group(['middleware' => 'auth:api'], function () use ($router) {
+    $router->get('logout', 'AuthController@logout');
+    $router->get('refresh', 'AuthController@refresh');
+});
