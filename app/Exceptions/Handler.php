@@ -58,7 +58,14 @@ class Handler extends ExceptionHandler
         }
 
         if($exception instanceof ValidationException) {
-            return $this->failRespUnProcess($exception->getMessage());
+            $messages = $exception->validator->errors()->all();
+            $message = '';
+            if(count($messages) > 1) {
+                $message = implode(' ', $messages);
+            } else if(count($messages) == 1) {
+                $message = $messages[0];
+            }
+            return $this->failRespUnProcess($message);
         }
 
         if($exception instanceof FileException) {
