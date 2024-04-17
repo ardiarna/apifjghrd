@@ -35,3 +35,11 @@ $router->group(['prefix' => 'user', 'middleware' => 'auth:api'], function () use
     $router->post('photo', 'UserController@photo');
     $router->delete('/', 'UserController@delete');
 });
+
+$router->group(['prefix' => 'agama', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'AgamaController@findAll');
+    $router->get('{id}', 'AgamaController@findById');
+    $router->post('/', 'AgamaController@create');
+    $router->put('{id}', 'AgamaController@update');
+    $router->delete('{id}', 'AgamaController@delete');
+});
