@@ -60,6 +60,14 @@ $router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () 
     $router->delete('{id}', 'JabatanController@delete');
 });
 
+$router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'KaryawanController@findAll');
+    $router->get('{id}', 'KaryawanController@findById');
+    $router->post('/', 'KaryawanController@create');
+    $router->put('{id}', 'KaryawanController@update');
+    $router->delete('{id}', 'KaryawanController@delete');
+});
+
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PendidikanController@findAll');
     $router->get('{id}', 'PendidikanController@findById');
