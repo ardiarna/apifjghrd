@@ -43,3 +43,11 @@ $router->group(['prefix' => 'agama', 'middleware' => 'auth:api'], function () us
     $router->put('{id}', 'AgamaController@update');
     $router->delete('{id}', 'AgamaController@delete');
 });
+
+$router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'PendidikanController@findAll');
+    $router->get('{id}', 'PendidikanController@findById');
+    $router->post('/', 'PendidikanController@create');
+    $router->put('{id}', 'PendidikanController@update');
+    $router->delete('{id}', 'PendidikanController@delete');
+});
