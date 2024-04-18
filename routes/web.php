@@ -59,3 +59,11 @@ $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function 
     $router->put('{id}', 'PendidikanController@update');
     $router->delete('{id}', 'PendidikanController@delete');
 });
+
+$router->group(['prefix' => 'statuskerja', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'StatusKerjaController@findAll');
+    $router->get('{id}', 'StatusKerjaController@findById');
+    $router->post('/', 'StatusKerjaController@create');
+    $router->put('{id}', 'StatusKerjaController@update');
+    $router->delete('{id}', 'StatusKerjaController@delete');
+});

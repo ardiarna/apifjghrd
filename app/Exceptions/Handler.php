@@ -54,7 +54,8 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if($exception instanceof ModelNotFoundException) {
-            $message = class_basename($exception->getModel()).' dengan id '.implode(', ', $exception->getIds()).' tidak ditemukan.';
+            $modelSpasi = preg_replace('/(?<!\b)(?=[A-Z])/', ' ', class_basename($exception->getModel()));
+            $message = $modelSpasi.' dengan id '.implode(', ', $exception->getIds()).' tidak ditemukan.';
             return $this->failRespNotFound($message);
         }
 
