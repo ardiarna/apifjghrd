@@ -44,6 +44,14 @@ $router->group(['prefix' => 'agama', 'middleware' => 'auth:api'], function () us
     $router->delete('{id}', 'AgamaController@delete');
 });
 
+$router->group(['prefix' => 'divisi', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'DivisiController@findAll');
+    $router->get('{id}', 'DivisiController@findById');
+    $router->post('/', 'DivisiController@create');
+    $router->put('{id}', 'DivisiController@update');
+    $router->delete('{id}', 'DivisiController@delete');
+});
+
 $router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'JabatanController@findAll');
     $router->get('{id}', 'JabatanController@findById');
