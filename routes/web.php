@@ -44,6 +44,14 @@ $router->group(['prefix' => 'agama', 'middleware' => 'auth:api'], function () us
     $router->delete('{id}', 'AgamaController@delete');
 });
 
+$router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'JabatanController@findAll');
+    $router->get('{id}', 'JabatanController@findById');
+    $router->post('/', 'JabatanController@create');
+    $router->put('{id}', 'JabatanController@update');
+    $router->delete('{id}', 'JabatanController@delete');
+});
+
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PendidikanController@findAll');
     $router->get('{id}', 'PendidikanController@findById');
