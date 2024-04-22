@@ -98,3 +98,11 @@ $router->group(['prefix' => 'statuskerja', 'middleware' => 'auth:api'], function
     $router->put('{id}', 'StatusKerjaController@update');
     $router->delete('{id}', 'StatusKerjaController@delete');
 });
+
+$router->group(['prefix' => 'statusphk', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'StatusPhkController@findAll');
+    $router->get('{id}', 'StatusPhkController@findById');
+    $router->post('/', 'StatusPhkController@create');
+    $router->put('{id}', 'StatusPhkController@update');
+    $router->delete('{id}', 'StatusPhkController@delete');
+});
