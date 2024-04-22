@@ -37,4 +37,8 @@ class Karyawan extends Model
         return $this->hasMany(KeluargaKaryawan::class);
     }
 
+    public function keluargaKontak(): HasMany {
+        return $this->hasMany(KeluargaKontak::class);
+    }
+
 }

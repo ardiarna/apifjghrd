@@ -65,12 +65,17 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{id}', 'KaryawanController@findById');
     $router->get('{karyawan_id}/keluarga', 'KeluargaKaryawanController@findAll');
     $router->get('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@findById');
+    $router->get('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@findAll');
+    $router->get('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@findById');
     $router->post('/', 'KaryawanController@create');
     $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
+    $router->post('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@create');
     $router->put('{id}', 'KaryawanController@update');
     $router->put('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@update');
+    $router->put('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@update');
     $router->delete('{id}', 'KaryawanController@delete');
     $router->delete('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@delete');
+    $router->delete('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@delete');
 });
 
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
