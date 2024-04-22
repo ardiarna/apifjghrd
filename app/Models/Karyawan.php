@@ -45,4 +45,8 @@ class Karyawan extends Model
         return $this->hasMany(PerjanjianKerja::class);
     }
 
+    public function phk(): HasMany {
+        return $this->hasMany(Phk::class);
+    }
+
 }
