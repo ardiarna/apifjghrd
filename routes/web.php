@@ -63,9 +63,14 @@ $router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () 
 $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'KaryawanController@findAll');
     $router->get('{id}', 'KaryawanController@findById');
+    $router->get('{karyawan_id}/keluarga', 'KeluargaKaryawanController@findAll');
+    $router->get('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@findById');
     $router->post('/', 'KaryawanController@create');
+    $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
     $router->put('{id}', 'KaryawanController@update');
+    $router->put('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@update');
     $router->delete('{id}', 'KaryawanController@delete');
+    $router->delete('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@delete');
 });
 
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {

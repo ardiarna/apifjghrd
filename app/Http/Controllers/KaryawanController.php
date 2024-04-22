@@ -22,14 +22,14 @@ class KaryawanController extends Controller
     }
 
     public function findAll(Request $req) {
-        $data = $this->repo->findAll(['sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
+        $data = $this->repo->findAll(['search_by' => $req->query('search_by'), 'value' => $req->query('value'), 'sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
         return $this->successResponse($data);
     }
 
     public function create(Request $req) {
         $this->validate($req, [
             'nama' => 'required',
-            'no_ktp' => 'digits:16',
+            'nomor_ktp' => 'digits:16',
             'tanggal_masuk' => 'required|date',
             'jabatan_id' => 'required',
             'divisi_id' => 'required',
@@ -40,7 +40,7 @@ class KaryawanController extends Controller
             'email' => 'email',
             'kawin' => 'in:Y,N'
         ]);
-        $inputs = $req->only(['nama', 'no_ktp', 'tanggal_masuk', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon']);
+        $inputs = $req->only(['nama', 'nomor_ktp', 'tanggal_masuk', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon']);
         $inputs['nik'] = $req->input('nik');
         $inputs['agama_id'] = $req->input('agama_id');
         $inputs['alamat_tinggal'] = $req->input('alamat_tinggal');
@@ -51,15 +51,15 @@ class KaryawanController extends Controller
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
         $inputs['aktif'] = 'Y';
-        $inputs['no_kk'] = $req->input('no_kk');
-        $inputs['no_paspor'] = $req->input('no_paspor');
+        $inputs['nomor_kk'] = $req->input('nomor_kk');
+        $inputs['nomor_paspor'] = $req->input('nomor_paspor');
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Karyawan berhasil dibuat');
     }
 
     public function update(Request $req, $id) {
         $this->validate($req, [
-            'no_ktp' => 'digits:16',
+            'nomor_ktp' => 'digits:16',
             'tanggal_masuk' => 'date',
             'tanggal_lahir' => 'date',
             'telepon' => 'numeric',
@@ -69,7 +69,7 @@ class KaryawanController extends Controller
         ]);
         $inputs['nama'] = $req->input('nama');
         $inputs['nik'] = $req->input('nik');
-        $inputs['no_ktp'] = $req->input('no_ktp');
+        $inputs['nomor_ktp'] = $req->input('nomor_ktp');
         $inputs['tanggal_masuk'] = $req->input('tanggal_masuk');
         $inputs['agama_id'] = $req->input('agama_id');
         $inputs['jabatan_id'] = $req->input('jabatan_id');
@@ -86,8 +86,8 @@ class KaryawanController extends Controller
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
         $inputs['aktif'] = $req->input('aktif');
-        $inputs['no_kk'] = $req->input('no_kk');
-        $inputs['no_paspor'] = $req->input('no_paspor');
+        $inputs['nomor_kk'] = $req->input('nomor_kk');
+        $inputs['nomor_paspor'] = $req->input('nomor_paspor');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Karyawan berhasil diubah');
     }

@@ -18,16 +18,18 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findAll($inputs = []) {
+        $hasil = $this->model->query();
+        if($inputs['search_by'] && $inputs['value']) {
+            $value = $inputs['value'];
+            $hasil->where($inputs['search_by'], 'like', "%$value%");
+        }
         if($inputs['sort_by']) {
-            if(strtolower($inputs['sort_order']) == 'desc') {
-                return $this->model->orderByDesc($inputs['sort_by'])->get();
-            }
-            return $this->model->orderBy($inputs['sort_by'])->get();
+            $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
+            $hasil->orderBy($inputs['sort_by'], $sort_order);
+        } else {
+            $hasil->orderBy('nama');
         }
-        if(strtolower($inputs['sort_order']) == 'desc') {
-            return $this->model->orderByDesc('nama')->get();
-        }
-        return $this->model->orderBy('nama')->get();
+        return $hasil->get();
     }
 
     public function create(array $inputs) {
@@ -42,8 +44,8 @@ class KaryawanImplement implements KaryawanRepository {
         if($inputs['nik'] != null) {
             $model->nik = $inputs['nik'];
         }
-        if($inputs['no_ktp'] != null) {
-            $model->no_ktp = $inputs['no_ktp'];
+        if($inputs['nomor_ktp'] != null) {
+            $model->nomor_ktp = $inputs['nomor_ktp'];
         }
         if($inputs['tanggal_masuk'] != null) {
             $model->tanggal_masuk = $inputs['tanggal_masuk'];
@@ -93,11 +95,11 @@ class KaryawanImplement implements KaryawanRepository {
         if($inputs['aktif'] != null) {
             $model->aktif = $inputs['aktif'];
         }
-        if($inputs['no_kk'] != null) {
-            $model->no_kk = $inputs['no_kk'];
+        if($inputs['nomor_kk'] != null) {
+            $model->nomor_kk = $inputs['nomor_kk'];
         }
-        if($inputs['no_paspor'] != null) {
-            $model->no_paspor = $inputs['no_paspor'];
+        if($inputs['nomor_paspor'] != null) {
+            $model->nomor_paspor = $inputs['nomor_paspor'];
         }
         $model->save();
         return $model;
