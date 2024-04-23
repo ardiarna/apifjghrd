@@ -22,7 +22,12 @@ class KaryawanController extends Controller
     }
 
     public function findAll(Request $req) {
-        $data = $this->repo->findAll(['search_by' => $req->query('search_by'), 'value' => $req->query('value'), 'sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
+        $data = $this->repo->findAll([
+            'search_by' => $req->query('search_by'),
+            'value' => $req->query('value'),
+            'sort_by' => $req->query('sort_by'),
+            'sort_order' => $req->query('sort_order')
+        ]);
         return $this->successResponse($data);
     }
 
@@ -40,7 +45,10 @@ class KaryawanController extends Controller
             'email' => 'email',
             'kawin' => 'in:Y,N'
         ]);
-        $inputs = $req->only(['nama', 'nomor_ktp', 'tanggal_masuk', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon']);
+        $inputs = $req->only([
+            'nama', 'nomor_ktp', 'tanggal_masuk', 'jabatan_id', 'divisi_id',
+            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon'
+        ]);
         $inputs['nik'] = $req->input('nik');
         $inputs['agama_id'] = $req->input('agama_id');
         $inputs['alamat_tinggal'] = $req->input('alamat_tinggal');

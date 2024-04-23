@@ -2,14 +2,14 @@
 
 namespace App\Repositories\Elo;
 
-use App\Repositories\DivisiRepository;
-use App\Models\Divisi;
+use App\Repositories\AreaRepository;
+use App\Models\Area;
 
-class DivisiImplement implements DivisiRepository {
+class AreaImplement implements AreaRepository {
 
     protected $model;
 
-    function __construct(Divisi $model) {
+    function __construct(Area $model) {
         $this->model = $model;
     }
 
@@ -38,9 +38,6 @@ class DivisiImplement implements DivisiRepository {
 
     public function update($id, array $inputs) {
         $model = $this->model->findOrFail($id);
-        if($inputs['kode'] != null) {
-            $model->kode = $inputs['kode'];
-        }
         if($inputs['nama'] != null) {
             $model->nama = $inputs['nama'];
         }

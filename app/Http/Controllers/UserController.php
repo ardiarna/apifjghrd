@@ -45,11 +45,11 @@ class UserController extends Controller
 
     public function update(Request $req) {
         $this->validate($req, [
-            'email' => 'required|email',
-            'nama' => 'required',
+            'email' => 'email',
         ]);
-        $inputs = $req->only(['email', 'nama']);
-        if($inputs['email'] != $this->user->email) {
+        $inputs['email'] = $req->input('email');
+        $inputs['nama'] = $req->input('nama');
+        if($inputs['email'] != null && $inputs['email'] != $this->user->email) {
             $this->cekExistingEmail($inputs['email']);
         }
         $data = $this->repo->update($this->userId, $inputs);

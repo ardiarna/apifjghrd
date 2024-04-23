@@ -44,6 +44,14 @@ $router->group(['prefix' => 'agama', 'middleware' => 'auth:api'], function () us
     $router->delete('{id}', 'AgamaController@delete');
 });
 
+$router->group(['prefix' => 'area', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'AreaController@findAll');
+    $router->get('{id}', 'AreaController@findById');
+    $router->post('/', 'AreaController@create');
+    $router->put('{id}', 'AreaController@update');
+    $router->delete('{id}', 'AreaController@delete');
+});
+
 $router->group(['prefix' => 'divisi', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'DivisiController@findAll');
     $router->get('{id}', 'DivisiController@findById');

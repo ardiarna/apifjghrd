@@ -22,24 +22,31 @@ class AgamaController extends Controller
     }
 
     public function findAll(Request $req) {
-        $data = $this->repo->findAll(['sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
+        $data = $this->repo->findAll([
+            'search_by' => $req->query('search_by'),
+            'value' => $req->query('value'),
+            'sort_by' => $req->query('sort_by'),
+            'sort_order' => $req->query('sort_order')
+        ]);
         return $this->successResponse($data);
     }
 
     public function create(Request $req) {
         $this->validate($req, [
-            'nama' => 'required'
+            'nama' => 'required',
+            'urutan' => 'required|integer|min:1'
         ]);
-        $inputs = $req->only(['nama']);
+        $inputs = $req->only(['nama', 'urutan']);
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Agama berhasil dibuat');
     }
 
     public function update(Request $req, $id) {
         $this->validate($req, [
-            'nama' => 'required',
+            'urutan' => 'integer|min:1'
         ]);
-        $inputs = $req->only(['nama']);
+        $inputs['nama'] = $req->input('nama');
+        $inputs['urutan'] = $req->input('urutan');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Agama berhasil diubah');
     }

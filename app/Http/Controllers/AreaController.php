@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\DivisiRepository;
+use App\Repositories\AreaRepository;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
-class DivisiController extends Controller
+class AreaController extends Controller
 {
     use ApiResponser;
 
     protected $repo;
 
-    public function __construct(DivisiRepository $repo) {
+    public function __construct(AreaRepository $repo) {
         $this->repo = $repo;
     }
 
@@ -33,33 +33,30 @@ class DivisiController extends Controller
 
     public function create(Request $req) {
         $this->validate($req, [
-            'kode' => 'required|size:2',
             'nama' => 'required',
             'urutan' => 'required|integer|min:1'
         ]);
-        $inputs = $req->only(['kode', 'nama', 'urutan']);
+        $inputs = $req->only(['nama', 'urutan']);
         $data = $this->repo->create($inputs);
-        return $this->createdResponse($data, 'Divisi berhasil dibuat');
+        return $this->createdResponse($data, 'Area berhasil dibuat');
     }
 
     public function update(Request $req, $id) {
         $this->validate($req, [
-            'kode' => 'size:2',
             'urutan' => 'integer|min:1'
         ]);
-        $inputs['kode'] = $req->input('kode');
         $inputs['nama'] = $req->input('nama');
         $inputs['urutan'] = $req->input('urutan');
         $data = $this->repo->update($id, $inputs);
-        return $this->successResponse($data, 'Divisi berhasil diubah');
+        return $this->successResponse($data, 'Area berhasil diubah');
     }
 
     public function delete($id) {
         $data = $this->repo->delete($id);
         if($data == 0) {
-            return $this->failRespNotFound('Divisi tidak ditemukan');
+            return $this->failRespNotFound('Area tidak ditemukan');
         }
-        return $this->successResponse($data, 'Divisi berhasil dihapus');
+        return $this->successResponse($data, 'Area berhasil dihapus');
     }
 
 }

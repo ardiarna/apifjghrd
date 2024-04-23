@@ -18,16 +18,18 @@ class AgamaImplement implements AgamaRepository {
     }
 
     public function findAll($inputs = []) {
+        $hasil = $this->model->query();
+        if($inputs['search_by'] && $inputs['value']) {
+            $value = $inputs['value'];
+            $hasil->where($inputs['search_by'], 'like', "%$value%");
+        }
         if($inputs['sort_by']) {
-            if(strtolower($inputs['sort_order']) == 'desc') {
-                return $this->model->orderByDesc($inputs['sort_by'])->get();
-            }
-            return $this->model->orderBy($inputs['sort_by'])->get();
+            $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
+            $hasil->orderBy($inputs['sort_by'], $sort_order);
+        } else {
+            $hasil->orderBy('urutan');
         }
-        if(strtolower($inputs['sort_order']) == 'desc') {
-            return $this->model->orderByDesc('nama')->get();
-        }
-        return $this->model->orderBy('nama')->get();
+        return $hasil->get();
     }
 
     public function create(array $inputs) {
@@ -36,7 +38,12 @@ class AgamaImplement implements AgamaRepository {
 
     public function update($id, array $inputs) {
         $model = $this->model->findOrFail($id);
-        $model->nama = $inputs['nama'];
+        if($inputs['nama'] != null) {
+            $model->nama = $inputs['nama'];
+        }
+        if($inputs['urutan'] != null) {
+            $model->urutan = $inputs['urutan'];
+        }
         $model->save();
         return $model;
     }

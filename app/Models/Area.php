@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Agama extends Model
+class Area extends Model
 {
 
     protected $fillable = [

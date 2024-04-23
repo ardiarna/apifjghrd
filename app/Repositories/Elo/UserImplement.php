@@ -27,8 +27,12 @@ class UserImplement implements UserRepository {
 
     public function update($id, array $inputs) {
         $model = $this->findById($id);
-        $model->email = $inputs['email'];
-        $model->nama = $inputs['nama'];
+        if($inputs['email'] != null) {
+            $model->email = $inputs['email'];
+        }
+        if($inputs['nama'] != null) {
+            $model->nama = $inputs['nama'];
+        }
         $model->save();
         return $model;
     }

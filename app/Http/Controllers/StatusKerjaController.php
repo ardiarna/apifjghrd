@@ -22,7 +22,12 @@ class StatusKerjaController extends Controller
     }
 
     public function findAll(Request $req) {
-        $data = $this->repo->findAll(['sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
+        $data = $this->repo->findAll([
+            'search_by' => $req->query('search_by'),
+            'value' => $req->query('value'),
+            'sort_by' => $req->query('sort_by'),
+            'sort_order' => $req->query('sort_order')
+        ]);
         return $this->successResponse($data);
     }
 
@@ -38,10 +43,10 @@ class StatusKerjaController extends Controller
 
     public function update(Request $req, $id) {
         $this->validate($req, [
-            'nama' => 'required',
-            'urutan' => 'required|integer|min:1'
+            'urutan' => 'integer|min:1'
         ]);
-        $inputs = $req->only(['nama', 'urutan']);
+        $inputs['nama'] = $req->input('nama');
+        $inputs['urutan'] = $req->input('urutan');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Status Kerja berhasil diubah');
     }

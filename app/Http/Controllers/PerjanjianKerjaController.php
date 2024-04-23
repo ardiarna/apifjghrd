@@ -22,7 +22,13 @@ class PerjanjianKerjaController extends Controller
     }
 
     public function findAll(Request $req, $karyawan_id) {
-        $data = $this->repo->findAll(['karyawan_id' => $karyawan_id, 'search_by' => $req->query('search_by'), 'value' => $req->query('value'), 'sort_by' => $req->query('sort_by'), 'sort_order' => $req->query('sort_order')]);
+        $data = $this->repo->findAll([
+            'karyawan_id' => $karyawan_id,
+            'search_by' => $req->query('search_by'),
+            'value' => $req->query('value'),
+            'sort_by' => $req->query('sort_by'),
+            'sort_order' => $req->query('sort_order')
+        ]);
         return $this->successResponse($data);
     }
 
