@@ -33,9 +33,14 @@ class PerjanjianKerjaImplement implements PerjanjianKerjaRepository {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         } else {
-            $hasil->orderBy('nomor');
+            $hasil->orderBy('tanggal_awal');
         }
-        return $hasil->get();
+        $hasil = $hasil->get();
+        foreach ($hasil as $h) {
+            $h->karyawan;
+            $h->statusKerja;
+        }
+        return $hasil;
     }
 
     public function create(array $inputs) {

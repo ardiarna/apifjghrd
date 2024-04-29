@@ -29,7 +29,15 @@ class KaryawanImplement implements KaryawanRepository {
         } else {
             $hasil->orderBy('nama');
         }
-        return $hasil->get();
+        $hasil = $hasil->get();
+        foreach ($hasil as $h) {
+            $h->agama;
+            $h->divisi;
+            $h->jabatan;
+            $h->pendidikan;
+            $h->statusKerja;
+        }
+        return $hasil;
     }
 
     public function create(array $inputs) {

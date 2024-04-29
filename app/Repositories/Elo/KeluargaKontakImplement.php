@@ -35,7 +35,11 @@ class KeluargaKontakImplement implements KeluargaKontakRepository {
         } else {
             $hasil->orderBy('nama');
         }
-        return $hasil->get();
+        $hasil = $hasil->get();
+        foreach ($hasil as $h) {
+            $h->karyawan;
+        }
+        return $hasil;
     }
 
     public function create(array $inputs) {

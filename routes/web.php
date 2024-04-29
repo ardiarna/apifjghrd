@@ -104,7 +104,7 @@ $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function 
     $router->delete('{id}', 'PendidikanController@delete');
 });
 
-$router->group(['prefix' => 'statuskerja', 'middleware' => 'auth:api'], function () use ($router) {
+$router->group(['prefix' => 'status_kerja', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'StatusKerjaController@findAll');
     $router->get('{id}', 'StatusKerjaController@findById');
     $router->post('/', 'StatusKerjaController@create');
@@ -112,7 +112,7 @@ $router->group(['prefix' => 'statuskerja', 'middleware' => 'auth:api'], function
     $router->delete('{id}', 'StatusKerjaController@delete');
 });
 
-$router->group(['prefix' => 'statusphk', 'middleware' => 'auth:api'], function () use ($router) {
+$router->group(['prefix' => 'status_phk', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'StatusPhkController@findAll');
     $router->get('{id}', 'StatusPhkController@findById');
     $router->post('/', 'StatusPhkController@create');

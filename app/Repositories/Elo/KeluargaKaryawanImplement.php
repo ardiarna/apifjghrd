@@ -35,7 +35,11 @@ class KeluargaKaryawanImplement implements KeluargaKaryawanRepository {
         } else {
             $hasil->orderBy('nama');
         }
-        return $hasil->get();
+        $hasil = $hasil->get();
+        foreach ($hasil as $h) {
+            $h->karyawan;
+        }
+        return $hasil;
     }
 
     public function create(array $inputs) {
@@ -54,7 +58,7 @@ class KeluargaKaryawanImplement implements KeluargaKaryawanRepository {
             $model->nomor_ktp = $inputs['nomor_ktp'];
         }
         if($inputs['hubungan'] != null) {
-            $model->agama_id = $inputs['hubungan'];
+            $model->hubungan = $inputs['hubungan'];
         }
         if($inputs['tempat_lahir'] != null) {
             $model->tempat_lahir = $inputs['tempat_lahir'];
