@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('nomor_ktp');
             $table->date('tanggal_masuk')->nullable();
             $table->foreignId('agama_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('area_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('jabatan_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('divisi_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('tempat_lahir');

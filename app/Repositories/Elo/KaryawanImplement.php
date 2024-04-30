@@ -32,6 +32,7 @@ class KaryawanImplement implements KaryawanRepository {
         $hasil = $hasil->get();
         foreach ($hasil as $h) {
             $h->agama;
+            $h->area;
             $h->divisi;
             $h->jabatan;
             $h->pendidikan;
@@ -60,6 +61,9 @@ class KaryawanImplement implements KaryawanRepository {
         }
         if($inputs['agama_id'] != null) {
             $model->agama_id = $inputs['agama_id'];
+        }
+        if($inputs['area_id'] != null) {
+            $model->area_id = $inputs['area_id'];
         }
         if($inputs['jabatan_id'] != null) {
             $model->jabatan_id = $inputs['jabatan_id'];

@@ -10,11 +10,15 @@ class Karyawan extends Model
 {
 
     protected $fillable = [
-        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'agama_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'nomor_kk', 'nomor_paspor'
+        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'nomor_kk', 'nomor_paspor'
     ];
 
     public function agama(): BelongsTo {
         return $this->belongsTo(Agama::class);
+    }
+
+    public function area(): BelongsTo {
+        return $this->belongsTo(Area::class);
     }
 
     public function jabatan(): BelongsTo {

@@ -36,6 +36,7 @@ class KaryawanController extends Controller
             'nama' => 'required',
             'nomor_ktp' => 'digits:16',
             'tanggal_masuk' => 'required|date',
+            'area_id' => 'required',
             'jabatan_id' => 'required',
             'divisi_id' => 'required',
             'tempat_lahir' => 'required',
@@ -46,7 +47,7 @@ class KaryawanController extends Controller
             'kawin' => 'in:Y,N'
         ]);
         $inputs = $req->only([
-            'nama', 'nomor_ktp', 'tanggal_masuk', 'jabatan_id', 'divisi_id',
+            'nama', 'nomor_ktp', 'tanggal_masuk', 'area_id', 'jabatan_id', 'divisi_id',
             'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon'
         ]);
         $inputs['nik'] = $req->input('nik');
@@ -80,6 +81,7 @@ class KaryawanController extends Controller
         $inputs['nomor_ktp'] = $req->input('nomor_ktp');
         $inputs['tanggal_masuk'] = $req->input('tanggal_masuk');
         $inputs['agama_id'] = $req->input('agama_id');
+        $inputs['area_id'] = $req->input('area_id');
         $inputs['jabatan_id'] = $req->input('jabatan_id');
         $inputs['divisi_id'] = $req->input('divisi_id');
         $inputs['tempat_lahir'] = $req->input('tempat_lahir');
