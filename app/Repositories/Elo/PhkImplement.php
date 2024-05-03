@@ -23,7 +23,7 @@ class PhkImplement implements PhkRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query();
+        $hasil = $this->model->query()->with(['statusKerja','statusPhk']);
         $hasil->where('karyawan_id', $inputs['karyawan_id']);
         if($inputs['search_by'] && $inputs['value']) {
             $value = $inputs['value'];

@@ -35,11 +35,7 @@ class KeluargaKaryawanImplement implements KeluargaKaryawanRepository {
         } else {
             $hasil->orderBy('nama');
         }
-        $hasil = $hasil->get();
-        foreach ($hasil as $h) {
-            $h->karyawan;
-        }
-        return $hasil;
+        return $hasil->get();
     }
 
     public function create(array $inputs) {

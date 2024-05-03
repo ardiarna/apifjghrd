@@ -23,7 +23,7 @@ class PerjanjianKerjaImplement implements PerjanjianKerjaRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query();
+        $hasil = $this->model->query()->with('statuskerja');
         $hasil->where('karyawan_id', $inputs['karyawan_id']);
         if($inputs['search_by'] && $inputs['value']) {
             $value = $inputs['value'];
@@ -35,12 +35,7 @@ class PerjanjianKerjaImplement implements PerjanjianKerjaRepository {
         } else {
             $hasil->orderBy('tanggal_awal');
         }
-        $hasil = $hasil->get();
-        foreach ($hasil as $h) {
-            $h->karyawan;
-            $h->statusKerja;
-        }
-        return $hasil;
+        return $hasil->get();
     }
 
     public function create(array $inputs) {

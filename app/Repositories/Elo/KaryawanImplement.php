@@ -18,7 +18,10 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query();
+        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk'])
+            ->select('karyawans.*')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->orderBy('areas.urutan');
         if($inputs['search_by'] && $inputs['value']) {
             $value = $inputs['value'];
             $hasil->where($inputs['search_by'], 'like', "%$value%");
@@ -31,12 +34,6 @@ class KaryawanImplement implements KaryawanRepository {
         }
         $hasil = $hasil->get();
         foreach ($hasil as $h) {
-            $h->agama;
-            $h->area;
-            $h->divisi;
-            $h->jabatan;
-            $h->pendidikan;
-            $h->statusKerja;
             if($h->phk != null) {
                 $h->phk->statusPhk;
             }
