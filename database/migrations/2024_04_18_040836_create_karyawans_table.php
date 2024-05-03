@@ -17,10 +17,11 @@ return new class extends Migration
             $table->string('nik')->nullable();
             $table->string('nomor_ktp');
             $table->date('tanggal_masuk')->nullable();
+            $table->date('tanggal_keluar')->nullable();
             $table->foreignId('agama_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('area_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('jabatan_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
-            $table->foreignId('divisi_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('divisi_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('tempat_lahir');
             $table->date('tanggal_lahir');
             $table->string('alamat_ktp');
@@ -35,6 +36,7 @@ return new class extends Migration
             $table->enum('aktif', ['Y', 'N']);
             $table->string('nomor_kk')->nullable();
             $table->string('nomor_paspor')->nullable();
+            $table->foreignId('phk_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->timestamps();
             $table->unique(['nama', 'nomor_ktp'], 'karyawans_unique');
         });

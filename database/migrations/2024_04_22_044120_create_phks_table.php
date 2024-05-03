@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('karyawan_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->date('tanggal_awal');
             $table->date('tanggal_akhir');
-            $table->foreignId('status_kerja_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
+            $table->foreignId('status_kerja_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('status_phk_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->text('keterangan')->nullable();
             $table->timestamps();

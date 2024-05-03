@@ -10,7 +10,7 @@ class Karyawan extends Model
 {
 
     protected $fillable = [
-        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'nomor_kk', 'nomor_paspor'
+        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'nomor_kk', 'nomor_paspor', 'phk_id'
     ];
 
     public function agama(): BelongsTo {
@@ -37,6 +37,10 @@ class Karyawan extends Model
         return $this->belongsTo(Pendidikan::class);
     }
 
+    public function phk(): BelongsTo {
+        return $this->belongsTo(Phk::class);
+    }
+
     public function keluarga(): HasMany {
         return $this->hasMany(KeluargaKaryawan::class);
     }
@@ -49,7 +53,7 @@ class Karyawan extends Model
         return $this->hasMany(PerjanjianKerja::class);
     }
 
-    public function phk(): HasMany {
+    public function phkAll(): HasMany {
         return $this->hasMany(Phk::class);
     }
 

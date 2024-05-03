@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\PhkRepository;
+use App\Repositories\KaryawanRepository;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
@@ -10,10 +11,11 @@ class PhkController extends Controller
 {
     use ApiResponser;
 
-    protected $repo;
+    protected $repo, $karyawanRepo;
 
-    public function __construct(PhkRepository $repo) {
+    public function __construct(PhkRepository $repo, KaryawanRepository $karyawanRepo) {
         $this->repo = $repo;
+        $this->karyawanRepo = $karyawanRepo;
     }
 
     public function findById($karyawan_id, $id) {
@@ -36,14 +38,15 @@ class PhkController extends Controller
         $this->validate($req, [
             'tanggal_awal' => 'required|date',
             'tanggal_akhir' => 'required|date',
-            'status_kerja_id' => 'required',
             'status_phk_id' => 'required'
         ]);
-        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'status_kerja_id', 'status_phk_id']);
+        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'status_phk_id']);
         $inputs['karyawan_id'] = $karyawan_id;
+        $inputs['status_kerja_id'] = $req->input('status_kerja_id');
         $inputs['keterangan'] = $req->input('keterangan');
-        $data = $this->repo->create($inputs);
-        return $this->createdResponse($data, 'PHK berhasil dibuat');
+        $phk = $this->repo->create($inputs);
+        $this->karyawanRepo->setNonAktif($karyawan_id, $phk->id, $inputs['tanggal_akhir']);
+        return $this->createdResponse($phk, 'PHK berhasil dibuat');
     }
 
     public function update(Request $req, $karyawan_id, $id) {

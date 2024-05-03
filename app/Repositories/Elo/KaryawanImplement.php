@@ -37,6 +37,9 @@ class KaryawanImplement implements KaryawanRepository {
             $h->jabatan;
             $h->pendidikan;
             $h->statusKerja;
+            if($h->phk != null) {
+                $h->phk->statusPhk;
+            }
         }
         return $hasil;
     }
@@ -58,6 +61,9 @@ class KaryawanImplement implements KaryawanRepository {
         }
         if($inputs['tanggal_masuk'] != null) {
             $model->tanggal_masuk = $inputs['tanggal_masuk'];
+        }
+        if($inputs['tanggal_keluar'] != null) {
+            $model->tanggal_keluar = $inputs['tanggal_keluar'];
         }
         if($inputs['agama_id'] != null) {
             $model->agama_id = $inputs['agama_id'];
@@ -119,6 +125,15 @@ class KaryawanImplement implements KaryawanRepository {
 
     public function delete($id) {
         return $this->model->destroy($id);
+    }
+
+    public function setNonAktif($id, $phk_id, $tanggal_keluar) {
+        $model = $this->model->findOrFail($id);
+        $model->aktif = 'N';
+        $model->tanggal_keluar = $tanggal_keluar;
+        $model->phk_id = $phk_id;
+        $model->save();
+        return $model;
     }
 
 }
