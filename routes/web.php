@@ -77,6 +77,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@findById');
     $router->get('{karyawan_id}/perjanjian-kerja', 'PerjanjianKerjaController@findAll');
     $router->get('{karyawan_id}/perjanjian-kerja/{id}', 'PerjanjianKerjaController@findById');
+    $router->get('{karyawan_id}/timeline-masakerja', 'PerjanjianKerjaController@timelineMasaKerja');
     $router->get('{karyawan_id}/phk', 'PhkController@findAll');
     $router->get('{karyawan_id}/phk/{id}', 'PhkController@findById');
     $router->post('/', 'KaryawanController@create');

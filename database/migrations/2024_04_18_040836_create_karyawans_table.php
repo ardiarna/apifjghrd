@@ -29,11 +29,13 @@ return new class extends Migration
             $table->string('telepon');
             $table->string('email')->nullable();
             $table->enum('kawin', ['Y', 'N'])->nullable();
+            $table->enum('kelamin', ['L', 'P'])->nullable();
             $table->foreignId('status_kerja_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('pendidikan_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('pendidikan_almamater')->nullable();
             $table->string('pendidikan_jurusan')->nullable();
             $table->enum('aktif', ['Y', 'N']);
+            $table->enum('staf', ['Y', 'N']);
             $table->string('nomor_kk')->nullable();
             $table->string('nomor_paspor')->nullable();
             $table->foreignId('phk_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();

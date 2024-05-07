@@ -22,6 +22,12 @@ class KaryawanImplement implements KaryawanRepository {
             ->select('karyawans.*')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('areas.urutan');
+        if($inputs['aktif']) {
+            $hasil->where('aktif', $inputs['aktif']);
+        }
+        if($inputs['staf']) {
+            $hasil->where('staf', $inputs['staf']);
+        }
         if($inputs['search_by'] && $inputs['value']) {
             $value = $inputs['value'];
             $hasil->where($inputs['search_by'], 'like', "%$value%");
@@ -95,6 +101,9 @@ class KaryawanImplement implements KaryawanRepository {
         if($inputs['kawin'] != null) {
             $model->kawin = $inputs['kawin'];
         }
+        if($inputs['kelamin'] != null) {
+            $model->kelamin = $inputs['kelamin'];
+        }
         if($inputs['status_kerja_id'] != null) {
             $model->status_kerja_id = $inputs['status_kerja_id'];
         }
@@ -109,6 +118,9 @@ class KaryawanImplement implements KaryawanRepository {
         }
         if($inputs['aktif'] != null) {
             $model->aktif = $inputs['aktif'];
+        }
+        if($inputs['staf'] != null) {
+            $model->staf = $inputs['staf'];
         }
         if($inputs['nomor_kk'] != null) {
             $model->nomor_kk = $inputs['nomor_kk'];

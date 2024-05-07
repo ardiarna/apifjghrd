@@ -23,6 +23,8 @@ class KaryawanController extends Controller
 
     public function findAll(Request $req) {
         $data = $this->repo->findAll([
+            'aktif' => $req->query('aktif'),
+            'staf' => $req->query('staf'),
             'search_by' => $req->query('search_by'),
             'value' => $req->query('value'),
             'sort_by' => $req->query('sort_by'),
@@ -43,11 +45,13 @@ class KaryawanController extends Controller
             'alamat_ktp' => 'required',
             'telepon' => 'required|numeric',
             'email' => 'email',
-            'kawin' => 'in:Y,N'
+            'kawin' => 'in:Y,N',
+            'kelamin' => 'required|in:L,P',
+            'staf' => 'required|in:Y,N',
         ]);
         $inputs = $req->only([
             'nama', 'nomor_ktp', 'tanggal_masuk', 'area_id', 'jabatan_id',
-            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon'
+            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon', 'kelamin', 'staf'
         ]);
         $inputs['nik'] = $req->input('nik');
         $inputs['agama_id'] = $req->input('agama_id');
@@ -74,7 +78,9 @@ class KaryawanController extends Controller
             'telepon' => 'numeric',
             'email' => 'email',
             'kawin' => 'in:Y,N',
-            'aktif' => 'in:Y,N'
+            'aktif' => 'in:Y,N',
+            'kelamin' => 'required|in:L,P',
+            'staf' => 'required|in:Y,N',
         ]);
         $inputs['nama'] = $req->input('nama');
         $inputs['nik'] = $req->input('nik');
@@ -92,11 +98,13 @@ class KaryawanController extends Controller
         $inputs['telepon'] = $req->input('telepon');
         $inputs['email'] = $req->input('email');
         $inputs['kawin'] = $req->input('kawin');
+        $inputs['kelamin'] = $req->input('kelamin');
         $inputs['status_kerja_id'] = $req->input('status_kerja_id');
         $inputs['pendidikan_id'] = $req->input('pendidikan_id');
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
         $inputs['aktif'] = $req->input('aktif');
+        $inputs['staf'] = $req->input('staf');
         $inputs['nomor_kk'] = $req->input('nomor_kk');
         $inputs['nomor_paspor'] = $req->input('nomor_paspor');
         $data = $this->repo->update($id, $inputs);

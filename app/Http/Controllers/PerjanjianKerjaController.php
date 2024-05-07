@@ -32,6 +32,11 @@ class PerjanjianKerjaController extends Controller
         return $this->successResponse($data);
     }
 
+    public function timelineMasaKerja($karyawan_id) {
+        $data = $this->repo->timelineMasaKerja($karyawan_id);
+        return $this->successResponse($data);
+    }
+
     public function create(Request $req, $karyawan_id) {
         $this->validate($req, [
             'nomor' => 'required',
