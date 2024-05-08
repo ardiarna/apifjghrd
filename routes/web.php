@@ -80,21 +80,25 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/timeline-masakerja', 'PerjanjianKerjaController@timelineMasaKerja');
     $router->get('{karyawan_id}/phk', 'PhkController@findAll');
     $router->get('{karyawan_id}/phk/{id}', 'PhkController@findById');
+    $router->get('{karyawan_id}/upah', 'UpahController@findByKaryawanId');
     $router->post('/', 'KaryawanController@create');
     $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
     $router->post('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@create');
     $router->post('{karyawan_id}/perjanjian-kerja', 'PerjanjianKerjaController@create');
     $router->post('{karyawan_id}/phk', 'PhkController@create');
+    $router->post('{karyawan_id}/upah', 'UpahController@create');
     $router->put('{id}', 'KaryawanController@update');
     $router->put('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@update');
     $router->put('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@update');
     $router->put('{karyawan_id}/perjanjian-kerja/{id}', 'PerjanjianKerjaController@update');
     $router->put('{karyawan_id}/phk/{id}', 'PhkController@update');
+    $router->put('{karyawan_id}/upah', 'UpahController@updateByKaryawanId');
     $router->delete('{id}', 'KaryawanController@delete');
     $router->delete('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@delete');
     $router->delete('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@delete');
     $router->delete('{karyawan_id}/perjanjian-kerja/{id}', 'PerjanjianKerjaController@delete');
     $router->delete('{karyawan_id}/phk/{id}', 'PhkController@delete');
+    $router->delete('{karyawan_id}/upah', 'UpahController@deleteByKaryawanId');
 });
 
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
@@ -119,4 +123,11 @@ $router->group(['prefix' => 'status_phk', 'middleware' => 'auth:api'], function 
     $router->post('/', 'StatusPhkController@create');
     $router->put('{id}', 'StatusPhkController@update');
     $router->delete('{id}', 'StatusPhkController@delete');
+});
+
+$router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'UpahController@findAll');
+    $router->get('{id}', 'UpahController@findById');
+    $router->put('{id}', 'UpahController@update');
+    $router->delete('{id}', 'UpahController@delete');
 });
