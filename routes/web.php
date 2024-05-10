@@ -60,6 +60,14 @@ $router->group(['prefix' => 'divisi', 'middleware' => 'auth:api'], function () u
     $router->delete('{id}', 'DivisiController@delete');
 });
 
+$router->group(['prefix' => 'hari_libur', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'HariLiburController@findAll');
+    $router->get('{id}', 'HariLiburController@findById');
+    $router->post('/', 'HariLiburController@create');
+    $router->put('{id}', 'HariLiburController@update');
+    $router->delete('{id}', 'HariLiburController@delete');
+});
+
 $router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'JabatanController@findAll');
     $router->get('{id}', 'JabatanController@findById');
