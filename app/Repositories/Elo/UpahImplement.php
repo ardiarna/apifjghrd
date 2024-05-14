@@ -33,6 +33,7 @@ class UpahImplement implements UpahRepository {
             ->select('karyawans.*', 'upahs.id AS upah_id', 'upahs.gaji', 'upahs.uang_makan', 'upahs.makan_harian', 'upahs.overtime')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->leftJoin('upahs', 'karyawans.id', '=', 'upahs.karyawan_id')
+            ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan');
         if($inputs['aktif']) {
             $hasil->where('aktif', $inputs['aktif']);
@@ -47,9 +48,8 @@ class UpahImplement implements UpahRepository {
         if($inputs['sort_by']) {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
-        } else {
-            $hasil->orderBy('nama');
         }
+        $hasil->orderBy('karyawans.id');
         $hasil = $hasil->get();
         return $hasil;
     }
