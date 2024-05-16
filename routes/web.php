@@ -109,6 +109,17 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->delete('{karyawan_id}/upah', 'UpahController@deleteByKaryawanId');
 });
 
+$router->group(['prefix' => 'payroll', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'PayrollController@findAll');
+    $router->get('{id}', 'PayrollController@findById');
+    $router->get('{header_id}/detil', 'PayrollController@findDetail');
+    $router->post('/', 'PayrollController@create');
+    $router->put('{id}', 'PayrollController@update');
+    $router->put('{id}/kunci', 'PayrollController@kunciPayroll');
+    $router->put('{header_id}/detil/{id}', 'PayrollController@updateDetail');
+    $router->delete('{id}', 'PayrollController@delete');
+});
+
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PendidikanController@findAll');
     $router->get('{id}', 'PendidikanController@findById');
