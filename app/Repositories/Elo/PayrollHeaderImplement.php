@@ -28,13 +28,13 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
                 DB::raw('MONTH(payroll_headers.tanggal_akhir) as bulan'),
                 DB::raw('YEAR(payroll_headers.tanggal_akhir) as tahun')
             );
-        if($inputs['tahun']) {
+        if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->whereYear('tanggal_akhir', '=', $inputs['tahun']);
         }
-        if($inputs['bulan']) {
+        if(isset($inputs['bulan']) && $inputs['bulan'] != '') {
             $hasil->whereMonth('tanggal_akhir', '=', $inputs['bulan']);
         }
-        if($inputs['sort_by']) {
+        if(isset($inputs['sort_by'])  && $inputs['sort_by'] != '') {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         }

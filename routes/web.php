@@ -150,3 +150,7 @@ $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use
     $router->put('{id}', 'UpahController@update');
     $router->delete('{id}', 'UpahController@delete');
 });
+
+$router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('listpayroll/{tahun}', 'SpreadsheetController@listPayroll');
+});

@@ -31,25 +31,25 @@ class PayrollImplement implements PayrollRepository {
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan');
-        if($inputs['header_id']) {
+        if(isset($inputs['header_id']) && $inputs['header_id'] != '') {
             $hasil->where('payrolls.payroll_header_id', $inputs['header_id']);
         }
-        if($inputs['karyawan_id']) {
+        if(isset($inputs['karyawan_id']) && $inputs['karyawan_id'] != '') {
             $hasil->where('payrolls.karyawan_id', $inputs['karyawan_id']);
         }
-        if($inputs['aktif']) {
+        if(isset($inputs['aktif']) && $inputs['aktif'] != '') {
             $hasil->where('karyawans.aktif', $inputs['aktif']);
         }
-        if($inputs['staf']) {
+        if(isset($inputs['staf']) && $inputs['staf'] != '') {
             $hasil->where('karyawans.staf', $inputs['staf']);
         }
-        if($inputs['tahun']) {
+        if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->whereYear('payroll_headers.tanggal_akhir', '=', $inputs['tahun']);
         }
-        if($inputs['bulan']) {
+        if(isset($inputs['bulan']) && $inputs['tahun'] != '') {
             $hasil->whereMonth('payroll_headers.tanggal_akhir', '=', $inputs['bulan']);
         }
-        if($inputs['sort_by']) {
+        if(isset($inputs['sort_by']) && $inputs['sort_by'] != '') {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         }
