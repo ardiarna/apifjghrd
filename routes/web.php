@@ -52,6 +52,14 @@ $router->group(['prefix' => 'area', 'middleware' => 'auth:api'], function () use
     $router->delete('{id}', 'AreaController@delete');
 });
 
+$router->group(['prefix' => 'customer', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'CustomerController@findAll');
+    $router->get('{id}', 'CustomerController@findById');
+    $router->post('/', 'CustomerController@create');
+    $router->put('{id}', 'CustomerController@update');
+    $router->delete('{id}', 'CustomerController@delete');
+});
+
 $router->group(['prefix' => 'divisi', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'DivisiController@findAll');
     $router->get('{id}', 'DivisiController@findById');

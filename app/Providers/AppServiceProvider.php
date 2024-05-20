@@ -15,6 +15,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind('App\Repositories\AgamaRepository', 'App\Repositories\Elo\AgamaImplement');
         $this->app->bind('App\Repositories\AreaRepository', 'App\Repositories\Elo\AreaImplement');
+        $this->app->bind('App\Repositories\CustomerRepository', 'App\Repositories\Elo\CustomerImplement');
         $this->app->bind('App\Repositories\DivisiRepository', 'App\Repositories\Elo\DivisiImplement');
         $this->app->bind('App\Repositories\HariLiburRepository', 'App\Repositories\Elo\HariLiburImplement');
         $this->app->bind('App\Repositories\JabatanRepository', 'App\Repositories\Elo\JabatanImplement');
