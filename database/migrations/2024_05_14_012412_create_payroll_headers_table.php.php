@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->date('tanggal_awal');
             $table->date('tanggal_akhir');
-            $table->date('tanggal_makan_awal');
-            $table->date('tanggal_makan_akhir');
+            $table->smallInteger('tahun', false, true);
+            $table->smallInteger('bulan', false, true);
             $table->integer('gaji', false, true)->default(0);
             $table->integer('uang_makan_jumlah', false, true)->default(0);
             $table->integer('overtime_fjg', false, true)->default(0);

@@ -22,17 +22,12 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()
-            ->select(
-                'payroll_headers.*',
-                DB::raw('MONTH(payroll_headers.tanggal_akhir) as bulan'),
-                DB::raw('YEAR(payroll_headers.tanggal_akhir) as tahun')
-            );
+        $hasil = $this->model->query();
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
-            $hasil->whereYear('tanggal_akhir', '=', $inputs['tahun']);
+            $hasil->where('tahun', $inputs['tahun']);
         }
         if(isset($inputs['bulan']) && $inputs['bulan'] != '') {
-            $hasil->whereMonth('tanggal_akhir', '=', $inputs['bulan']);
+            $hasil->where('bulan', $inputs['bulan']);
         }
         if(isset($inputs['sort_by'])  && $inputs['sort_by'] != '') {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
@@ -54,11 +49,11 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         if(isset($inputs['tanggal_akhir'])) {
             $model->tanggal_akhir = $inputs['tanggal_akhir'];
         }
-        if(isset($inputs['tanggal_makan_awal'])) {
-            $model->tanggal_makan_awal = $inputs['tanggal_makan_awal'];
+        if(isset($inputs['tahun'])) {
+            $model->tahun = $inputs['tahun'];
         }
-        if(isset($inputs['tanggal_makan_akhir'])) {
-            $model->tanggal_makan_akhir = $inputs['tanggal_makan_akhir'];
+        if(isset($inputs['bulan'])) {
+            $model->bulan = $inputs['bulan'];
         }
         if(isset($inputs['gaji'])) {
             $model->gaji = $inputs['gaji'];

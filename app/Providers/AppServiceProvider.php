@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\KaryawanRepository', 'App\Repositories\Elo\KaryawanImplement');
         $this->app->bind('App\Repositories\KeluargaKaryawanRepository', 'App\Repositories\Elo\KeluargaKaryawanImplement');
         $this->app->bind('App\Repositories\KeluargaKontakRepository', 'App\Repositories\Elo\KeluargaKontakImplement');
+        $this->app->bind('App\Repositories\MedicalRepository', 'App\Repositories\Elo\MedicalImplement');
+        $this->app->bind('App\Repositories\MedicalRekapRepository', 'App\Repositories\Elo\MedicalRekapImplement');
         $this->app->bind('App\Repositories\PayrollHeaderRepository', 'App\Repositories\Elo\PayrollHeaderImplement');
         $this->app->bind('App\Repositories\PayrollRepository', 'App\Repositories\Elo\PayrollImplement');
         $this->app->bind('App\Repositories\PendidikanRepository', 'App\Repositories\Elo\PendidikanImplement');

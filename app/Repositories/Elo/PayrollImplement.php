@@ -25,7 +25,7 @@ class PayrollImplement implements PayrollRepository {
 
     public function findAll($inputs = []) {
         $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan'])
-            ->select('payrolls.*', 'payroll_headers.tanggal_awal', 'payroll_headers.tanggal_akhir', 'payroll_headers.tanggal_makan_awal', 'payroll_headers.tanggal_makan_akhir')
+            ->select('payrolls.*', 'payroll_headers.tanggal_awal', 'payroll_headers.tanggal_akhir', 'payroll_headers.tahun', 'payroll_headers.bulan')
             ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
             ->join('karyawans', 'payrolls.karyawan_id', '=', 'karyawans.id')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
@@ -44,10 +44,10 @@ class PayrollImplement implements PayrollRepository {
             $hasil->where('karyawans.staf', $inputs['staf']);
         }
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
-            $hasil->whereYear('payroll_headers.tanggal_akhir', '=', $inputs['tahun']);
+            $hasil->where('payroll_headers.tahun', $inputs['tahun']);
         }
-        if(isset($inputs['bulan']) && $inputs['tahun'] != '') {
-            $hasil->whereMonth('payroll_headers.tanggal_akhir', '=', $inputs['bulan']);
+        if(isset($inputs['bulan']) && $inputs['bualn'] != '') {
+            $hasil->where('payroll_headers.bulan', $inputs['bulan']);
         }
         if(isset($inputs['sort_by']) && $inputs['sort_by'] != '') {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';

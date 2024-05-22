@@ -22,7 +22,7 @@ class UpahImplement implements UpahRepository {
     }
 
     public function findByKaryawanId($karyawan_id) {
-        $model = $this->model->query()
+        $model = $this->model->query()->with('karyawan')
             ->where('karyawan_id', $karyawan_id)
             ->firstOrFail();
         return $model;

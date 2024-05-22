@@ -52,8 +52,8 @@ class PayrollController extends Controller
         $this->validate($req, [
             'tanggal_awal' => 'required|date',
             'tanggal_akhir' => 'required|date',
-            'tanggal_makan_awal' => 'required|date',
-            'tanggal_makan_akhir' => 'required|date',
+            'tahun' => 'required|integer',
+            'bulan' => 'required|integer',
             'payrolls' => 'required|array', // Memastikan bahwa data yang dikirimkan adalah array
             'payrolls.*.karyawan_id' => 'required', // Memastikan bahwa setiap karyawan_id ada dalam tabel karyawan
             'payrolls.*.gaji' => 'required|numeric',
@@ -80,7 +80,7 @@ class PayrollController extends Controller
             'payrolls.*.pot_lain' => 'required|numeric',
             'payrolls.*.total_diterima' => 'required|numeric',
         ]);
-        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tanggal_makan_awal', 'tanggal_makan_akhir']);
+        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan']);
         $inputs['keterangan'] = $req->input('keterangan');
         $header = $this->repoHeader->create($inputs);
         $listInputPayroll = $req->input('payrolls');
@@ -96,10 +96,10 @@ class PayrollController extends Controller
         $this->validate($req, [
             'tanggal_awal' => 'required|date',
             'tanggal_akhir' => 'required|date',
-            'tanggal_makan_awal' => 'required|date',
-            'tanggal_makan_akhir' => 'required|date',
+            'tahun' => 'required|integer',
+            'bulan' => 'required|integer',
         ]);
-        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tanggal_makan_awal', 'tanggal_makan_akhir']);
+        $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan']);
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repoHeader->update($id, $inputs);
         return $this->createdResponse($data, 'Payroll berhasil diubah');
