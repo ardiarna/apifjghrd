@@ -98,6 +98,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/phk/{id}', 'PhkController@findById');
     $router->get('{karyawan_id}/upah', 'UpahController@findByKaryawanId');
     $router->get('{karyawan_id}/medical-rekap/{tahun}', 'MedicalController@findRekapByKaryawanIdAndTahun');
+    $router->get('{karyawan_id}/overtime-rekap/{tahun}', 'OvertimeController@findRekapByKaryawanIdAndTahun');
     $router->post('/', 'KaryawanController@create');
     $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
     $router->post('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@create');
@@ -124,6 +125,14 @@ $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () 
     $router->post('/', 'MedicalController@create');
     $router->put('{id}', 'MedicalController@update');
     $router->delete('{id}', 'MedicalController@delete');
+});
+
+$router->group(['prefix' => 'overtime', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'OvertimeController@findAll');
+    $router->get('{id}', 'OvertimeController@findById');
+    $router->post('/', 'OvertimeController@create');
+    $router->put('{id}', 'OvertimeController@update');
+    $router->delete('{id}', 'OvertimeController@delete');
 });
 
 $router->group(['prefix' => 'payroll', 'middleware' => 'auth:api'], function () use ($router) {
