@@ -127,6 +127,14 @@ $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () 
     $router->delete('{id}', 'MedicalController@delete');
 });
 
+$router->group(['prefix' => 'oncall_customer', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'OncallCustomerController@findAll');
+    $router->get('{id}', 'OncallCustomerController@findById');
+    $router->post('/', 'OncallCustomerController@create');
+    $router->put('{id}', 'OncallCustomerController@update');
+    $router->delete('{id}', 'OncallCustomerController@delete');
+});
+
 $router->group(['prefix' => 'overtime', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'OvertimeController@findAll');
     $router->get('{id}', 'OvertimeController@findById');
