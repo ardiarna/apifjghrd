@@ -58,7 +58,30 @@ class MedicalImplement implements MedicalRepository {
     }
 
     public function update($id, array $inputs) {
-
+        $model = $this->model->findOrFail($id);
+        if($model->karyawan_id != $inputs['karyawan_id']) {
+            throw new HttpException(403, 'Karyawan tidak sesuai');
+        }
+        if(isset($inputs['jenis'])) {
+            $model->jenis = $inputs['jenis'];
+        }
+        if(isset($inputs['tanggal'])) {
+            $model->tanggal = $inputs['tanggal'];
+        }
+        if(isset($inputs['tahun'])) {
+            $model->tahun = $inputs['tahun'];
+        }
+        if(isset($inputs['bulan'])) {
+            $model->bulan = $inputs['bulan'];
+        }
+        if(isset($inputs['jumlah'])) {
+            $model->jumlah = $inputs['jumlah'];
+        }
+        if(isset($inputs['keterangan'])) {
+            $model->keterangan = $inputs['keterangan'];
+        }
+        $model->save();
+        return $model;
     }
 
     public function delete($id) {

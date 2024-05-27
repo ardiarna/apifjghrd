@@ -120,10 +120,10 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
 
 $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'MedicalController@findAll');
-    // $router->get('{id}', 'MedicalController@findById');
+    $router->get('{id}', 'MedicalController@findById');
     $router->post('/', 'MedicalController@create');
-    // $router->put('{id}', 'MedicalController@update');
-    // $router->delete('{id}', 'MedicalController@delete');
+    $router->put('{id}', 'MedicalController@update');
+    $router->delete('{id}', 'MedicalController@delete');
 });
 
 $router->group(['prefix' => 'payroll', 'middleware' => 'auth:api'], function () use ($router) {

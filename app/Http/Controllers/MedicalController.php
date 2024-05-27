@@ -21,6 +21,9 @@ class MedicalController extends Controller
 
     public function findById($id) {
         $data = $this->repo->findById($id);
+        if($data == null) {
+            return $this->failRespNotFound('Medical dengan id '.$id.' tidak ditemukan');
+        }
         return $this->successResponse($data);
     }
 
@@ -75,43 +78,85 @@ class MedicalController extends Controller
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->create($inputs);
         if($data->jenis == 'R') {
-            $rekap = $this->repoRekap->findByKaryawanIdAndTahun($data->karyawan_id, $data->tahun);
-            $m = $data->bulan;
-            if($rekap) {
-                $this->repoRekap->update($rekap->id, [
-                    "karyawan_id" => $rekap->karyawan_id,
-                    "tahun" => $rekap->tahun,
-                    "bln_".$m => ($rekap->{"bln_".$m}+$data->jumlah)
-                ]);
-            } else {
-                $upah = $upahRepo->findByKaryawanId($data->karyawan_id);
-                $this->repoRekap->create([
-                    "karyawan_id" => $data->karyawan_id,
-                    "tahun" => $data->tahun,
-                    "bln_".$m => $data->jumlah,
-                    'gaji' => $upah->gaji
-                ]);
-            }
+            $this->updateRekap($upahRepo, $data);
         }
         return $this->createdResponse($data, 'Medical berhasil dibuat');
     }
 
-    // public function update(Request $req, $id) {
-    //     $this->validate($req, [
-    //         'urutan' => 'integer|min:1'
-    //     ]);
-    //     $inputs['nama'] = $req->input('nama');
-    //     $inputs['urutan'] = $req->input('urutan');
-    //     $data = $this->repo->update($id, $inputs);
-    //     return $this->successResponse($data, 'Medical berhasil diubah');
-    // }
+    public function update(Request $req, UpahRepository $upahRepo, $id) {
+        $this->validate($req, [
+            'karyawan_id' => 'required',
+            'jenis' => 'required|in:I,K,R',
+            'tanggal' => 'required|date',
+            'tahun' => 'required|integer',
+            'bulan' => 'required|integer',
+            'jumlah' => 'required|integer'
+        ]);
+        $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
+        $inputs['keterangan'] = $req->input('keterangan');
+        $dataLama = $this->repo->findById($id);
+        if($dataLama == null) {
+            return $this->failRespNotFound('Medical dengan id '.$id.' tidak ditemukan');
+        }
+        if($dataLama->jenis == 'R') {
+            $rekap = $this->repoRekap->findByKaryawanIdAndTahun($dataLama->karyawan_id, $dataLama->tahun);
+            $m = $dataLama->bulan;
+            if($rekap) {
+                $this->repoRekap->update($rekap->id, [
+                    "karyawan_id" => $rekap->karyawan_id,
+                    "tahun" => $rekap->tahun,
+                    "bln_".$m => ($rekap->{"bln_".$m}-$dataLama->jumlah)
+                ]);
+            }
+        }
+        $data = $this->repo->update($id, $inputs);
+        if($data->jenis == 'R') {
+            $this->updateRekap($upahRepo, $data);
+        }
+        return $this->successResponse($data, 'Medical berhasil diubah');
+    }
 
     public function delete($id) {
+        $dataLama = $this->repo->findById($id);
+        if($dataLama == null) {
+            return $this->failRespNotFound('Medical dengan id '.$id.' tidak ditemukan');
+        }
+        if($dataLama->jenis == 'R') {
+            $rekap = $this->repoRekap->findByKaryawanIdAndTahun($dataLama->karyawan_id, $dataLama->tahun);
+            $m = $dataLama->bulan;
+            if($rekap) {
+                $this->repoRekap->update($rekap->id, [
+                    "karyawan_id" => $rekap->karyawan_id,
+                    "tahun" => $rekap->tahun,
+                    "bln_".$m => ($rekap->{"bln_".$m}-$dataLama->jumlah)
+                ]);
+            }
+        }
         $data = $this->repo->delete($id);
         if($data == 0) {
-            return $this->failRespNotFound('Medical tidak ditemukan');
+            return $this->failRespNotFound('Medical dengan id '.$id.' tidak ditemukan');
         }
         return $this->successResponse($data, 'Medical berhasil dihapus');
+    }
+
+    public function updateRekap(UpahRepository $upahRepo, $data) {
+        $rekap = $this->repoRekap->findByKaryawanIdAndTahun($data->karyawan_id, $data->tahun);
+        $m = $data->bulan;
+        if($rekap) {
+            $this->repoRekap->update($rekap->id, [
+                "karyawan_id" => $rekap->karyawan_id,
+                "tahun" => $rekap->tahun,
+                "bln_".$m => ($rekap->{"bln_".$m}+$data->jumlah)
+            ]);
+        } else {
+            $upah = $upahRepo->findByKaryawanId($data->karyawan_id);
+            $this->repoRekap->create([
+                "karyawan_id" => $data->karyawan_id,
+                "tahun" => $data->tahun,
+                "bln_".$m => $data->jumlah,
+                'gaji' => $upah->gaji
+            ]);
+        }
     }
 
 }
