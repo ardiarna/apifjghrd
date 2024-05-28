@@ -33,7 +33,8 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         }
-        $hasil->orderBy('tanggal_akhir');
+        $hasil->orderBy('tahun');
+        $hasil->orderBy('bulan');
         return $hasil->get();
     }
 

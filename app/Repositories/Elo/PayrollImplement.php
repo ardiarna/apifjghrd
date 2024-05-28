@@ -46,7 +46,7 @@ class PayrollImplement implements PayrollRepository {
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->where('payroll_headers.tahun', $inputs['tahun']);
         }
-        if(isset($inputs['bulan']) && $inputs['bualn'] != '') {
+        if(isset($inputs['bulan']) && $inputs['bulan'] != '') {
             $hasil->where('payroll_headers.bulan', $inputs['bulan']);
         }
         if(isset($inputs['sort_by']) && $inputs['sort_by'] != '') {
@@ -54,7 +54,8 @@ class PayrollImplement implements PayrollRepository {
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         }
         $hasil->orderBy('payrolls.karyawan_id');
-        $hasil->orderBy('payroll_headers.tanggal_akhir');
+        $hasil->orderBy('payroll_headers.tahun');
+        $hasil->orderBy('payroll_headers.bulan');
         return $hasil->get();
     }
 

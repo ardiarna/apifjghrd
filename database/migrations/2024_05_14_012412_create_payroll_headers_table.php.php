@@ -40,7 +40,7 @@ return new class extends Migration
             $table->enum('dikunci', ['Y', 'N'])->default('N');
             $table->string('keterangan')->nullable();
             $table->timestamps();
-            $table->unique(['tanggal_akhir'], 'payroll_headers_unique');
+            $table->unique(['tahun', 'bulan'], 'payroll_headers_unique');
         });
     }
 
