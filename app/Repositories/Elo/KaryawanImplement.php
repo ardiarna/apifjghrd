@@ -21,23 +21,23 @@ class KaryawanImplement implements KaryawanRepository {
         $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk'])
             ->select('karyawans.*')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan');
-        if($inputs['aktif']) {
-            $hasil->where('aktif', $inputs['aktif']);
+        if(isset($inputs['aktif']) && $inputs['aktif'] != '') {
+            $hasil->where('karyawans.aktif', $inputs['aktif']);
         }
-        if($inputs['staf']) {
-            $hasil->where('staf', $inputs['staf']);
+        if(isset($inputs['staf']) && $inputs['staf'] != '') {
+            $hasil->where('karyawans.staf', $inputs['staf']);
         }
-        if($inputs['search_by'] && $inputs['value']) {
+        if(isset($inputs['search_by']) && isset($inputs['value']) && $inputs['search_by'] != '' && $inputs['value'] != '') {
             $value = $inputs['value'];
             $hasil->where($inputs['search_by'], 'like', "%$value%");
         }
-        if($inputs['sort_by']) {
-            $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
+        if(isset($inputs['sort_by']) && $inputs['sort_by'] != '') {
+            $sort_order = (isset($inputs['sort_order']) && $inputs['sort_order'] != '') ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
-        } else {
-            $hasil->orderBy('nama');
         }
+        $hasil->orderBy('karyawans.id');
         $hasil = $hasil->get();
         foreach ($hasil as $h) {
             if($h->phk != null) {
