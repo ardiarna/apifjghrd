@@ -191,4 +191,5 @@ $router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () us
     $router->get('rekap-payroll-perkaryawan/{jenis}/{tahun}/{area}', 'SpreadPayrollController@rekapPerKaryawan');
     $router->get('rekap-medical/{tahun}', 'SpreadMedicalController@rekap');
     $router->get('rekap-overtime/{tahun}', 'SpreadOvertimeController@rekap');
+    $router->get('slip-gaji/{tahun}/{bulan}/{jenis}/{area}', 'SpreadSlipGajiController@cetak');
 });

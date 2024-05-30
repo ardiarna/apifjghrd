@@ -24,7 +24,7 @@ class PayrollImplement implements PayrollRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan'])
+        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'karyawan.divisi'])
             ->select('payrolls.*', 'payroll_headers.tanggal_awal', 'payroll_headers.tanggal_akhir', 'payroll_headers.tahun', 'payroll_headers.bulan')
             ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
             ->join('karyawans', 'payrolls.karyawan_id', '=', 'karyawans.id')
