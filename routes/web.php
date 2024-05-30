@@ -188,6 +188,7 @@ $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use
 $router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('list-payroll/{tahun}', 'SpreadsheetController@listPayroll');
     $router->get('rekap-payroll/{tahun}', 'SpreadsheetController@rekapPayroll');
+    $router->get('rekap-payroll-perkaryawan/{jenis}/{tahun}/{area}', 'SpreadPayrollController@rekapPerKaryawan');
     $router->get('rekap-medical/{tahun}', 'SpreadMedicalController@rekap');
     $router->get('rekap-overtime/{tahun}', 'SpreadOvertimeController@rekap');
 });

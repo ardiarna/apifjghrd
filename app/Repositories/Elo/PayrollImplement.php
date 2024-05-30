@@ -43,6 +43,16 @@ class PayrollImplement implements PayrollRepository {
         if(isset($inputs['staf']) && $inputs['staf'] != '') {
             $hasil->where('karyawans.staf', $inputs['staf']);
         }
+        if(isset($inputs['area']) && $inputs['area'] != '') {
+            $hasil->where('karyawans.area_id', $inputs['area']);
+        }
+        if(isset($inputs['engineer']) && $inputs['engineer'] != '') {
+            if($inputs['engineer'] == 'Y') {
+                $hasil->where('karyawans.divisi_id', '6');
+            } else if($inputs['engineer'] == 'N') {
+                $hasil->where('karyawans.divisi_id', '<>', '6');
+            }
+        }
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->where('payroll_headers.tahun', $inputs['tahun']);
         }
