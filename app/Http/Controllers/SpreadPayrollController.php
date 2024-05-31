@@ -231,7 +231,7 @@ class SpreadPayrollController extends Controller
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="PAYROLL_KARYAWAN_'.($jenis == '3' ? 'NON_STAF' : ($jenis == '2' ? 'STAF_' : 'ENGINEERING_').str_replace(' ', '_', $namaArea)).'_'.substr($tahun, -2). '.xlsx"');
+        header('Content-Disposition: attachment;filename="PAYROLL_KARYAWAN_'.($jenis == '3' ? 'NON_STAF_' : ($jenis == '2' ? 'STAF_' : 'ENGINEERING_').str_replace(' ', '_', $namaArea)).'_'.substr($tahun, -2). '.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');

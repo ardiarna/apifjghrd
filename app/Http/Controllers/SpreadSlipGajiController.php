@@ -2,17 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\AreaRepository;
 use App\Repositories\PayrollRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class SpreadSlipGajiController extends Controller
 {
-    protected $repo;
+    protected $repo, $rpArea;
 
-    public function __construct(PayrollRepository $repo) {
+    public function __construct(PayrollRepository $repo, AreaRepository $rpArea) {
         $this->repo = $repo;
+        $this->rpArea = $rpArea;
     }
 
     public function cetak($tahun, $bulan, $jenis, $area) {
@@ -23,6 +26,13 @@ class SpreadSlipGajiController extends Controller
         $px = 10.7/64;      //100 -> 100;
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Ebrima')->setSize(10)->setBold(TRUE);
+
+        if($area == 'all') {
+            $namaArea = '';
+        } else {
+            $dArea = $this->rpArea->findById($area);
+            $namaArea = $dArea->nama.'_';
+        }
 
         $dataDetails = $this->repo->findAll([
             'tahun' => $tahun,
@@ -43,6 +53,15 @@ class SpreadSlipGajiController extends Controller
             $si->mergeCells('B'.$bar.':O'.$bar);
             $si->getStyle('B'.$bar.':O'.$bar)->getFont()->setName('Narkisim')->setSize(12)->getColor()->setARGB('0070C0');
             $si->getRowDimension($bar)->setRowHeight(21);
+
+            $drawing = new Drawing();
+            $drawing->setPath(public_path('images/logo_fjg.jpg'));
+            $drawing->setHeight(44.16);
+            $drawing->setCoordinates('N'.$bar);
+            $drawing->setOffsetX(8);
+            $drawing->setOffsetY(16);
+            $drawing->setWorksheet($si);
+
             $bar++;
             $si->setCellValue('B'.$bar, 'SOVEREIGN PLAZA');
             $si->mergeCells('B'.$bar.':O'.$bar);
@@ -198,6 +217,23 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('K'.$bar.':O'.$bar)->getFont()->setName('Gisha');
             $si->getStyle('K'.$bar.':O'.$bar)->getAlignment()->setHorizontal('center');
             $si->getRowDimension($bar)->setRowHeight(17);
+
+            $drawing = new Drawing();
+            $drawing->setPath(public_path('images/stempel_fjg.png'));
+            $drawing->setHeight(61,44);
+            $drawing->setCoordinates('K'.$bar);
+            $drawing->setOffsetX(31);
+            $drawing->setOffsetY(15);
+            $drawing->setWorksheet($si);
+
+            $drawing = new Drawing();
+            $drawing->setPath(public_path('images/stempel_ttd.png'));
+            $drawing->setHeight(74,88);
+            $drawing->setCoordinates('K'.$bar);
+            $drawing->setOffsetX(-27);
+            $drawing->setOffsetY(7);
+            $drawing->setWorksheet($si);
+
             $bar++;
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
@@ -236,7 +272,7 @@ class SpreadSlipGajiController extends Controller
         $si->getColumnDimension('P')->setWidth(103*$px);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="SLIP_GAJI_'.strtoupper($arrBulan[$bulan]).'_'.substr($tahun, -2). '.xlsx"');
+        header('Content-Disposition: attachment;filename="SLIP_GAJI_'.($jenis == '1' ? 'ENGINEERING_' : ($jenis == '2' ? 'STAF_' : ($jenis == '3' ? 'NON_STAF_' : ''))).str_replace(' ', '_', $namaArea).strtoupper($arrBulan[$bulan]).'_'.substr($tahun, -2). '.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
