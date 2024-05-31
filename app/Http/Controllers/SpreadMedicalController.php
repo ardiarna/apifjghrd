@@ -111,6 +111,7 @@ class SpreadMedicalController extends Controller
             $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
             $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
             $si->getStyle('A'.$bar.':G'.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $bar+=2;
         }
@@ -187,6 +188,7 @@ class SpreadMedicalController extends Controller
             $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
             $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('A'.($barAwal-1).':G'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
             $si->getStyle('A'.$bar.':G'.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $bar+=2;
         }
@@ -308,6 +310,7 @@ class SpreadMedicalController extends Controller
         $si->getStyle('A5:'.$kol_akhir.'6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFF00');
         $si->getStyle('A7:'.$kol_akhir.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
         $si->getStyle('A7:'.$kol_akhir.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
+        $si->getStyle('A7:'.$kol_akhir.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
         $si->getStyle('I'.$bar.':'.$kol_akhir.$bar)->getFont()->getColor()->setARGB('0000FF');
         $si->getStyle($kol_akhir.'7'.':'.$kol_akhir.$bar)->getFont()->getColor()->setARGB('0000FF');
