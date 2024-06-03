@@ -216,7 +216,7 @@ class SpreadMedicalController extends Controller
         $si->setShowGridlines(false);
         $si->setTitle('RAWAT JLN');
         $si->getTabColor()->setRGB('FF0000');
-        $si->freezePane('A7');
+        $si->freezePane('C7');
         $bar = 1;
         $si->setCellValue('A'.$bar, 'REKAPITULASI MEDICAL KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
         $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);

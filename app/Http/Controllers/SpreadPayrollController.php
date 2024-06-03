@@ -59,7 +59,7 @@ class SpreadPayrollController extends Controller
             $si = $spreadsheet->getActiveSheet();
             $si->setShowGridlines(false);
             $si->setTitle($keyTahun);
-            $si->freezePane('A6');
+            $si->freezePane('C6');
 
             $bar = 1;
             $si->setCellValue('A'.$bar, 'PAYROLL JANUARI '.$keyTahun.' S/D DESEMBER '.$keyTahun);

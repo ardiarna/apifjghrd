@@ -51,7 +51,7 @@ class SpreadsheetController extends Controller
             $si = $spreadsheet->getActiveSheet();
             $si->setShowGridlines(false);
             $si->setTitle($arrBulan[$dh->bulan]."'".substr($dh->tahun, -2));
-            $si->freezePane('A6');
+            $si->freezePane('C6');
 
             $bar = 1;
             $si->setCellValue('A'.$bar, 'PAYROLL '.$arrBulan[$dh->bulan].' '.$dh->tahun);
@@ -377,7 +377,7 @@ class SpreadsheetController extends Controller
             $si = $spreadsheet->getActiveSheet();
             $si->setShowGridlines(false);
             $si->setTitle('TAHUN '.$tahun);
-            $si->freezePane('A7');
+            $si->freezePane('C7');
 
             $bar = 2;
             $si->setCellValue('A'.$bar, 'REKAPITULASI GAJI PT.FRATEKINDO JAYA GEMILANG');

@@ -57,7 +57,7 @@ class SpreadOvertimeController extends Controller
             $si = $spreadsheet->getActiveSheet();
             $si->setShowGridlines(false);
             $si->setTitle('TAHUN '.$keyTahun);
-            $si->freezePane('A7');
+            $si->freezePane('C7');
 
             $bar = 2;
             $si->setCellValue('A'.$bar, 'REKAPITULASI OVERTIME PT.FRATEKINDO JAYA GEMILANG');
