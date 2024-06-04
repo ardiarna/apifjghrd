@@ -162,6 +162,15 @@ $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function 
     $router->delete('{id}', 'PendidikanController@delete');
 });
 
+$router->group(['prefix' => 'ptkp', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'PtkpController@findAll');
+    $router->get('{id}', 'PtkpController@findById');
+    $router->post('kode', 'PtkpController@findByKode');
+    $router->post('/', 'PtkpController@create');
+    $router->put('{id}', 'PtkpController@update');
+    $router->delete('{id}', 'PtkpController@delete');
+});
+
 $router->group(['prefix' => 'status_kerja', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'StatusKerjaController@findAll');
     $router->get('{id}', 'StatusKerjaController@findById');
