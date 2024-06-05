@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\PtkpRepository', 'App\Repositories\Elo\PtkpImplement');
         $this->app->bind('App\Repositories\StatusKerjaRepository', 'App\Repositories\Elo\StatusKerjaImplement');
         $this->app->bind('App\Repositories\StatusPhkRepository', 'App\Repositories\Elo\StatusPhkImplement');
+        $this->app->bind('App\Repositories\TarifEfektifRepository', 'App\Repositories\Elo\TarifEfektifImplement');
         $this->app->bind('App\Repositories\UpahRepository', 'App\Repositories\Elo\UpahImplement');
         $this->app->bind('App\Repositories\UserRepository', 'App\Repositories\Elo\UserImplement');
     }

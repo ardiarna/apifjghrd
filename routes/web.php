@@ -187,6 +187,15 @@ $router->group(['prefix' => 'status_phk', 'middleware' => 'auth:api'], function 
     $router->delete('{id}', 'StatusPhkController@delete');
 });
 
+$router->group(['prefix' => 'tarif_efektif', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'TarifEfektifController@findAll');
+    $router->get('id/{id}', 'TarifEfektifController@findById');
+    $router->get('cari', 'TarifEfektifController@findByTerAndPenghasilan');
+    $router->post('/', 'TarifEfektifController@create');
+    $router->put('{id}', 'TarifEfektifController@update');
+    $router->delete('{id}', 'TarifEfektifController@delete');
+});
+
 $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'UpahController@findAll');
     $router->get('{id}', 'UpahController@findById');
