@@ -60,6 +60,7 @@ class KaryawanController extends Controller
         $inputs['email'] = $req->input('email');
         $inputs['kawin'] = $req->input('kawin');
         $inputs['status_kerja_id'] = $req->input('status_kerja_id');
+        $inputs['ptkp_id'] = $req->input('ptkp_id');
         $inputs['pendidikan_id'] = $req->input('pendidikan_id');
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
@@ -79,8 +80,8 @@ class KaryawanController extends Controller
             'email' => 'email',
             'kawin' => 'in:Y,N',
             'aktif' => 'in:Y,N',
-            'kelamin' => 'required|in:L,P',
-            'staf' => 'required|in:Y,N',
+            'kelamin' => 'in:L,P',
+            'staf' => 'in:Y,N',
         ]);
         $inputs['nama'] = $req->input('nama');
         $inputs['nik'] = $req->input('nik');
@@ -100,6 +101,7 @@ class KaryawanController extends Controller
         $inputs['kawin'] = $req->input('kawin');
         $inputs['kelamin'] = $req->input('kelamin');
         $inputs['status_kerja_id'] = $req->input('status_kerja_id');
+        $inputs['ptkp_id'] = $req->input('ptkp_id');
         $inputs['pendidikan_id'] = $req->input('pendidikan_id');
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');

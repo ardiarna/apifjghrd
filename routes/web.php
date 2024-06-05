@@ -164,8 +164,8 @@ $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function 
 
 $router->group(['prefix' => 'ptkp', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PtkpController@findAll');
-    $router->get('{id}', 'PtkpController@findById');
-    $router->post('kode', 'PtkpController@findByKode');
+    $router->get('id/{id}', 'PtkpController@findById');
+    $router->get('cari', 'PtkpController@findByKode');
     $router->post('/', 'PtkpController@create');
     $router->put('{id}', 'PtkpController@update');
     $router->delete('{id}', 'PtkpController@delete');

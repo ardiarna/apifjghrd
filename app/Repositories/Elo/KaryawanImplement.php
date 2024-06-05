@@ -14,11 +14,12 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findById($id) {
-        return $this->model->find($id);
+        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','ptkp'])
+            ->find($id);
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk'])
+        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','ptkp'])
             ->select('karyawans.*')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')
@@ -106,6 +107,9 @@ class KaryawanImplement implements KaryawanRepository {
         }
         if($inputs['status_kerja_id'] != null) {
             $model->status_kerja_id = $inputs['status_kerja_id'];
+        }
+        if($inputs['ptkp_id'] != null) {
+            $model->ptkp_id = $inputs['ptkp_id'];
         }
         if($inputs['pendidikan_id'] != null) {
             $model->pendidikan_id = $inputs['pendidikan_id'];

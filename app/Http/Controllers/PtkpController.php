@@ -22,7 +22,10 @@ class PtkpController extends Controller
     }
 
     public function findByKode(Request $req) {
-        $kode = $req->input('kode');
+        $this->validate($req, [
+            'kode' => 'required',
+        ]);
+        $kode = $req->query('kode');
         $data = $this->repo->findByKode($kode);
         return $this->successResponse($data);
     }
