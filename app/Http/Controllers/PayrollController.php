@@ -48,6 +48,18 @@ class PayrollController extends Controller
         return $this->successResponse($data);
     }
 
+    public function findDetailByKaryawanId(Request $req, $karyawan_id) {
+        $data = $this->repo->findAll([
+            'karyawan_id' => $karyawan_id,
+            'tahun' => $req->query('tahun'),
+            'bulan' => $req->query('bulan'),
+            'pph21' => $req->query('pph21'),
+            'sort_by' => $req->query('sort_by'),
+            'sort_order' => $req->query('sort_order')
+        ]);
+        return $this->successResponse($data);
+    }
+
     public function create(Request $req) {
         $this->validate($req, [
             'tanggal_awal' => 'required|date',

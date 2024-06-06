@@ -99,6 +99,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/upah', 'UpahController@findByKaryawanId');
     $router->get('{karyawan_id}/medical-rekap/{tahun}', 'MedicalController@findRekapByKaryawanIdAndTahun');
     $router->get('{karyawan_id}/overtime-rekap/{tahun}', 'OvertimeController@findRekapByKaryawanIdAndTahun');
+    $router->get('{karyawan_id}/payroll', 'PayrollController@findDetailByKaryawanId');
     $router->post('/', 'KaryawanController@create');
     $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
     $router->post('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@create');

@@ -35,6 +35,7 @@ class TarifEfektifImplement implements TarifEfektifRepository {
             $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         }
+        $hasil->orderBy('ter')->orderBy('penghasilan');
         return $hasil->get();
     }
 

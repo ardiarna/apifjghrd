@@ -4,15 +4,18 @@ namespace App\Repositories\Elo;
 
 use App\Repositories\PayrollRepository;
 use App\Models\Payroll;
+use App\Repositories\TarifEfektifRepository;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PayrollImplement implements PayrollRepository {
 
     protected $model;
+    protected $repoTER;
 
-    function __construct(Payroll $model) {
+    function __construct(Payroll $model, TarifEfektifRepository $repoTER) {
         $this->model = $model;
+        $this->repoTER = $repoTER;
     }
 
     public function findById($karyawan_id, $id) {
@@ -24,7 +27,7 @@ class PayrollImplement implements PayrollRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'karyawan.divisi'])
+        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'karyawan.divisi', 'karyawan.ptkp'])
             ->select('payrolls.*', 'payroll_headers.tanggal_awal', 'payroll_headers.tanggal_akhir', 'payroll_headers.tahun', 'payroll_headers.bulan')
             ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
             ->join('karyawans', 'payrolls.karyawan_id', '=', 'karyawans.id')
@@ -66,6 +69,34 @@ class PayrollImplement implements PayrollRepository {
         $hasil->orderBy('payrolls.karyawan_id');
         $hasil->orderBy('payroll_headers.tahun');
         $hasil->orderBy('payroll_headers.bulan');
+        if(isset($inputs['pph21']) && ($inputs['pph21'] == 'Y' || $inputs['pph21'] == 'y')) {
+            $hasil = $hasil->get();
+            foreach ($hasil as $h) {
+                $h->kantor_jp = round($h->gaji / 100 * 3);
+                $h->kantor_jht = round($h->gaji / 100 * 5.7);
+                $h->kantor_jkk = round($h->gaji / 100 * 0.24);
+                $h->kantor_jkm = round($h->gaji / 100 * 0.3);
+                $h->kantor_bpjs = round($h->gaji / 100 * 5);
+                if($h->kantor_bpjs > 600000) $h->kantor_bpjs = 600000;
+                $penghasilan_bruto = $h->gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti;
+                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $penghasilan_bruto);
+                $terSatu = $ter->persen/100;
+                $dppSatu = $penghasilan_bruto/(1-$terSatu);
+                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppSatu);
+                $terDua = $ter->persen/100;
+                $dppDua = $penghasilan_bruto/(1-$terDua);
+                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppDua);
+                $terTiga = $ter->persen/100;
+                $dppFinal = $penghasilan_bruto/(1-$terTiga);
+                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppFinal);
+                $terFinal = $ter->persen/100;
+                $pph21 = $dppFinal*$terFinal;
+                $h->penghasilan_bruto = round($penghasilan_bruto);
+                $h->dpp = floor($dppFinal);
+                $h->pph21 = floor($pph21);
+            }
+            return $hasil;
+        }
         return $hasil->get();
     }
 
