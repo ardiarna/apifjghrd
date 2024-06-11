@@ -92,6 +92,7 @@ class PayrollImplement implements PayrollRepository {
                 $terFinal = $ter->persen/100;
                 $pph21 = $dppFinal*$terFinal;
                 $h->penghasilan_bruto = round($penghasilan_bruto);
+                $h->ter_persen = $ter->persen;
                 $h->dpp = floor($dppFinal);
                 $h->pph21 = floor($pph21);
             }
