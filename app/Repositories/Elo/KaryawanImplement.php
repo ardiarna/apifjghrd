@@ -132,6 +132,9 @@ class KaryawanImplement implements KaryawanRepository {
         if($inputs['nomor_paspor'] != null) {
             $model->nomor_paspor = $inputs['nomor_paspor'];
         }
+        if($inputs['nomor_pwp'] != null) {
+            $model->nomor_pwp = $inputs['nomor_pwp'];
+        }
         $model->save();
         return $model;
     }

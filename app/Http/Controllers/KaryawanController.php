@@ -67,6 +67,7 @@ class KaryawanController extends Controller
         $inputs['aktif'] = 'Y';
         $inputs['nomor_kk'] = $req->input('nomor_kk');
         $inputs['nomor_paspor'] = $req->input('nomor_paspor');
+        $inputs['nomor_pwp'] = $req->input('nomor_pwp');
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Karyawan berhasil dibuat');
     }
@@ -109,6 +110,7 @@ class KaryawanController extends Controller
         $inputs['staf'] = $req->input('staf');
         $inputs['nomor_kk'] = $req->input('nomor_kk');
         $inputs['nomor_paspor'] = $req->input('nomor_paspor');
+        $inputs['nomor_pwp'] = $req->input('nomor_pwp');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Karyawan berhasil diubah');
     }

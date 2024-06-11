@@ -10,7 +10,7 @@ class Karyawan extends Model
 {
 
     protected $fillable = [
-        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'kelamin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'staf', 'nomor_kk', 'nomor_paspor', 'phk_id', 'ptkp_id'
+        'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'kelamin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'staf', 'nomor_kk', 'nomor_paspor', 'nomor_pwp', 'phk_id', 'ptkp_id'
     ];
 
     public function agama(): BelongsTo {
