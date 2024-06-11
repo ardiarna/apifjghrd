@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Repositories\OncallCustomerRepository;
+use App\Repositories\AreaRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -13,16 +13,16 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadPayrollController extends Controller
 {
-    protected $repoHeader, $repoDetail, $repoOncall;
+    protected $repoHeader, $repoDetail, $repoArea;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, AreaRepository $repoArea) {
         $this->repoHeader = $repoHeader;
         $this->repoDetail = $repoDetail;
-        $this->repoOncall = $repoOncall;
+        $this->repoArea = $repoArea;
     }
 
     public function rekapPerKaryawan($jenis, $tahun, $area) {
-        // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF
+        // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
         $kol_akhir = 'AB';
@@ -30,20 +30,23 @@ class SpreadPayrollController extends Controller
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
 
+        if($area == 'all') {
+            $namaArea = '';
+        } else {
+            $dArea = $this->repoArea->findById($area);
+            $namaArea = $dArea->nama.'_';
+        }
+
         $dataDetails = $this->repoDetail->findAll([
             'tahun' => $tahun,
-            'staf' => $jenis == '3' ? 'N' : 'Y',
-            'area' => $jenis == '3' ? '' : $area,
-            'engineer' => $jenis == '3' ? '' : ($jenis == '2' ? 'N' : 'Y'),
+            'staf' => $jenis == '3' ? 'N' : ($jenis == '4' ? '' : 'Y'),
+            'area' => $area == 'all' ? '' : $area,
+            'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
         ]);
         $details = array();
         $dataKaryawan = array();
-        $namaArea = '';
         foreach ($dataDetails as $dt) {
             $details[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
-            if($namaArea == '') {
-                $namaArea = $dt->karyawan->area->nama;
-            }
             if(!isset($dataKaryawan[$dt->karyawan->id])) {
                 $dataKaryawan[$dt->karyawan->id] = $dt->karyawan;
             }
@@ -65,7 +68,7 @@ class SpreadPayrollController extends Controller
             $si->setCellValue('A'.$bar, 'PAYROLL JANUARI '.$keyTahun.' S/D DESEMBER '.$keyTahun);
             $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
             $bar++;
-            $si->setCellValue('A'.$bar, 'DIVISI : '.($jenis == '3' ? 'NON STAF' : ($jenis == '2' ? 'STAF ' : 'ENGINEERING ').$namaArea));
+            $si->setCellValue('A'.$bar, 'DIVISI : '.($jenis == '1' ? 'ENGINEERING' : ($jenis == '2' ? 'STAF' : ($jenis == '3' ? 'NON STAF' : 'SEMUA'))).' '.$namaArea);
             $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
             $bar++;
             $si->setCellValue('A'.$bar, 'NO');
@@ -232,7 +235,7 @@ class SpreadPayrollController extends Controller
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="PAYROLL_KARYAWAN_'.($jenis == '3' ? 'NON_STAF_' : ($jenis == '2' ? 'STAF_' : 'ENGINEERING_').str_replace(' ', '_', $namaArea)).'_'.substr($tahun, -2). '.xlsx"');
+        header('Content-Disposition: attachment;filename="PAYROLL_KARYAWAN_'.($jenis == '1' ? 'ENGINEERING' : ($jenis == '2' ? 'STAF' : ($jenis == '3' ? 'NON_STAF' : 'ALL'))).($namaArea == '' ? '' : '_'.str_replace(' ', '_', $namaArea)).'_'.substr($tahun, -2).'.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
