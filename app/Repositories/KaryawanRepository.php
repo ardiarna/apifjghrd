@@ -9,4 +9,5 @@ interface KaryawanRepository {
     public function update($id, array $inputs);
     public function delete($id);
     public function setNonAktif($id, $phk_id, $tanggal_keluar);
+    public function rekapKaryawanByAreaAndKelamin();
 }

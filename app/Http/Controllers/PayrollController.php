@@ -191,4 +191,29 @@ class PayrollController extends Controller
         return $this->successResponse($data, 'Payroll berhasil diubah');
     }
 
+    public function reportRekap($tahun) {
+        $rekap = array();
+        $data = $this->repoHeader->findAll(['tahun' => $tahun]);
+        foreach ($data as $d) {
+            $rekap['pay'][$d->bulan] = $d->total_diterima;
+            $rekap['ove'][$d->bulan] = $d->overtime_fjg + $d->overtime_cus;
+            $rekap['med'][$d->bulan] = $d->medical;
+        }
+
+        $payrolls = [];
+        $overtimes = [];
+        $medicals = [];
+        for ($i=1; $i <= 12; $i++) {
+            $payrolls[$i] = isset($rekap['pay'][$i]) ? strval($rekap['pay'][$i]) : "0";
+            $overtimes[$i] = isset($rekap['ove'][$i]) ? strval($rekap['ove'][$i]) : "0";
+            $medicals[$i] = isset($rekap['med'][$i]) ? strval($rekap['med'][$i]) : "0";
+        }
+
+        return $this->successResponse([
+            'payrolls' => $payrolls,
+            'overtimes' => $overtimes,
+            'medicals' => $medicals,
+        ], 'Rekap Payroll');
+    }
+
 }

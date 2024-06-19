@@ -123,4 +123,20 @@ class KaryawanController extends Controller
         return $this->successResponse($data, 'Karyawan berhasil dihapus');
     }
 
+    public function rekapKaryawanByAreaAndKelamin() {
+        $data = $this->repo->rekapKaryawanByAreaAndKelamin();
+        $output = [];
+        foreach ($data as $r) {
+            $areaName = $r->area_name;
+            $kelamin = $r->kelamin;
+            $total = $r->total;
+            if (!isset($output[$areaName])) {
+                $output[$areaName] = ['total' => 0];
+            }
+            $output[$areaName][$kelamin] = $total;
+            $output[$areaName]['total'] += $total;
+        }
+        return $this->successResponse($output);
+    }
+
 }

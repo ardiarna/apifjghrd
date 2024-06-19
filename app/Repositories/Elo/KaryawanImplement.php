@@ -4,6 +4,7 @@ namespace App\Repositories\Elo;
 
 use App\Repositories\KaryawanRepository;
 use App\Models\Karyawan;
+use Illuminate\Support\Facades\DB;
 
 class KaryawanImplement implements KaryawanRepository {
 
@@ -150,6 +151,17 @@ class KaryawanImplement implements KaryawanRepository {
         $model->phk_id = $phk_id;
         $model->save();
         return $model;
+    }
+
+    public function rekapKaryawanByAreaAndKelamin() {
+        $hasil = $this->model->select('areas.nama as area_name', 'karyawans.kelamin', DB::raw('COUNT(*) as total'))
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->where('karyawans.staf', 'Y')
+            ->groupBy('areas.nama', 'karyawans.kelamin', 'areas.urutan')
+            ->orderBy('areas.urutan')
+            ->get();
+        return $hasil;
     }
 
 }
