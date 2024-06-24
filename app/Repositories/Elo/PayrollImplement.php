@@ -79,22 +79,30 @@ class PayrollImplement implements PayrollRepository {
                 $h->kantor_bpjs = round($h->gaji / 100 * 5);
                 if($h->kantor_bpjs > 600000) $h->kantor_bpjs = 600000;
                 $penghasilan_bruto = $h->gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti;
-                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $penghasilan_bruto);
-                $terSatu = $ter->persen/100;
-                $dppSatu = $penghasilan_bruto/(1-$terSatu);
-                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppSatu);
-                $terDua = $ter->persen/100;
-                $dppDua = $penghasilan_bruto/(1-$terDua);
-                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppDua);
-                $terTiga = $ter->persen/100;
-                $dppFinal = $penghasilan_bruto/(1-$terTiga);
-                $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppFinal);
-                $terFinal = $ter->persen/100;
-                $pph21 = $dppFinal*$terFinal;
-                $h->penghasilan_bruto = round($penghasilan_bruto);
-                $h->ter_persen = $ter->persen;
-                $h->dpp = floor($dppFinal);
-                $h->pph21 = floor($pph21);
+                if($h->karyawan->ptkp) {
+                    $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $penghasilan_bruto);
+                    $terSatu = $ter->persen/100;
+                    $dppSatu = $penghasilan_bruto/(1-$terSatu);
+                    $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppSatu);
+                    $terDua = $ter->persen/100;
+                    $dppDua = $penghasilan_bruto/(1-$terDua);
+                    $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppDua);
+                    $terTiga = $ter->persen/100;
+                    $dppFinal = $penghasilan_bruto/(1-$terTiga);
+                    $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $dppFinal);
+                    $terFinal = $ter->persen/100;
+                    $pph21 = $dppFinal*$terFinal;
+                    $h->penghasilan_bruto = round($penghasilan_bruto);
+                    $h->ter_persen = $ter->persen;
+                    $h->dpp = floor($dppFinal);
+                    $h->pph21 = floor($pph21);
+                } else {
+                    $h->penghasilan_bruto = round($penghasilan_bruto);
+                    $h->ter_persen = 0;
+                    $h->dpp = 0;
+                    $h->pph21 = 0;
+                }
+
             }
             return $hasil;
         }
