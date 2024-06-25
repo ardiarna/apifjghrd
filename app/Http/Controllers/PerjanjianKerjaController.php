@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\KaryawanRepository;
 use App\Repositories\PerjanjianKerjaRepository;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
@@ -10,10 +11,11 @@ class PerjanjianKerjaController extends Controller
 {
     use ApiResponser;
 
-    protected $repo;
+    protected $repo, $rpKaryawan;
 
-    public function __construct(PerjanjianKerjaRepository $repo) {
+    public function __construct(PerjanjianKerjaRepository $repo, KaryawanRepository $rpKaryawan) {
         $this->repo = $repo;
+        $this->rpKaryawan = $rpKaryawan;
     }
 
     public function findById($karyawan_id, $id) {
@@ -48,6 +50,9 @@ class PerjanjianKerjaController extends Controller
         $inputs['karyawan_id'] = $karyawan_id;
         $inputs['tanggal_akhir'] = $req->input('tanggal_akhir');
         $data = $this->repo->create($inputs);
+        if($data) {
+            $this->rpKaryawan->update($data->karyawan_id, ['status_kerja_id' => $data->status_kerja_id]);
+        }
         return $this->createdResponse($data, 'Perjanjian Kerja berhasil dibuat');
     }
 

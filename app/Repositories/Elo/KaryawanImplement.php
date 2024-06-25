@@ -55,85 +55,85 @@ class KaryawanImplement implements KaryawanRepository {
 
     public function update($id, array $inputs) {
         $model = $this->model->findOrFail($id);
-        if($inputs['nama'] != null) {
+        if(isset($inputs['nama'])) {
             $model->nama = $inputs['nama'];
         }
-        if($inputs['nik'] != null) {
+        if(isset($inputs['nik'])) {
             $model->nik = $inputs['nik'];
         }
-        if($inputs['nomor_ktp'] != null) {
+        if(isset($inputs['nomor_ktp'])) {
             $model->nomor_ktp = $inputs['nomor_ktp'];
         }
-        if($inputs['tanggal_masuk'] != null) {
+        if(isset($inputs['tanggal_masuk'])) {
             $model->tanggal_masuk = $inputs['tanggal_masuk'];
         }
-        if($inputs['tanggal_keluar'] != null) {
+        if(isset($inputs['tanggal_keluar'])) {
             $model->tanggal_keluar = $inputs['tanggal_keluar'];
         }
-        if($inputs['agama_id'] != null) {
+        if(isset($inputs['agama_id'])) {
             $model->agama_id = $inputs['agama_id'];
         }
-        if($inputs['area_id'] != null) {
+        if(isset($inputs['area_id'])) {
             $model->area_id = $inputs['area_id'];
         }
-        if($inputs['jabatan_id'] != null) {
+        if(isset($inputs['jabatan_id'])) {
             $model->jabatan_id = $inputs['jabatan_id'];
         }
-        if($inputs['divisi_id'] != null) {
+        if(isset($inputs['divisi_id'])) {
             $model->divisi_id = $inputs['divisi_id'];
         }
-        if($inputs['tempat_lahir'] != null) {
+        if(isset($inputs['tempat_lahir'])) {
             $model->tempat_lahir = $inputs['tempat_lahir'];
         }
-        if($inputs['tanggal_lahir'] != null) {
+        if(isset($inputs['tanggal_lahir'])) {
             $model->tanggal_lahir = $inputs['tanggal_lahir'];
         }
-        if($inputs['alamat_ktp'] != null) {
+        if(isset($inputs['alamat_ktp'])) {
             $model->alamat_ktp = $inputs['alamat_ktp'];
         }
-        if($inputs['alamat_tinggal'] != null) {
+        if(isset($inputs['alamat_tinggal'])) {
             $model->alamat_tinggal = $inputs['alamat_tinggal'];
         }
-        if($inputs['telepon'] != null) {
+        if(isset($inputs['telepon'])) {
             $model->telepon = $inputs['telepon'];
         }
-        if($inputs['email'] != null) {
+        if(isset($inputs['email'])) {
             $model->email = $inputs['email'];
         }
-        if($inputs['kawin'] != null) {
+        if(isset($inputs['kawin'])) {
             $model->kawin = $inputs['kawin'];
         }
-        if($inputs['kelamin'] != null) {
+        if(isset($inputs['kelamin'])) {
             $model->kelamin = $inputs['kelamin'];
         }
-        if($inputs['status_kerja_id'] != null) {
+        if(isset($inputs['status_kerja_id'])) {
             $model->status_kerja_id = $inputs['status_kerja_id'];
         }
-        if($inputs['ptkp_id'] != null) {
+        if(isset($inputs['ptkp_id'])) {
             $model->ptkp_id = $inputs['ptkp_id'];
         }
-        if($inputs['pendidikan_id'] != null) {
+        if(isset($inputs['pendidikan_id'])) {
             $model->pendidikan_id = $inputs['pendidikan_id'];
         }
-        if($inputs['pendidikan_almamater'] != null) {
+        if(isset($inputs['pendidikan_almamater'])) {
             $model->pendidikan_almamater = $inputs['pendidikan_almamater'];
         }
-        if($inputs['pendidikan_jurusan'] != null) {
+        if(isset($inputs['pendidikan_jurusan'])) {
             $model->pendidikan_jurusan = $inputs['pendidikan_jurusan'];
         }
-        if($inputs['aktif'] != null) {
+        if(isset($inputs['aktif'])) {
             $model->aktif = $inputs['aktif'];
         }
-        if($inputs['staf'] != null) {
+        if(isset($inputs['staf'])) {
             $model->staf = $inputs['staf'];
         }
-        if($inputs['nomor_kk'] != null) {
+        if(isset($inputs['nomor_kk'])) {
             $model->nomor_kk = $inputs['nomor_kk'];
         }
-        if($inputs['nomor_paspor'] != null) {
+        if(isset($inputs['nomor_paspor'])) {
             $model->nomor_paspor = $inputs['nomor_paspor'];
         }
-        if($inputs['nomor_pwp'] != null) {
+        if(isset($inputs['nomor_pwp'])) {
             $model->nomor_pwp = $inputs['nomor_pwp'];
         }
         $model->save();
