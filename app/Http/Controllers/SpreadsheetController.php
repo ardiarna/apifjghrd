@@ -148,7 +148,7 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('B'.$bar, $d->karyawan->nama);
                         $si->setCellValue('C'.$bar, $d->karyawan->jabatan->nama);
                         $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
-                        $si->setCellValue('E'.$bar, $d->gaji);
+                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji));
                         $si->setCellValue('F'.$bar, $d->hari_makan);
                         $si->setCellValue('G'.$bar, $d->uang_makan_harian);
                         $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);
@@ -348,7 +348,7 @@ class SpreadsheetController extends Controller
         exit;
     }
 
-    public function rekapPayroll($tahun) {
+    public function rekapGaji($tahun) {
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
         $kol_akhir = 'X';
@@ -361,7 +361,7 @@ class SpreadsheetController extends Controller
         $dataKaryawan = array();
         $dataTHR = array();
         foreach ($dataDetails as $dt) {
-            $details[$dt->tahun][$dt->karyawan->staf][$dt->karyawan->area->nama][$dt->karyawan->id][$dt->bulan] = $dt->total_diterima - $dt->thr;
+            $details[$dt->tahun][$dt->karyawan->staf][$dt->karyawan->area->nama][$dt->karyawan->id][$dt->bulan] = ($dt->gaji + $dt->kenaikan_gaji) - $dt->thr;
             $dataKaryawan[$dt->karyawan->id] = $dt->karyawan;
             if($dt->thr > 0) {
                 $dataTHR[$dt->tahun][$dt->karyawan->id] = $dt->thr;

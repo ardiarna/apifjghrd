@@ -72,13 +72,13 @@ class PayrollImplement implements PayrollRepository {
         if(isset($inputs['pph21']) && ($inputs['pph21'] == 'Y' || $inputs['pph21'] == 'y')) {
             $hasil = $hasil->get();
             foreach ($hasil as $h) {
-                $h->kantor_jp = round($h->gaji / 100 * 3);
-                $h->kantor_jht = round($h->gaji / 100 * 5.7);
-                $h->kantor_jkk = round($h->gaji / 100 * 0.24);
-                $h->kantor_jkm = round($h->gaji / 100 * 0.3);
-                $h->kantor_bpjs = round($h->gaji / 100 * 5);
+                $h->kantor_jp = round(($h->gaji+$h->kenaikan_gaji) / 100 * 3);
+                $h->kantor_jht = round(($h->gaji+$h->kenaikan_gaji) / 100 * 5.7);
+                $h->kantor_jkk = round(($h->gaji+$h->kenaikan_gaji) / 100 * 0.24);
+                $h->kantor_jkm = round(($h->gaji+$h->kenaikan_gaji) / 100 * 0.3);
+                $h->kantor_bpjs = round(($h->gaji+$h->kenaikan_gaji) / 100 * 5);
                 if($h->kantor_bpjs > 600000) $h->kantor_bpjs = 600000;
-                $penghasilan_bruto = $h->gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti;
+                $penghasilan_bruto = $h->gaji + $h->kenaikan_gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti;
                 if($h->karyawan->ptkp) {
                     $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $penghasilan_bruto);
                     $terSatu = $ter->persen/100;
@@ -135,6 +135,9 @@ class PayrollImplement implements PayrollRepository {
         }
         if(isset($inputs['gaji'])) {
             $model->gaji = $inputs['gaji'];
+        }
+        if(isset($inputs['kenaikan_gaji'])) {
+            $model->kenaikan_gaji = $inputs['kenaikan_gaji'];
         }
         if(isset($inputs['makan_harian'])) {
             $model->makan_harian = $inputs['makan_harian'];

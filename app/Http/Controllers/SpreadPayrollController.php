@@ -147,7 +147,7 @@ class SpreadPayrollController extends Controller
                 for ($k=1; $k <= 12; $k++) {
                     if(isset($bulans[$k])) {
                         $d = $bulans[$k];
-                        $si->setCellValue('E'.$bar, $d->gaji);
+                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji));
                         $si->setCellValue('F'.$bar, $d->hari_makan);
                         $si->setCellValue('G'.$bar, $d->uang_makan_harian);
                         $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);

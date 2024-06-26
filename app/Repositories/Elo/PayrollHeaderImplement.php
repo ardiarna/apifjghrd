@@ -59,6 +59,9 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         if(isset($inputs['gaji'])) {
             $model->gaji = $inputs['gaji'];
         }
+        if(isset($inputs['kenaikan_gaji'])) {
+            $model->kenaikan_gaji = $inputs['kenaikan_gaji'];
+        }
         if(isset($inputs['uang_makan_jumlah'])) {
             $model->uang_makan_jumlah = $inputs['uang_makan_jumlah'];
         }
@@ -131,6 +134,7 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
             ->where('payroll_header_id', $id)
             ->select(
                 DB::raw('SUM(gaji) as gaji'),
+                DB::raw('SUM(kenaikan_gaji) as kenaikan_gaji'),
                 DB::raw('SUM(uang_makan_jumlah) as uang_makan_jumlah'),
                 DB::raw('SUM(overtime_fjg) as overtime_fjg'),
                 DB::raw('SUM(overtime_cus) as overtime_cus'),
@@ -154,6 +158,7 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         if($data) {
             $this->update($id, [
                 'gaji' => $data->gaji,
+                'kenaikan_gaji' => $data->kenaikan_gaji,
                 'uang_makan_jumlah' => $data->uang_makan_jumlah,
                 'overtime_fjg' => $data->overtime_fjg,
                 'overtime_cus' => $data->overtime_cus,

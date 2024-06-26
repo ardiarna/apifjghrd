@@ -119,7 +119,7 @@ class SpreadSlipGajiController extends Controller
             $bar++;
             $si->setCellValue('A'.$bar, 'Kenaikan Gaji');
             $si->setCellValue('G'.$bar, '=');
-            $si->setCellValue('H'.$bar, '');
+            $si->setCellValue('H'.$bar, $d->kenaikan_gaji > 0 ? $d->kenaikan_gaji : '');
             $si->setCellValue('J'.$bar, 'Pemakaian Telepon/Telkomsel');
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_telepon > 0 ? $d->pot_telepon : '');

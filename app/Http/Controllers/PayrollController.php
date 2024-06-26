@@ -69,6 +69,7 @@ class PayrollController extends Controller
             'payrolls' => 'required|array', // Memastikan bahwa data yang dikirimkan adalah array
             'payrolls.*.karyawan_id' => 'required', // Memastikan bahwa setiap karyawan_id ada dalam tabel karyawan
             'payrolls.*.gaji' => 'required|numeric',
+            'payrolls.*.kenaikan_gaji' => 'required|numeric',
             'payrolls.*.makan_harian' => 'required|in:Y,N',
             'payrolls.*.hari_makan' => 'required|numeric',
             'payrolls.*.uang_makan_harian' => 'required|numeric',
@@ -135,6 +136,7 @@ class PayrollController extends Controller
         $this->validate($req, [
             'karyawan_id' => 'required',
             'gaji' => 'numeric',
+            'kenaikan_gaji' => 'numeric',
             'makan_harian' => 'in:Y,N',
             'hari_makan' => 'numeric',
             'uang_makan_harian' => 'numeric',
@@ -161,6 +163,7 @@ class PayrollController extends Controller
         $inputs['payroll_header_id'] = $header_id;
         $inputs['karyawan_id'] = $req->input('karyawan_id');
         $inputs['gaji'] = $req->input('gaji');
+        $inputs['kenaikan_gaji'] = $req->input('kenaikan_gaji');
         $inputs['makan_harian'] = $req->input('makan_harian');
         $inputs['hari_makan'] = $req->input('hari_makan');
         $inputs['uang_makan_harian'] = $req->input('uang_makan_harian');

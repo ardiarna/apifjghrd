@@ -144,7 +144,7 @@ class SpreadPphController extends Controller
                 $si->setCellValue('B'.$bar, $arrBulan[$k]);
                 if(isset($bulans[$k])) {
                     $d = $bulans[$k];
-                    $si->setCellValue('C'.$bar, $d->gaji);
+                    $si->setCellValue('C'.$bar, ($d->gaji + $d->kenaikan_gaji));
                     $si->setCellValue('D'.$bar, $d->hari_makan);
                     $si->setCellValue('E'.$bar, $d->uang_makan_harian);
                     $si->setCellValue('F'.$bar, $d->uang_makan_jumlah);
@@ -478,7 +478,7 @@ class SpreadPphController extends Controller
                     $si->setCellValue('D'.$bar, $arrBulan[$k]);
                     if(isset($bulans[$k])) {
                         $d = $bulans[$k];
-                        $si->setCellValue('E'.$bar, $d->gaji);
+                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji));
                         $si->setCellValue('F'.$bar, $d->hari_makan);
                         $si->setCellValue('G'.$bar, $d->uang_makan_harian);
                         $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);
