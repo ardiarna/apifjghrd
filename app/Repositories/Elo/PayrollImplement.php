@@ -2,20 +2,21 @@
 
 namespace App\Repositories\Elo;
 
-use App\Repositories\PayrollRepository;
 use App\Models\Payroll;
+use App\Repositories\PayrollRepository;
 use App\Repositories\TarifEfektifRepository;
+use App\Repositories\UpahRepository;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PayrollImplement implements PayrollRepository {
 
-    protected $model;
-    protected $repoTER;
+    protected $model, $repoTER, $repoUpah;
 
-    function __construct(Payroll $model, TarifEfektifRepository $repoTER) {
+    function __construct(Payroll $model, TarifEfektifRepository $repoTER, UpahRepository $repoUpah) {
         $this->model = $model;
         $this->repoTER = $repoTER;
+        $this->repoUpah = $repoUpah;
     }
 
     public function findById($karyawan_id, $id) {
@@ -112,10 +113,18 @@ class PayrollImplement implements PayrollRepository {
     public function create($header_id, array $listInputs) {
         DB::beginTransaction();
         try {
+            $listHasil = [];
             foreach ($listInputs as $inputs) {
                 $inputs['payroll_header_id'] = $header_id;
-                $this->model->create($inputs);
+                $model = $this->model->create($inputs);
+                if($model) {
+                    $listHasil[] = [
+                        'karyawan_id' => $model->karyawan_id,
+                        'gaji' => ($model->gaji + $model->kenaikan_gaji),
+                    ];
+                }
             }
+            $this->repoUpah->upsert($listHasil, ['karyawan_id'], ['gaji']);
             DB::commit();
             return true;
         } catch (\Exception $e) {

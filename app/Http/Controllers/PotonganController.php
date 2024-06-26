@@ -52,7 +52,7 @@ class PotonganController extends Controller
     public function create(Request $req) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:F,C',
+            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
@@ -69,7 +69,7 @@ class PotonganController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:F,C',
+            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',

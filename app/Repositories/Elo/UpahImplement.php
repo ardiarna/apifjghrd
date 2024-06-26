@@ -63,16 +63,16 @@ class UpahImplement implements UpahRepository {
         if($model->karyawan_id != $inputs['karyawan_id']) {
             throw new HttpException(403, 'Karyawan dan Upah tidak sesuai');
         }
-        if($inputs['gaji'] != null) {
+        if(isset($inputs['gaji'])) {
             $model->gaji = $inputs['gaji'];
         }
-        if($inputs['uang_makan'] != null) {
+        if(isset($inputs['uang_makan'])) {
             $model->uang_makan = $inputs['uang_makan'];
         }
-        if($inputs['makan_harian'] != null) {
+        if(isset($inputs['makan_harian'])) {
             $model->makan_harian = $inputs['makan_harian'];
         }
-        if($inputs['overtime'] != null) {
+        if(isset($inputs['overtime'])) {
             $model->overtime = $inputs['overtime'];
         }
         $model->save();
@@ -83,20 +83,24 @@ class UpahImplement implements UpahRepository {
         $model = $this->model->query()
             ->where('karyawan_id', $karyawan_id)
             ->firstOrFail();
-        if($inputs['gaji'] != null) {
+        if(isset($inputs['gaji'])) {
             $model->gaji = $inputs['gaji'];
         }
-        if($inputs['uang_makan'] != null) {
+        if(isset($inputs['uang_makan'])) {
             $model->uang_makan = $inputs['uang_makan'];
         }
-        if($inputs['makan_harian'] != null) {
+        if(isset($inputs['makan_harian'])) {
             $model->makan_harian = $inputs['makan_harian'];
         }
-        if($inputs['overtime'] != null) {
+        if(isset($inputs['overtime'])) {
             $model->overtime = $inputs['overtime'];
         }
         $model->save();
         return $model;
+    }
+
+    public function upsert(array $data, array $keys, array $updated) {
+        return $this->model->upsert($data, $keys, $updated);
     }
 
     public function delete($id) {

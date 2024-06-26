@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('upahs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('karyawan_id')->unique()->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->integer('gaji', false, true);
-            $table->integer('uang_makan', false, true);
-            $table->enum('makan_harian', ['Y', 'N']);
-            $table->enum('overtime', ['Y', 'N']);
+            $table->integer('gaji', false, true)->default(0);
+            $table->integer('uang_makan', false, true)->default(0);
+            $table->enum('makan_harian', ['Y', 'N'])->default('Y');
+            $table->enum('overtime', ['Y', 'N'])->default('N');
             $table->timestamps();
         });
     }
