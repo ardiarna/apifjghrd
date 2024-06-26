@@ -165,6 +165,14 @@ $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function 
     $router->delete('{id}', 'PendidikanController@delete');
 });
 
+$router->group(['prefix' => 'potongan', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'PotonganController@findAll');
+    $router->get('{id}', 'PotonganController@findById');
+    $router->post('/', 'PotonganController@create');
+    $router->put('{id}', 'PotonganController@update');
+    $router->delete('{id}', 'PotonganController@delete');
+});
+
 $router->group(['prefix' => 'ptkp', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PtkpController@findAll');
     $router->get('id/{id}', 'PtkpController@findById');
