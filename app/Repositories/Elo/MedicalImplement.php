@@ -4,6 +4,7 @@ namespace App\Repositories\Elo;
 
 use App\Repositories\MedicalRepository;
 use App\Models\Medical;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class MedicalImplement implements MedicalRepository {
@@ -51,6 +52,55 @@ class MedicalImplement implements MedicalRepository {
         }
         $hasil->orderBy('medicals.tanggal');
         return $hasil->get();
+    }
+
+    public function findRekapsRawatJalan($tahun) {
+        $hasil = $this->model->query()
+            ->where('tahun', $tahun)
+            ->where('jenis', 'R')
+            ->select(
+                'karyawan_id',
+                DB::raw('SUM(CASE WHEN bulan = 1 THEN jumlah ELSE 0 END) AS bln_1'),
+                DB::raw('SUM(CASE WHEN bulan = 2 THEN jumlah ELSE 0 END) AS bln_2'),
+                DB::raw('SUM(CASE WHEN bulan = 3 THEN jumlah ELSE 0 END) AS bln_3'),
+                DB::raw('SUM(CASE WHEN bulan = 4 THEN jumlah ELSE 0 END) AS bln_4'),
+                DB::raw('SUM(CASE WHEN bulan = 5 THEN jumlah ELSE 0 END) AS bln_5'),
+                DB::raw('SUM(CASE WHEN bulan = 6 THEN jumlah ELSE 0 END) AS bln_6'),
+                DB::raw('SUM(CASE WHEN bulan = 7 THEN jumlah ELSE 0 END) AS bln_7'),
+                DB::raw('SUM(CASE WHEN bulan = 8 THEN jumlah ELSE 0 END) AS bln_8'),
+                DB::raw('SUM(CASE WHEN bulan = 9 THEN jumlah ELSE 0 END) AS bln_9'),
+                DB::raw('SUM(CASE WHEN bulan = 10 THEN jumlah ELSE 0 END) AS bln_10'),
+                DB::raw('SUM(CASE WHEN bulan = 11 THEN jumlah ELSE 0 END) AS bln_11'),
+                DB::raw('SUM(CASE WHEN bulan = 12 THEN jumlah ELSE 0 END) AS bln_12')
+            )
+            ->groupBy('karyawan_id')
+            ->get();
+        return $hasil;
+    }
+
+    public function findRekapByKaryawanIdAndTahun($karyawan_id, $tahun) {
+        $hasil = $this->model->query()->with('karyawan')
+            ->where('karyawan_id', $karyawan_id)
+            ->where('tahun', $tahun)
+            ->where('jenis', 'R')
+            ->select(
+                'karyawan_id',
+                DB::raw('SUM(CASE WHEN bulan = 1 THEN jumlah ELSE 0 END) AS bln_1'),
+                DB::raw('SUM(CASE WHEN bulan = 2 THEN jumlah ELSE 0 END) AS bln_2'),
+                DB::raw('SUM(CASE WHEN bulan = 3 THEN jumlah ELSE 0 END) AS bln_3'),
+                DB::raw('SUM(CASE WHEN bulan = 4 THEN jumlah ELSE 0 END) AS bln_4'),
+                DB::raw('SUM(CASE WHEN bulan = 5 THEN jumlah ELSE 0 END) AS bln_5'),
+                DB::raw('SUM(CASE WHEN bulan = 6 THEN jumlah ELSE 0 END) AS bln_6'),
+                DB::raw('SUM(CASE WHEN bulan = 7 THEN jumlah ELSE 0 END) AS bln_7'),
+                DB::raw('SUM(CASE WHEN bulan = 8 THEN jumlah ELSE 0 END) AS bln_8'),
+                DB::raw('SUM(CASE WHEN bulan = 9 THEN jumlah ELSE 0 END) AS bln_9'),
+                DB::raw('SUM(CASE WHEN bulan = 10 THEN jumlah ELSE 0 END) AS bln_10'),
+                DB::raw('SUM(CASE WHEN bulan = 11 THEN jumlah ELSE 0 END) AS bln_11'),
+                DB::raw('SUM(CASE WHEN bulan = 12 THEN jumlah ELSE 0 END) AS bln_12')
+            )
+            ->groupBy('karyawan_id')
+            ->first();
+        return $hasil;
     }
 
     public function create(array $inputs) {

@@ -218,6 +218,13 @@ class PayrollImplement implements PayrollRepository {
             $model->keterangan = $inputs['keterangan'];
         }
         $model->save();
+        $listHasil = [
+            [
+                'karyawan_id' => $model->karyawan_id,
+                'gaji' => ($model->gaji + $model->kenaikan_gaji),
+            ],
+        ];
+        $this->repoUpah->upsert($listHasil, ['karyawan_id'], ['gaji']);
         return $model;
     }
 

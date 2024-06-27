@@ -254,11 +254,11 @@ class SpreadsheetController extends Controller
             }
             $si->setCellValue('J'.$barOM, 'OVERTIME');
             $si->setCellValue('K'.$barOM, $statusOT);
-            $si->setCellValue('L'.$barOM, abs(number_format($persenOT,2)).'%');
+            $si->setCellValue('L'.$barOM, number_format(abs($persenOT),2).'%');
             $barOM++;
             $si->setCellValue('J'.$barOM, 'MEDICAL');
             $si->setCellValue('K'.$barOM, $statusMed);
-            $si->setCellValue('L'.$barOM, abs(number_format($persenMed,2)).'%');
+            $si->setCellValue('L'.$barOM, number_format(abs($persenMed),2).'%');
             $si->getStyle('L'.($barOM-1).':L'.$barOM)->getAlignment()->setHorizontal('right');
             $barOM++;
             if($barOT < $barOM) {

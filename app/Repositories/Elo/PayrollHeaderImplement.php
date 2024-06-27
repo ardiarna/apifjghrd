@@ -38,6 +38,46 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         return $hasil->get();
     }
 
+    public function findUpahByKaryawanIdAndTahun($karyawan_id, $tahun) {
+        $subquery = $this->detil->query()
+            ->select('payroll_headers.id', 'payroll_headers.bulan')
+            ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+            ->where('payroll_headers.tahun', $tahun)
+            ->where('payrolls.karyawan_id', $karyawan_id)
+            ->orderBy('payroll_headers.bulan', 'desc')
+            ->first();
+        if($subquery) {
+            $hasil = $this->detil
+                ->where('payroll_header_id', $subquery->id)
+                ->where('karyawan_id', $karyawan_id)
+                ->first();
+            if($hasil) {
+                return ($hasil->gaji + $hasil->kenaikan_gaji);
+            }
+        }
+        return 0;
+    }
+
+    public function findUpahsByTahun($tahun) {
+        $subquery = $this->detil->query()
+            ->select('karyawan_id', DB::raw('MAX(payroll_headers.bulan) as max_bulan'))
+            ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+            ->where('payroll_headers.tahun', $tahun)
+            ->groupBy('karyawan_id');
+        $hasil = $this->detil->query()
+            ->select('payrolls.karyawan_id', 'payroll_headers.bulan as bulan')
+            ->selectRaw('payrolls.gaji + payrolls.kenaikan_gaji as gaji')
+            ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+            ->joinSub($subquery, 'max_bulan_data', function ($join) {
+                $join->on('payrolls.karyawan_id', '=', 'max_bulan_data.karyawan_id')
+                    ->on('payroll_headers.bulan', '=', 'max_bulan_data.max_bulan');
+            })
+            ->where('payroll_headers.tahun', $tahun)
+            ->orderBy('payrolls.karyawan_id');
+
+        return $hasil->get();
+    }
+
     public function create(array $inputs) {
         return $this->model->create($inputs);
     }

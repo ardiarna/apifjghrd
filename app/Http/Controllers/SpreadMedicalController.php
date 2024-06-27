@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\UpahRepository;
 use App\Repositories\MedicalRepository;
-use App\Repositories\MedicalRekapRepository;
+use App\Repositories\PayrollHeaderRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -13,12 +13,12 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadMedicalController extends Controller
 {
-    protected $repoKaryawan, $repoMedRek, $repoMedical;
+    protected $repoKaryawan, $repoMedical, $repoPayrollHeader;
 
-    public function __construct(UpahRepository $repoKaryawan, MedicalRepository $repoMedical, MedicalRekapRepository $repoMedRek) {
+    public function __construct(UpahRepository $repoKaryawan, MedicalRepository $repoMedical, PayrollHeaderRepository $repoPayrollHeader) {
         $this->repoKaryawan = $repoKaryawan;
         $this->repoMedical = $repoMedical;
-        $this->repoMedRek = $repoMedRek;
+        $this->repoPayrollHeader = $repoPayrollHeader;
     }
 
     public function rekap($tahun) {
@@ -32,9 +32,15 @@ class SpreadMedicalController extends Controller
             $details[$dt->staf][$dt->area->nama][$dt->id] = $dt;
         }
 
-        $dataRekaps = $this->repoMedRek->findAll(['tahun' => $tahun]);
+        $dataGajis = $this->repoPayrollHeader->findUpahsByTahun($tahun);
+        $gajis = array();
+        foreach ($dataGajis as $d) {
+            $gajis[$d->karyawan_id] = $d->gaji;
+        }
+
+        $dataRekapRawatJalans = $this->repoMedical->findRekapsRawatJalan($tahun);
         $rawatJalans = array();
-        foreach ($dataRekaps as $d) {
+        foreach ($dataRekapRawatJalans as $d) {
             $rawatJalans[$d->karyawan_id] = $d;
         }
 
@@ -276,8 +282,8 @@ class SpreadMedicalController extends Controller
                     $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                     $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
                     $si->setCellValue('E'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_lahir)));
-                    $gaji = isset($rawatJalans[$karyawan_id])
-                        ? $rawatJalans[$karyawan_id]->gaji
+                    $gaji = isset($gajis[$karyawan_id])
+                        ? $gajis[$karyawan_id]
                         : (isset($dkaryawan->gaji)
                             ? $dkaryawan->gaji
                             : 0);
