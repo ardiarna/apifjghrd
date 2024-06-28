@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollRepository;
+use App\Repositories\PotonganRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -11,16 +12,17 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 
 class SpreadSlipGajiController extends Controller
 {
-    protected $repo, $rpArea;
+    protected $repo, $rpArea, $rpPotongan;
 
-    public function __construct(PayrollRepository $repo, AreaRepository $rpArea) {
+    public function __construct(PayrollRepository $repo, AreaRepository $rpArea, PotonganRepository $rpPotongan) {
         $this->repo = $repo;
         $this->rpArea = $rpArea;
+        $this->rpPotongan = $rpPotongan;
     }
 
     public function cetak($tahun, $bulan, $jenis, $area) {
         // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
-        $arrBulan = ['Dessember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $arrBulan = ['Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         // $px = 11/64;        //100 -> 103
         // $px = 10.5/64;      //100 -> 98
         $px = 10.7/64;      //100 -> 100;
@@ -41,6 +43,15 @@ class SpreadSlipGajiController extends Controller
             'area' => $area == 'all' ? '' : $area,
             'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
         ]);
+
+        $dataPotongans = $this->rpPotongan->findAll([
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+        ]);
+        $potongans = array();
+        foreach ($dataPotongans as $d) {
+            $potongans[$d->karyawan_id][$d->jenis][] = $d->keterangan;
+        }
 
         $spreadsheet->setActiveSheetIndex(0);
         $si = $spreadsheet->getActiveSheet();
@@ -121,6 +132,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->kenaikan_gaji > 0 ? $d->kenaikan_gaji : '');
             $si->setCellValue('J'.$bar, 'Pemakaian Telepon/Telkomsel');
+            if(isset($potongans[$d->karyawan->id]['TP'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['TP']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_telepon > 0 ? $d->pot_telepon : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -135,6 +149,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);
             $si->setCellValue('J'.$bar, 'Pinjaman Kas');
+            if(isset($potongans[$d->karyawan->id]['KS'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['KS']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_kas > 0 ? $d->pot_kas : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -147,6 +164,9 @@ class SpreadSlipGajiController extends Controller
                 $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[$bulan].' '.$tahun);
             }
             $si->setCellValue('J'.$bar, 'Pinjaman / Cicilan');
+            if(isset($potongans[$d->karyawan->id]['CC'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['CC']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_cicilan > 0 ? $d->pot_cicilan : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -155,6 +175,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, ($d->overtime_fjg+$d->overtime_cus) > 0 ? ($d->overtime_fjg+$d->overtime_cus) : '');
             $si->setCellValue('J'.$bar, 'BPJS Kesehatan');
+            if(isset($potongans[$d->karyawan->id]['BP'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['BP']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_bpjs > 0 ? $d->pot_bpjs : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -163,6 +186,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->medical > 0 ? $d->medical : '');
             $si->setCellValue('J'.$bar, 'Pemakaian Bensin');
+            if(isset($potongans[$d->karyawan->id]['BN'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['BN']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_bensin > 0 ? $d->pot_bensin : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -171,6 +197,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->thr > 0 ? $d->thr : '');
             $si->setCellValue('J'.$bar, 'Unpaid Leave / Cuti Bersama');
+            if(isset($potongans[$d->karyawan->id]['UL'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['UL']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_cuti > 0 ? $d->pot_cuti : '');
             $si->getRowDimension($bar)->setRowHeight(17);
@@ -179,6 +208,9 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
             $si->setCellValue('J'.$bar, 'Lain-lain');
+            if(isset($potongans[$d->karyawan->id]['LL'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['LL']).')');
+            }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_lain > 0 ? $d->pot_lain : '');
             $si->getRowDimension($bar)->setRowHeight(17);
