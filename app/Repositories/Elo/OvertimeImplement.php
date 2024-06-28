@@ -4,6 +4,7 @@ namespace App\Repositories\Elo;
 
 use App\Repositories\OvertimeRepository;
 use App\Models\Overtime;
+use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class OvertimeImplement implements OvertimeRepository {
@@ -51,6 +52,42 @@ class OvertimeImplement implements OvertimeRepository {
         }
         $hasil->orderBy('overtimes.tanggal');
         return $hasil->get();
+    }
+
+    public function findRekapByKaryawanIdAndTahun($karyawan_id, $tahun) {
+        $hasil = $this->model->query()->with('karyawan')
+            ->where('karyawan_id', $karyawan_id)
+            ->where('tahun', $tahun)
+            ->select(
+                'karyawan_id',
+                DB::raw("SUM(CASE WHEN bulan = 1 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_1"),
+                DB::raw("SUM(CASE WHEN bulan = 2 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_2"),
+                DB::raw("SUM(CASE WHEN bulan = 3 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_3"),
+                DB::raw("SUM(CASE WHEN bulan = 4 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_4"),
+                DB::raw("SUM(CASE WHEN bulan = 5 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_5"),
+                DB::raw("SUM(CASE WHEN bulan = 6 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_6"),
+                DB::raw("SUM(CASE WHEN bulan = 7 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_7"),
+                DB::raw("SUM(CASE WHEN bulan = 8 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_8"),
+                DB::raw("SUM(CASE WHEN bulan = 9 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_9"),
+                DB::raw("SUM(CASE WHEN bulan = 10 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_10"),
+                DB::raw("SUM(CASE WHEN bulan = 11 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_11"),
+                DB::raw("SUM(CASE WHEN bulan = 12 AND jenis = 'F' THEN jumlah ELSE 0 END) AS fjg_12"),
+                DB::raw("SUM(CASE WHEN bulan = 1 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_1"),
+                DB::raw("SUM(CASE WHEN bulan = 2 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_2"),
+                DB::raw("SUM(CASE WHEN bulan = 3 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_3"),
+                DB::raw("SUM(CASE WHEN bulan = 4 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_4"),
+                DB::raw("SUM(CASE WHEN bulan = 5 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_5"),
+                DB::raw("SUM(CASE WHEN bulan = 6 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_6"),
+                DB::raw("SUM(CASE WHEN bulan = 7 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_7"),
+                DB::raw("SUM(CASE WHEN bulan = 8 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_8"),
+                DB::raw("SUM(CASE WHEN bulan = 9 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_9"),
+                DB::raw("SUM(CASE WHEN bulan = 10 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_10"),
+                DB::raw("SUM(CASE WHEN bulan = 11 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_11"),
+                DB::raw("SUM(CASE WHEN bulan = 12 AND jenis = 'C' THEN jumlah ELSE 0 END) AS cus_12")
+            )
+            ->groupBy('karyawan_id')
+            ->first();
+        return $hasil;
     }
 
     public function create(array $inputs) {

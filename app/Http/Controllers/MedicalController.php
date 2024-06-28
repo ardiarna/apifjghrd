@@ -78,11 +78,6 @@ class MedicalController extends Controller
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
         $inputs['keterangan'] = $req->input('keterangan');
-        $dataLama = $this->repo->findById($id);
-        if($dataLama == null) {
-            return $this->failRespNotFound('Medical dengan id '.$id.' tidak ditemukan');
-        }
-
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Medical berhasil diubah');
     }
