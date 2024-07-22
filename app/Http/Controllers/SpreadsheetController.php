@@ -23,8 +23,7 @@ class SpreadsheetController extends Controller
 
     public function listPayroll($tahun) {
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
-        $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
-        $kol_akhir = 'AA';
+        $arrkol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
@@ -41,9 +40,86 @@ class SpreadsheetController extends Controller
         foreach ($dataHeaders as $dh) {
             $headers[$dh->bulan]['overtime'] = $dh->overtime_fjg + $dh->overtime_cus;
             $headers[$dh->bulan]['medical'] = $dh->medical;
+            $headers[$dh->bulan]['thr'] = $dh->thr;
+            $headers[$dh->bulan]['bonus'] = $dh->bonus;
+            $headers[$dh->bulan]['insentif'] = $dh->insentif;
+            $headers[$dh->bulan]['telkomsel'] = $dh->telkomsel;
+            $headers[$dh->bulan]['lain'] = $dh->lain;
+            $headers[$dh->bulan]['pot_telepon'] = $dh->pot_telepon;
+            $headers[$dh->bulan]['pot_bensin'] = $dh->pot_bensin;
+            $headers[$dh->bulan]['pot_bpjs'] = $dh->pot_bpjs;
+            $headers[$dh->bulan]['pot_cuti'] = $dh->pot_cuti;
+            $headers[$dh->bulan]['pot_lain'] = $dh->pot_lain;
         }
         $i = 0;
+
+        $dataOncalls = $this->repoOncall->findAll(['tahun' => $dh->tahun]);
+        $oncallJumlahs = [];
+        foreach ($dataOncalls as $r) {
+            $dOncalls[$r->bulan][$r->id] = $r;
+            if(isset($oncallJumlahs[$r->bulan])) {
+                $oncallJumlahs[$r->bulan] += $r->jumlah;
+            } else {
+                $oncallJumlahs[$r->bulan] = $r->jumlah;
+            }
+        }
+
         foreach ($dataHeaders as $dh) {
+            $kolTun = 2;
+            $kolPot = 3;
+            $adaThr = false;
+            $adaBonus = false;
+            $adaInsentif = false;
+            $adaTelkomsel = false;
+            $adaLain = false;
+            $adaPotTelepon = false;
+            $adaPotBensin = false;
+            $adaPotBpjs = false;
+            $adaPotCuti = false;
+            $adaPotLain = false;
+            if(isset($headers[$dh->bulan])) {
+                if($headers[$dh->bulan]['thr'] > 0) {
+                    $adaThr = true;
+                    $kolTun++;
+                }
+                if($headers[$dh->bulan]['bonus'] > 0) {
+                    $adaBonus = true;
+                    $kolTun++;
+                }
+                if($headers[$dh->bulan]['insentif'] > 0) {
+                    $adaInsentif = true;
+                    $kolTun++;
+                }
+                if($headers[$dh->bulan]['telkomsel'] > 0) {
+                    $adaTelkomsel = true;
+                    $kolTun++;
+                }
+                if($headers[$dh->bulan]['lain'] > 0) {
+                    $adaLain = true;
+                    $kolTun++;
+                }
+                if($headers[$dh->bulan]['pot_telepon'] > 0) {
+                    $adaPotTelepon = true;
+                    $kolPot++;
+                }
+                if($headers[$dh->bulan]['pot_bensin'] > 0) {
+                    $adaPotBensin = true;
+                    $kolPot++;
+                }
+                if($headers[$dh->bulan]['pot_bpjs'] > 0) {
+                    $adaPotBpjs = true;
+                    $kolPot++;
+                }
+                if($headers[$dh->bulan]['pot_cuti'] > 0) {
+                    $adaPotCuti = true;
+                    $kolPot++;
+                }
+                if($headers[$dh->bulan]['pot_lain'] > 0) {
+                    $adaPotLain = true;
+                    $kolPot++;
+                }
+            }
+            $kolTotal = 11 + $kolTun + $kolPot;
             if($i > 0) {
                 $spreadsheet->createSheet();
             }
@@ -55,73 +131,129 @@ class SpreadsheetController extends Controller
 
             $bar = 1;
             $si->setCellValue('A'.$bar, 'PAYROLL '.$arrBulan[$dh->bulan].' '.$dh->tahun);
-            $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
+            $si->mergeCells('A'.$bar.':'.$arrkol[$kolTotal].$bar);
             $bar++;
             $si->setCellValue('A'.$bar, 'PT.FRATEKINDO JAYA GEMILANG');
-            $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
+            $si->mergeCells('A'.$bar.':'.$arrkol[$kolTotal].$bar);
             $bar++;
-            $si->setCellValue('A'.$bar, 'NO');
-            $si->mergeCells('A'.$bar.':A'.($bar+2));
-            $si->setCellValue('B'.$bar, 'NAMA KARYAWAN');
-            $si->mergeCells('B'.$bar.':B'.($bar+2));
-            $si->setCellValue('C'.$bar, 'JABATAN');
-            $si->mergeCells('C'.$bar.':C'.($bar+2));
-            $si->setCellValue('D'.$bar, 'MASA KERJA');
-            $si->mergeCells('D'.$bar.':D'.($bar+2));
-            $si->setCellValue('E'.$bar, 'GAJI / UPAH IDR');
-            $si->mergeCells('E'.$bar.':E'.($bar+2));
-            $si->setCellValue('F'.$bar, 'U/MAKAN & TRANSPORTASI');
-            $si->mergeCells('F'.$bar.':H'.$bar);
-            $si->setCellValue('I'.$bar, 'TUNJANGAN LAIN');
-            $si->mergeCells('I'.$bar.':P'.$bar);
-            $si->setCellValue('Q'.$bar, 'POTONGAN');
-            $si->mergeCells('Q'.$bar.':Y'.$bar);
-            $si->setCellValue('Z'.$bar, 'TOTAL DITERIMA IDR');
-            $si->mergeCells('Z'.$bar.':Z'.($bar+2));
-            $si->setCellValue('AA'.$bar, 'KETERANGAN');
-            $si->mergeCells('AA'.$bar.':AA'.($bar+2));
+            $kolom = 0; // A
+            $si->setCellValue($arrkol[$kolom].$bar, 'NO');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++; // 1.B
+            $si->setCellValue($arrkol[$kolom].$bar, 'NAMA KARYAWAN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++; // 2.C
+            $si->setCellValue($arrkol[$kolom].$bar, 'JABATAN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++;  // 3.D
+            $si->setCellValue($arrkol[$kolom].$bar, 'MASA KERJA');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++; // 4.E
+            $si->setCellValue($arrkol[$kolom].$bar, 'GAJI / UPAH IDR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++; // 5.F
+            $si->setCellValue($arrkol[$kolom].$bar, 'U/MAKAN & TRANSPORTASI');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom+=2].$bar); // F-H
+            $kolom++; // 8.I
+            $si->setCellValue($arrkol[$kolom].$bar, 'TUNJANGAN LAIN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom+=$kolTun].$bar);
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'POTONGAN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom+=$kolPot].$bar);
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'TOTAL DITERIMA IDR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'KETERANGAN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
             $bar++;
-            $si->setCellValue('F'.$bar, 'HR');
-            $si->mergeCells('F'.$bar.':F'.($bar+1));
-            $si->setCellValue('G'.$bar, '@ HARI IDR');
-            $si->mergeCells('G'.$bar.':G'.($bar+1));
-            $si->setCellValue('H'.$bar, 'JUMLAH IDR');
-            $si->mergeCells('H'.$bar.':H'.($bar+1));
-            $si->setCellValue('I'.$bar, 'OVERTIME');
-            $si->mergeCells('I'.$bar.':J'.$bar);
-            $si->setCellValue('K'.$bar, 'MEDICAL IDR');
-            $si->mergeCells('K'.$bar.':K'.($bar+1));
-            $si->setCellValue('L'.$bar, 'THR IDR');
-            $si->mergeCells('L'.$bar.':L'.($bar+1));
-            $si->setCellValue('M'.$bar, 'BONUS IDR');
-            $si->mergeCells('M'.$bar.':M'.($bar+1));
-            $si->setCellValue('N'.$bar, 'INSENTIF IDR');
-            $si->mergeCells('N'.$bar.':N'.($bar+1));
-            $si->setCellValue('O'.$bar, 'TELKOMSEL IDR');
-            $si->mergeCells('O'.$bar.':O'.($bar+1));
-            $si->setCellValue('P'.$bar, 'LAIN-LAIN IDR');
-            $si->mergeCells('P'.$bar.':P'.($bar+1));
-            $si->setCellValue('Q'.$bar, '25%');
-            $si->mergeCells('Q'.$bar.':R'.$bar);
-            $si->setCellValue('S'.$bar, 'TELP. IDR');
-            $si->mergeCells('S'.$bar.':S'.($bar+1));
-            $si->setCellValue('T'.$bar, 'BENSIN IDR');
-            $si->mergeCells('T'.$bar.':T'.($bar+1));
-            $si->setCellValue('U'.$bar, 'PINJAMAN');
-            $si->mergeCells('U'.$bar.':V'.$bar);
-            $si->setCellValue('W'.$bar, 'BPJS (KIS) IDR');
-            $si->mergeCells('W'.$bar.':W'.($bar+1));
-            $si->setCellValue('X'.$bar, 'UNPAID LEAVE');
-            $si->mergeCells('X'.$bar.':X'.($bar+1));
-            $si->setCellValue('Y'.$bar, 'LAIN-LAIN IDR');
-            $si->mergeCells('Y'.$bar.':Y'.($bar+1));
+            $kolom = 5; // F
+            $si->setCellValue($arrkol[$kolom].$bar, 'HR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+            $kolom++; // 6.G
+            $si->setCellValue($arrkol[$kolom].$bar, '@ HARI IDR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+            $kolom++; // 7.H
+            $si->setCellValue($arrkol[$kolom].$bar, 'JUMLAH IDR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+            $kolom++; // 8.I
+            $si->setCellValue($arrkol[$kolom].$bar, 'OVERTIME');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[++$kolom].$bar); // I-J
+            $kolom++; // K
+            $si->setCellValue($arrkol[$kolom].$bar, 'MEDICAL IDR');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+            $kolom++; // L
+            if($adaThr) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'THR IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaBonus) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'BONUS IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaInsentif) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'INSENTIF IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaTelkomsel) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'TELKOMSEL IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaLain) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'LAIN-LAIN IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            $si->setCellValue($arrkol[$kolom].$bar, '25%');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[++$kolom].$bar);
+            $kolom++;
+            if($adaPotTelepon) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'TELP. IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaPotBensin) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'BENSIN IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            $si->setCellValue($arrkol[$kolom].$bar, 'PINJAMAN');
+            $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[++$kolom].$bar);
+            $kolom++;
+            if($adaPotBpjs) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'BPJS (KIS) IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaPotCuti) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'UNPAID LEAVE');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
+            if($adaPotLain) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'LAIN-LAIN IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
             $bar++;
-            $si->setCellValue('I'.$bar, 'FRATEKINDO');
-            $si->setCellValue('J'.$bar, 'CUSTOMER');
-            $si->setCellValue('Q'.$bar, 'HR');
-            $si->setCellValue('R'.$bar, 'JUMLAH IDR');
-            $si->setCellValue('U'.$bar, 'KAS');
-            $si->setCellValue('V'.$bar, 'CICILAN');
+            $kolom = 8; // I
+            $si->setCellValue($arrkol[$kolom].$bar, 'FRATEKINDO');
+            $kolom++; // 9.J
+            $si->setCellValue($arrkol[$kolom].$bar, 'CUSTOMER');
+            $kolom+=$kolTun;
+            $si->setCellValue($arrkol[$kolom].$bar, 'HR');
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'JUMLAH IDR');
+            $kolom++;
+            if($adaPotTelepon) $kolom++;
+            if($adaPotBensin) $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'KAS');
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, 'CICILAN');
             $bar++;
             $dataDetails = $this->repoDetail->findAll(['header_id' => $dh->id]);
             $details = array();
@@ -144,33 +276,80 @@ class SpreadsheetController extends Controller
                         $bar++;
                     }
                     foreach ($ids as $id => $d) {
-                        $si->setCellValue('A'.$bar, $nomor);
-                        $si->setCellValue('B'.$bar, $d->karyawan->nama);
-                        $si->setCellValue('C'.$bar, $d->karyawan->jabatan->nama);
-                        $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
-                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji));
-                        $si->setCellValue('F'.$bar, $d->hari_makan);
-                        $si->setCellValue('G'.$bar, $d->uang_makan_harian);
-                        $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);
-                        $si->setCellValue('I'.$bar, $d->overtime_fjg);
-                        $si->setCellValue('J'.$bar, $d->overtime_cus);
-                        $si->setCellValue('K'.$bar, $d->medical);
-                        $si->setCellValue('L'.$bar, $d->thr);
-                        $si->setCellValue('M'.$bar, $d->bonus);
-                        $si->setCellValue('N'.$bar, $d->insentif);
-                        $si->setCellValue('O'.$bar, $d->telkomsel);
-                        $si->setCellValue('P'.$bar, $d->lain);
-                        $si->setCellValue('Q'.$bar, $d->pot_25_hari);
-                        $si->setCellValue('R'.$bar, $d->pot_25_jumlah);
-                        $si->setCellValue('S'.$bar, $d->pot_telepon);
-                        $si->setCellValue('T'.$bar, $d->pot_bensin);
-                        $si->setCellValue('U'.$bar, $d->pot_kas);
-                        $si->setCellValue('V'.$bar, $d->pot_cicilan);
-                        $si->setCellValue('W'.$bar, $d->pot_bpjs);
-                        $si->setCellValue('X'.$bar, $d->pot_cuti);
-                        $si->setCellValue('Y'.$bar, $d->pot_lain);
-                        $si->setCellValue('Z'.$bar, $d->total_diterima);
-                        $si->setCellValue('AA'.$bar, $d->keterangan);
+                        $kolom = 0; // A
+                        $si->setCellValue($arrkol[$kolom].$bar, $nomor);
+                        $kolom++; // 1.B
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->karyawan->nama);
+                        $kolom++; // 2.C
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->karyawan->jabatan->nama);
+                        $kolom++; // 3.D
+                        $si->setCellValue($arrkol[$kolom].$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
+                        $kolom++; // 4.E
+                        $si->setCellValue($arrkol[$kolom].$bar, ($d->gaji + $d->kenaikan_gaji));
+                        $kolom++; // 5.F
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->hari_makan);
+                        $kolom++; // 6.G
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_harian);
+                        $kolom++; // 7.H
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_jumlah);
+                        $kolom++; // 8.I
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_fjg);
+                        $kolom++; // 9.J
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_cus);
+                        $kolom++; // 10.K
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->medical);
+                        $kolom++; // 11.L
+                        if($adaThr) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->thr);
+                            $kolom++;
+                        }
+                        if($adaBonus) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->bonus);
+                            $kolom++;
+                        }
+                        if($adaInsentif) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->insentif);
+                            $kolom++;
+                        }
+                        if($adaTelkomsel) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->telkomsel);
+                            $kolom++;
+                        }
+                        if($adaLain) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->lain);
+                            $kolom++;
+                        }
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_hari);
+                        $kolom++;
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_jumlah);
+                        $kolom++;
+                        if($adaPotTelepon) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_telepon);
+                            $kolom++;
+                        }
+                        if($adaPotBensin) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bensin);
+                            $kolom++;
+                        }
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_kas);
+                        $kolom++;
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cicilan);
+                        $kolom++;
+                        if($adaPotBpjs) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bpjs);
+                            $kolom++;
+                        }
+                        if($adaPotCuti) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cuti);
+                            $kolom++;
+                        }
+                        if($adaPotLain) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_lain);
+                            $kolom++;
+                        }
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->total_diterima);
+                        $kolom++;
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->keterangan);
                         $bar++;
                         $nomor++;
                     }
@@ -178,68 +357,130 @@ class SpreadsheetController extends Controller
             }
             $si->getStyle('A1:A2')->getFont()->setName('Arial')->setSize(14)->setUnderline(TRUE)->getColor()->setARGB('0000FF');
             $si->getStyle('A1:A'.$bar)->getAlignment()->setHorizontal('center');
-            $si->getStyle('Q3:Y'.$bar)->getFont()->getColor()->setARGB('FF0000');
-            $si->getStyle('Z3:Z'.$bar)->getFont()->getColor()->setARGB('0000FF');
-            $si->getStyle('A3:'.$kol_akhir.'5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(TRUE);
-            $si->getStyle('A3:'.$kol_akhir.'5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle($arrkol[9+$kolTun].'3:Y'.$bar)->getFont()->getColor()->setARGB('FF0000');
+            $si->getStyle($arrkol[$kolTotal-1].'3:'.$arrkol[$kolTotal-1].$bar)->getFont()->getColor()->setARGB('0000FF');
+            $si->getStyle('A3:'.$arrkol[$kolTotal].'5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(TRUE);
+            $si->getStyle('A3:'.$arrkol[$kolTotal].'5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('A6:'.$arrkol[$kolTotal].($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('A6:'.$arrkol[$kolTotal].($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('A6:'.$arrkol[$kolTotal].($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
 
             $si->setCellValue('A'.$bar, 'TOTAL PAYROLL');
             $si->mergeCells('A'.$bar.':D'.$bar);
             $si->setCellValue('E'.$bar, '=SUM(E6:E'.($bar-1).')');
             $si->setCellValue('H'.$bar, '=SUM(H6:H'.($bar-1).')');
-            for ($k = 8; $k <= 15; $k++) { // I s/d P
-                $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].'6:'.$kol[$k].($bar-1).')');
+            for ($k = 8; $k <= 10; $k++) { // I s/d K
+                $si->setCellValue($arrkol[$k].$bar, '=SUM('.$arrkol[$k].'6:'.$arrkol[$k].($bar-1).')');
             }
-            for ($k = 17; $k <= 25; $k++) { // R s/d Z
-                $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].'6:'.$kol[$k].($bar-1).')');
+            $kolom = 11; // L
+            if($adaThr) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
             }
-            $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+            if($adaBonus) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaInsentif) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaTelkomsel) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaLain) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')'); // 25% jumlah
+            $kolom++;
+            if($adaPotTelepon) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaPotBensin) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')'); // pot_kas
+            $kolom++;
+            $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')'); // pot_cicilan
+            $kolom++;
+            if($adaPotBpjs) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaPotCuti) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaPotLain) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')'); // total_diterima
+            $si->getStyle('A'.$bar.':'.$arrkol[$kolTotal].$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('D6:D'.$bar)->getNumberFormat()->setFormatCode('dd-mm-yy');
-            $si->getStyle('E6:Z'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('E6:'.$arrkol[$kolTotal-1].$bar)->getNumberFormat()->setFormatCode('#,##0');
             $barOT = $bar;
             $barTTD = $bar;
             $barKet = $bar;
 
             $barOT += 2;
-            $si->setCellValue('F'.$barOT, 'OVERTIME & ON CALL CUSTOMERS :');
-            $si->mergeCells('F'.$barOT.':I'.$barOT);
-            $si->setCellValue('J'.$barOT, 'OVERTIME & MEDICAL :');
-            $si->mergeCells('J'.$barOT.':L'.$barOT);
-            $si->getStyle('F'.$barOT.':L'.$barOT)->getAlignment()->setHorizontal('center')->setVertical('center');
-            $si->getStyle('F'.$barOT.':L'.$barOT)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $si->setCellValue('E'.$barOT, 'OVERTIME & ON CALL CUSTOMERS :');
+            $si->mergeCells('E'.$barOT.':H'.$barOT);
+            $si->setCellValue('I'.$barOT, 'OVERTIME & MEDICAL :');
+            $si->mergeCells('I'.$barOT.':K'.$barOT);
+            $si->getStyle('E'.$barOT.':K'.$barOT)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $si->getStyle('E'.$barOT.':K'.$barOT)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $barOT++;
             $barOTAwal = $barOT;
-            $dataOncalls = $this->repoOncall->findAll(['tahun' => $dh->tahun, 'bulan' => $dh->bulan]);
-            foreach ($dataOncalls as $r) {
-                $si->setCellValue('F'.$barOT, $r->customer->nama);
-                $si->mergeCells('F'.$barOT.':H'.$barOT);
-                $si->setCellValue('I'.$barOT, $r->jumlah);
-                $barOT++;
+            if(isset($dOncalls[$dh->bulan])) {
+                foreach ($dOncalls[$dh->bulan] as $r) {
+                    $si->setCellValue('E'.$barOT, $r->customer->nama);
+                    $si->mergeCells('E'.$barOT.':G'.$barOT);
+                    $si->setCellValue('H'.$barOT, $r->jumlah);
+                    $barOT++;
+                }
             }
             $barOM = $barOTAwal;
             $now = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]['overtime'] : 0;
             $before = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]['overtime'] : 0;
+            if(isset($oncallJumlahs[$dh->bulan])) $now -=$oncallJumlahs[$dh->bulan];
+            if(isset($oncallJumlahs[($dh->bulan-1)])) $before -=$oncallJumlahs[($dh->bulan-1)];
             if($now == 0 && $before == 0) {
-                $statusOT = 'TURUN';
+                $statusOT = 'TETAP';
                 $persenOT = 0;
             } else if($before == 0) {
-                $statusOT = 'NAIK';
-                $persenOT = 100;
-            } else {
-                $persenOT = ($now - $before) / $before * 100;
-                if($persenOT > 0) {
+                if($now > 0) {
                     $statusOT = 'NAIK';
+                    $persenOT = 100;
                 } else {
                     $statusOT = 'TURUN';
+                    $persenOT = 100;
+                }
+            } else {
+                if($now == 0) {
+                    $statusOT = 'TURUN';
+                    $persenOT = 100;
+                } else if($now > 0) {
+                    $persenOT = ($now - $before) / $before * 100;
+                    if($persenOT > 0) {
+                        $statusOT = 'NAIK';
+                    } else {
+                        $statusOT = 'TURUN';
+                    }
+                } else {
+                    $statusOT = 'TERCOVER';
+                    $persenOT = 0;
                 }
             }
             $nowMed = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]['medical'] : 0;
             $beforeMed = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]['medical'] : 0;
             if($nowMed == 0 && $beforeMed == 0) {
-                $statusMed = 'TURUN';
+                $statusMed = 'TETAP';
                 $persenMed = 0;
             } else if($beforeMed == 0) {
                 $statusMed = 'NAIK';
@@ -252,34 +493,37 @@ class SpreadsheetController extends Controller
                     $statusMed = 'TURUN';
                 }
             }
-            $si->setCellValue('J'.$barOM, 'OVERTIME');
-            $si->setCellValue('K'.$barOM, $statusOT);
-            $si->setCellValue('L'.$barOM, number_format(abs($persenOT),2).'%');
+            $si->setCellValue('I'.$barOM, 'OVERTIME');
+            $si->setCellValue('J'.$barOM, $statusOT);
+            $si->setCellValue('K'.$barOM, number_format(abs($persenOT),2).'%');
             $barOM++;
-            $si->setCellValue('J'.$barOM, 'MEDICAL');
-            $si->setCellValue('K'.$barOM, $statusMed);
-            $si->setCellValue('L'.$barOM, number_format(abs($persenMed),2).'%');
-            $si->getStyle('L'.($barOM-1).':L'.$barOM)->getAlignment()->setHorizontal('right');
+            $si->setCellValue('I'.$barOM, 'MEDICAL');
+            $si->setCellValue('J'.$barOM, $statusMed);
+            $si->setCellValue('K'.$barOM, number_format(abs($persenMed),2).'%');
+            $si->getStyle('K'.($barOM-1).':K'.$barOM)->getAlignment()->setHorizontal('right');
             $barOM++;
             if($barOT < $barOM) {
                 for ($k = $barOT; $k < $barOM; $k++) {
-                    $si->setCellValue('F'.$k, '');
-                    $si->mergeCells('F'.$k.':H'.$k);
-                    $si->setCellValue('I'.$k, '');
+                    $si->setCellValue('E'.$k, '');
+                    $si->mergeCells('E'.$k.':G'.$k);
+                    $si->setCellValue('H'.$k, '');
                 }
                 $barOT = $k;
             }
-            $si->setCellValue('F'.$barOT, 'JUMLAH');
-            $si->mergeCells('F'.$barOT.':H'.$barOT);
-            $si->setCellValue('I'.$barOT, '=SUM(I'.$barOTAwal.':I'.($barOT-1).')');
-            $si->getStyle('F'.$barOTAwal.':'.'I'.($barOT-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('F'.$barOTAwal.':'.'I'.($barOT-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('F'.$barOTAwal.':'.'I'.($barOT-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
-            $si->getStyle('J'.$barOTAwal.':'.'L'.($barOT-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('F'.$barOT.':'.'I'.$barOT)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('J'.$barOT.':'.'L'.$barOT)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('F'.$barOT.':'.'I'.$barOT)->getFont()->getColor()->setARGB('FF0000');
-            $si->getStyle('I'.$barOTAwal.':'.'I'.$barOT)->getNumberFormat()->setFormatCode('#,##0');
+            $si->setCellValue('E'.$barOT, 'JUMLAH');
+            $si->mergeCells('E'.$barOT.':G'.$barOT);
+            $si->setCellValue('H'.$barOT, '=SUM(H'.$barOTAwal.':H'.($barOT-1).')');
+            if( $statusOT == 'TERCOVER') {
+                $si->setCellValue('I'.$barOT, 'Tercover On Call Customer');
+            }
+            $si->getStyle('E'.$barOTAwal.':'.'H'.($barOT-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('E'.$barOTAwal.':'.'H'.($barOT-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('E'.$barOTAwal.':'.'H'.($barOT-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle('I'.$barOTAwal.':'.'K'.($barOT-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('E'.$barOT.':'.'H'.$barOT)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('I'.$barOT.':'.'K'.$barOT)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('E'.$barOT.':'.'H'.$barOT)->getFont()->getColor()->setARGB('FF0000');
+            $si->getStyle('H'.$barOTAwal.':'.'H'.$barOT)->getNumberFormat()->setFormatCode('#,##0');
 
             $barKet++;
             $si->setCellValue('B'.$barKet, 'U/MAKAN & TRANSPORTASI :');
@@ -301,37 +545,85 @@ class SpreadsheetController extends Controller
             }
 
             $barTTD++;
-            $si->setCellValue('P'.$barTTD, 'Diajukan Oleh :');
-            $si->setCellValue('T'.$barTTD, 'Disetujui Oleh : ');
-            $si->setCellValue('W'.$barTTD, 'Diterima Oleh : ');
-            $si->getStyle('P'.$barTTD.':W'.$barTTD)->getAlignment()->setHorizontal('center');
+            $si->setCellValue($arrkol[$kolTotal-4].$barTTD, 'Diajukan Oleh :');
+            $si->setCellValue($arrkol[$kolTotal-2].$barTTD, 'Disetujui Oleh : ');
+            $si->setCellValue($arrkol[$kolTotal].$barTTD, 'Diterima Oleh : ');
+            $si->getStyle($arrkol[$kolTotal-4].$barTTD.':'.$arrkol[$kolTotal].$barTTD)->getAlignment()->setHorizontal('center');
             $barTTD += 3;
-            $si->setCellValue('P'.$barTTD, 'Sri Erni.S');
-            $si->setCellValue('T'.$barTTD, 'Alain Pierre Mignon');
-            $si->setCellValue('W'.$barTTD, 'Harti Susilowati');
-            $si->getStyle('P'.$barTTD.':W'.$barTTD)->getAlignment()->setHorizontal('center');
-            $si->getStyle('P'.$barTTD.':W'.$barTTD)->getFont()->setUnderline(true);
+            $si->setCellValue($arrkol[$kolTotal-4].$barTTD, 'Sri Erni.S');
+            $si->setCellValue($arrkol[$kolTotal-2].$barTTD, 'Alain Pierre Mignon');
+            $si->setCellValue($arrkol[$kolTotal].$barTTD, 'Harti Susilowati');
+            $si->getStyle($arrkol[$kolTotal-4].$barTTD.':'.$arrkol[$kolTotal].$barTTD)->getAlignment()->setHorizontal('center');
+            $si->getStyle($arrkol[$kolTotal-4].$barTTD.':'.$arrkol[$kolTotal].$barTTD)->getFont()->setUnderline(true);
             $barTTD++;
-            $si->setCellValue('P'.$barTTD, 'Head of HRD');
-            $si->setCellValue('T'.$barTTD, 'Presiden Direktur');
-            $si->setCellValue('W'.$barTTD, 'Finance');
-            $si->getStyle('P'.$barTTD.':W'.$barTTD)->getAlignment()->setHorizontal('center');
-            $si->getStyle('P'.$barTTD.':W'.$barTTD)->getFont()->setBold(false);
+            $si->setCellValue($arrkol[$kolTotal-4].$barTTD, 'Head of HRD');
+            $si->setCellValue($arrkol[$kolTotal-2].$barTTD, 'Presiden Direktur');
+            $si->setCellValue($arrkol[$kolTotal].$barTTD, 'Finance');
+            $si->getStyle($arrkol[$kolTotal-4].$barTTD.':'.$arrkol[$kolTotal].$barTTD)->getAlignment()->setHorizontal('center');
+            $si->getStyle($arrkol[$kolTotal-4].$barTTD.':'.$arrkol[$kolTotal].$barTTD)->getFont()->setBold(false);
 
             $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
             $si->getColumnDimension('B')->setWidth(200, Dimension::UOM_PIXELS);
             $si->getColumnDimension('C')->setWidth(210, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('D')->setWidth(80, Dimension::UOM_PIXELS);
             $si->getColumnDimension('E')->setWidth(100, Dimension::UOM_PIXELS);
             $si->getColumnDimension('F')->setWidth(30, Dimension::UOM_PIXELS);
-            for ($k = 6; $k <= 15; $k++) { // G s/d P
-                $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('G')->setWidth(75, Dimension::UOM_PIXELS);
+            for ($k = 7; $k <= 10; $k++) { // H s/d K
+                $si->getColumnDimension($arrkol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('Q')->setWidth(30, Dimension::UOM_PIXELS);
-            for ($k = 17; $k <= 24; $k++) { // R s/d Y
-                $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+            $kolom = 11; // L
+            if($adaThr) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
             }
-            $si->getColumnDimension('Z')->setWidth(110, Dimension::UOM_PIXELS);
-            $si->getColumnDimension('AA')->setWidth(110, Dimension::UOM_PIXELS);
+            if($adaBonus) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaInsentif) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaTelkomsel) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaLain) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(30, Dimension::UOM_PIXELS); // 25% hr
+            $kolom++;
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS); // 25% jumlah
+            $kolom++;
+            if($adaPotTelepon) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaPotBensin) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS); // pot_kas
+            $kolom++;
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS); // pot_cicilan
+            $kolom++;
+            if($adaPotBpjs) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaPotCuti) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            if($adaPotLain) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(110, Dimension::UOM_PIXELS); // total_diterima
+            $kolom++;
+            $si->getColumnDimension($arrkol[$kolom])->setWidth(150, Dimension::UOM_PIXELS); // keterangan
             $i++;
         }
 
