@@ -285,69 +285,69 @@ class SpreadsheetController extends Controller
                         $kolom++; // 3.D
                         $si->setCellValue($arrkol[$kolom].$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
                         $kolom++; // 4.E
-                        $si->setCellValue($arrkol[$kolom].$bar, ($d->gaji + $d->kenaikan_gaji));
+                        $si->setCellValue($arrkol[$kolom].$bar, ($d->gaji + $d->kenaikan_gaji) > 0 ? ($d->gaji + $d->kenaikan_gaji) : '');
                         $kolom++; // 5.F
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->hari_makan);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->hari_makan > 0 ? $d->hari_makan : ' ');
                         $kolom++; // 6.G
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_harian);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_harian > 0 ? $d->uang_makan_harian : ' ');
                         $kolom++; // 7.H
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_jumlah);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->uang_makan_jumlah > 0 ? $d->uang_makan_jumlah : ' ');
                         $kolom++; // 8.I
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_fjg);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_fjg > 0 ? $d->overtime_fjg : ' ');
                         $kolom++; // 9.J
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_cus);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_cus > 0 ? $d->overtime_cus : ' ');
                         $kolom++; // 10.K
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->medical);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->medical > 0 ? $d->medical : ' ');
                         $kolom++; // 11.L
                         if($adaThr) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->thr);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->thr > 0 ? $d->thr : ' ');
                             $kolom++;
                         }
                         if($adaBonus) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->bonus);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->bonus > 0 ? $d->bonus : ' ');
                             $kolom++;
                         }
                         if($adaInsentif) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->insentif);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->insentif > 0 ? $d->insentif : ' ');
                             $kolom++;
                         }
                         if($adaTelkomsel) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->telkomsel);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->telkomsel > 0 ? $d->telkomsel : ' ');
                             $kolom++;
                         }
                         if($adaLain) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->lain);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->lain > 0 ? $d->lain : ' ');
                             $kolom++;
                         }
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_hari);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_hari > 0 ? $d->pot_25_hari : ' ');
                         $kolom++;
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_jumlah);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_25_jumlah > 0 ? $d->pot_25_jumlah : ' ');
                         $kolom++;
                         if($adaPotTelepon) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_telepon);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_telepon > 0 ? $d->pot_telepon : ' ');
                             $kolom++;
                         }
                         if($adaPotBensin) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bensin);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bensin > 0 ? $d->pot_bensin : ' ');
                             $kolom++;
                         }
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_kas);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_kas > 0 ? $d->pot_kas : ' ');
                         $kolom++;
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cicilan);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cicilan > 0 ? $d->pot_cicilan : ' ');
                         $kolom++;
                         if($adaPotBpjs) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bpjs);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_bpjs > 0 ? $d->pot_bpjs : ' ');
                             $kolom++;
                         }
                         if($adaPotCuti) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cuti);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cuti > 0 ? $d->pot_cuti : ' ');
                             $kolom++;
                         }
                         if($adaPotLain) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_lain);
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_lain > 0 ? $d->pot_lain : ' ');
                             $kolom++;
                         }
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->total_diterima);
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->total_diterima > 0 ? $d->total_diterima : ' ');
                         $kolom++;
                         $si->setCellValue($arrkol[$kolom].$bar, $d->keterangan);
                         $bar++;
@@ -737,9 +737,9 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                         $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
                         for ($k=1; $k <= 12; $k++) {
-                            $si->setCellValue($kol[$k+3].$bar, isset($bulans[$k]) ? $bulans[$k] : 0);
+                            $si->setCellValue($kol[$k+3].$bar, isset($bulans[$k]) ? ($bulans[$k] > 0 ? $bulans[$k] : ' ') : ' ');
                         }
-                        $si->setCellValue('R'.$bar, isset($dataTHR[$tahun][$karyawan_id]) ? $dataTHR[$tahun][$karyawan_id] : 0);
+                        $si->setCellValue('R'.$bar, isset($dataTHR[$tahun][$karyawan_id]) ? ($dataTHR[$tahun][$karyawan_id] > 0 ? $dataTHR[$tahun][$karyawan_id] : ' ') : ' ');
                         $si->setCellValue('X'.$bar, '=SUM(E'.$bar.':W'.$bar.')');
                         $bar++;
                         $nomor++;

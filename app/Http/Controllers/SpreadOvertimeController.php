@@ -100,7 +100,7 @@ class SpreadOvertimeController extends Controller
                         $si->setCellValue('A'.$bar, $nomor);
                         $si->setCellValue('B'.$bar, $dkaryawan->nama);
                         for ($k=1; $k <= 12; $k++) {
-                            $si->setCellValue($kol[$k+1].$bar, isset($bulans[$k]) ? $bulans[$k] : 0);
+                            $si->setCellValue($kol[$k+1].$bar, isset($bulans[$k]) ? ($bulans[$k] > 0 ? $bulans[$k] : ' ') : ' ');
                         }
                         $si->setCellValue('O'.$bar, '=SUM(C'.$bar.':N'.$bar.')');
                         $bar++;

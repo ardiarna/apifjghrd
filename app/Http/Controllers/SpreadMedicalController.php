@@ -289,15 +289,15 @@ class SpreadMedicalController extends Controller
                             : 0);
                     $tunjangan1 = $dkaryawan->kelamin == 'P' ? $gaji : 0;
                     $tunjangan2 = $dkaryawan->kelamin == 'L' ? $gaji*2 : 0;
-                    $si->setCellValue('F'.$bar, $gaji);
-                    $si->setCellValue('G'.$bar, $tunjangan1);
-                    $si->setCellValue('H'.$bar, $tunjangan2);
+                    $si->setCellValue('F'.$bar, $gaji > 0 ? $gaji : ' ');
+                    $si->setCellValue('G'.$bar, $tunjangan1 > 0 ? $tunjangan1 : ' ');
+                    $si->setCellValue('H'.$bar, $tunjangan2 > 0 ? $tunjangan2 : ' ');
                     for ($k=1; $k <= 12; $k++) {
                         $m = $k+7; // kol I s/d T
-                        $si->setCellValue($kol[$m].$bar, isset($rawatJalans[$karyawan_id]) ? $rawatJalans[$karyawan_id]->{'bln_'.$k} : 0);
+                        $si->setCellValue($kol[$m].$bar, isset($rawatJalans[$karyawan_id]) ? ($rawatJalans[$karyawan_id]->{'bln_'.$k} > 0 ? $rawatJalans[$karyawan_id]->{'bln_'.$k} : ' ') : ' ');
                     }
-                    $si->setCellValue('U'.$bar, '='.($dkaryawan->kelamin == 'P' ? 'G' : 'H').$bar.'-I'.$bar.'-J'.$bar.'-K'.$bar.'-L'.$bar.'-M'.$bar.'-N'.$bar.'-O'.$bar.'-P'.$bar.'-Q'.$bar.'-R'.$bar.'-S'.$bar.'-T'.$bar);
-                    $si->setCellValue('V'.$bar, '='.'I'.$bar.'+J'.$bar.'+K'.$bar.'+L'.$bar.'+M'.$bar.'+N'.$bar.'+O'.$bar.'+P'.$bar.'+Q'.$bar.'+R'.$bar.'+S'.$bar.'+T'.$bar);
+                    $si->setCellValue('U'.$bar, '='.($dkaryawan->kelamin == 'P' ? 'G' : 'H').$bar.'-V'.$bar);
+                    $si->setCellValue('V'.$bar, '=SUM('.'I'.$bar.':T'.$bar.')');
                     $bar++;
                     $nomor++;
                 }

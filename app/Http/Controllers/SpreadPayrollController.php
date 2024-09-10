@@ -147,32 +147,32 @@ class SpreadPayrollController extends Controller
                 for ($k=1; $k <= 12; $k++) {
                     if(isset($bulans[$k])) {
                         $d = $bulans[$k];
-                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji));
-                        $si->setCellValue('F'.$bar, $d->hari_makan);
-                        $si->setCellValue('G'.$bar, $d->uang_makan_harian);
-                        $si->setCellValue('H'.$bar, $d->uang_makan_jumlah);
-                        $si->setCellValue('I'.$bar, $d->overtime_fjg);
-                        $si->setCellValue('J'.$bar, $d->overtime_cus);
-                        $si->setCellValue('K'.$bar, $d->medical);
-                        $si->setCellValue('L'.$bar, $d->thr);
-                        $si->setCellValue('M'.$bar, $d->bonus);
-                        $si->setCellValue('N'.$bar, $d->insentif);
-                        $si->setCellValue('O'.$bar, $d->telkomsel);
-                        $si->setCellValue('P'.$bar, $d->lain);
-                        $si->setCellValue('Q'.$bar, $d->pot_25_hari);
-                        $si->setCellValue('R'.$bar, $d->pot_25_jumlah);
-                        $si->setCellValue('S'.$bar, $d->pot_telepon);
-                        $si->setCellValue('T'.$bar, $d->pot_bensin);
-                        $si->setCellValue('U'.$bar, $d->pot_kas);
-                        $si->setCellValue('V'.$bar, $d->pot_cicilan);
-                        $si->setCellValue('W'.$bar, $d->pot_bpjs);
-                        $si->setCellValue('X'.$bar, $d->pot_cuti);
-                        $si->setCellValue('Y'.$bar, $d->pot_lain);
-                        $si->setCellValue('Z'.$bar, $d->total_diterima);
+                        $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji) > 0 ? ($d->gaji + $d->kenaikan_gaji) : ' ');
+                        $si->setCellValue('F'.$bar, $d->hari_makan > 0 ? $d->hari_makan : ' ');
+                        $si->setCellValue('G'.$bar, $d->uang_makan_harian > 0 ? $d->uang_makan_harian : ' ');
+                        $si->setCellValue('H'.$bar, $d->uang_makan_jumlah > 0 ? $d->uang_makan_jumlah : ' ');
+                        $si->setCellValue('I'.$bar, $d->overtime_fjg > 0 ? $d->overtime_fjg : ' ');
+                        $si->setCellValue('J'.$bar, $d->overtime_cus > 0 ? $d->overtime_cus : ' ');
+                        $si->setCellValue('K'.$bar, $d->medical > 0 ? $d->medical : ' ');
+                        $si->setCellValue('L'.$bar, $d->thr > 0 ? $d->thr : ' ');
+                        $si->setCellValue('M'.$bar, $d->bonus > 0 ? $d->bonus : ' ');
+                        $si->setCellValue('N'.$bar, $d->insentif > 0 ? $d->insentif : ' ');
+                        $si->setCellValue('O'.$bar, $d->telkomsel > 0 ? $d->telkomsel : ' ');
+                        $si->setCellValue('P'.$bar, $d->lain > 0 ? $d->lain : ' ');
+                        $si->setCellValue('Q'.$bar, $d->pot_25_hari > 0 ? $d->pot_25_hari : ' ');
+                        $si->setCellValue('R'.$bar, $d->pot_25_jumlah > 0 ? $d->pot_25_jumlah : ' ');
+                        $si->setCellValue('S'.$bar, $d->pot_telepon > 0 ? $d->pot_telepon : ' ');
+                        $si->setCellValue('T'.$bar, $d->pot_bensin > 0 ? $d->pot_bensin : ' ');
+                        $si->setCellValue('U'.$bar, $d->pot_kas > 0 ? $d->pot_kas : ' ');
+                        $si->setCellValue('V'.$bar, $d->pot_cicilan > 0 ? $d->pot_cicilan : ' ');
+                        $si->setCellValue('W'.$bar, $d->pot_bpjs > 0 ? $d->pot_bpjs : ' ');
+                        $si->setCellValue('X'.$bar, $d->pot_cuti > 0 ? $d->pot_cuti : ' ');
+                        $si->setCellValue('Y'.$bar, $d->pot_lain > 0 ? $d->pot_lain : ' ');
+                        $si->setCellValue('Z'.$bar, $d->total_diterima > 0 ? $d->total_diterima : ' ');
                         $si->setCellValue('AA'.$bar, $d->keterangan);
                     } else {
                         for ($z=4; $z <= 25; $z++) {
-                            $si->setCellValue($kol[$z].$bar, 0);
+                            $si->setCellValue($kol[$z].$bar, ' ');
                         }
                     }
                     $si->setCellValue('AB'.$bar, $arrBulan[$k]."'".substr($keyTahun, -2));
