@@ -45,6 +45,7 @@ class KaryawanImplement implements KaryawanRepository {
         $hasil->orderBy('karyawans.id');
         $hasil = $hasil->get();
         foreach ($hasil as $h) {
+            $h->jumlah_anak = $h->jumlahAnak();
             if($h->phk != null) {
                 $h->phk->statusPhk;
             }

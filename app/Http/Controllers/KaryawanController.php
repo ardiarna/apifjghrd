@@ -46,7 +46,7 @@ class KaryawanController extends Controller
             'alamat_ktp' => 'required',
             'telepon' => 'required|numeric',
             'email' => 'email',
-            'kawin' => 'in:Y,N',
+            'kawin' => 'in:Y,N,P',
             'kelamin' => 'required|in:L,P',
             'staf' => 'required|in:Y,N',
         ]);
@@ -80,7 +80,7 @@ class KaryawanController extends Controller
             'tanggal_lahir' => 'date',
             'telepon' => 'numeric',
             'email' => 'email',
-            'kawin' => 'in:Y,N',
+            'kawin' => 'in:Y,N,P',
             'aktif' => 'in:Y,N',
             'kelamin' => 'in:L,P',
             'staf' => 'in:Y,N',

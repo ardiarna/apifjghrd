@@ -28,7 +28,7 @@ return new class extends Migration
             $table->string('alamat_tinggal')->nullable();
             $table->string('telepon');
             $table->string('email')->nullable();
-            $table->enum('kawin', ['Y', 'N'])->nullable();
+            $table->enum('kawin', ['Y', 'N', 'P'])->nullable();
             $table->enum('kelamin', ['L', 'P'])->nullable();
             $table->foreignId('status_kerja_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->foreignId('pendidikan_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();

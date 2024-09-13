@@ -45,15 +45,26 @@ class Karyawan extends Model
         return $this->belongsTo(Ptkp::class);
     }
 
-    public function keluarga(): HasMany {
+    public function keluargas(): HasMany {
         return $this->hasMany(KeluargaKaryawan::class);
     }
 
-    public function keluargaKontak(): HasMany {
+    public function anaks(): HasMany {
+        return $this->hasMany(KeluargaKaryawan::class)
+            ->where('hubungan', 'A');
+    }
+
+    public function jumlahAnak() {
+        return $this->hasMany(KeluargaKaryawan::class)
+            ->where('hubungan', 'A')
+            ->count();
+    }
+
+    public function keluargaKontaks(): HasMany {
         return $this->hasMany(KeluargaKontak::class);
     }
 
-    public function perjanjianKerja(): HasMany {
+    public function perjanjianKerjas(): HasMany {
         return $this->hasMany(PerjanjianKerja::class);
     }
 
