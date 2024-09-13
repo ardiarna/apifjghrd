@@ -25,6 +25,7 @@ class KaryawanController extends Controller
         $data = $this->repo->findAll([
             'aktif' => $req->query('aktif'),
             'staf' => $req->query('staf'),
+            'area' => $req->query('area'),
             'search_by' => $req->query('search_by'),
             'value' => $req->query('value'),
             'sort_by' => $req->query('sort_by'),

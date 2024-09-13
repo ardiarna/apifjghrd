@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repositories\OncallCustomerRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
+use App\Repositories\UangPhkRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -13,12 +14,13 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadsheetController extends Controller
 {
-    protected $repoHeader, $repoDetail, $repoOncall;
+    protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk) {
         $this->repoHeader = $repoHeader;
         $this->repoDetail = $repoDetail;
         $this->repoOncall = $repoOncall;
+        $this->repoUangPhk = $repoUangPhk;
     }
 
     public function listPayroll($tahun) {
@@ -660,6 +662,12 @@ class SpreadsheetController extends Controller
             }
         }
 
+        $dataUangPhk = array();
+        $dataRepoUangPhk = $this->repoUangPhk->findAll(['tahun' => $tahun]);
+        foreach ($dataRepoUangPhk as $dt) {
+            $dataUangPhk[$dt->tahun][$dt->karyawan_id] = $dt;
+        }
+
         $i = 0;
         foreach ($details as $tahun => $stafs) {
             if($i > 0) {
@@ -713,7 +721,7 @@ class SpreadsheetController extends Controller
             $si->setCellValue('T'.$bar, 'PESANGON');
             $si->setCellValue('U'.$bar, 'MASA KERJA');
             $si->setCellValue('V'.$bar, 'UANG PISAH');
-            $si->setCellValue('W'.$bar, 'SISA CUTI');
+            $si->setCellValue('W'.$bar, 'PENGGANTIAN HAK');
             $bar++;
             $nomor = 1;
             foreach ($stafs as $staf => $areas) {
@@ -740,6 +748,14 @@ class SpreadsheetController extends Controller
                             $si->setCellValue($kol[$k+3].$bar, isset($bulans[$k]) ? ($bulans[$k] > 0 ? $bulans[$k] : ' ') : ' ');
                         }
                         $si->setCellValue('R'.$bar, isset($dataTHR[$tahun][$karyawan_id]) ? ($dataTHR[$tahun][$karyawan_id] > 0 ? $dataTHR[$tahun][$karyawan_id] : ' ') : ' ');
+                        if(isset($dataUangPhk[$tahun][$karyawan_id])) {
+                            $uangPhk = $dataUangPhk[$tahun][$karyawan_id];
+                            $si->setCellValue('S'.$bar, $uangPhk->kompensasi > 0 ? $uangPhk->kompensasi : ' ');
+                            $si->setCellValue('T'.$bar, $uangPhk->pesangon > 0 ? $uangPhk->pesangon : ' ');
+                            $si->setCellValue('U'.$bar, $uangPhk->masa_kerja > 0 ? $uangPhk->masa_kerja : ' ');
+                            $si->setCellValue('V'.$bar, $uangPhk->uang_pisah > 0 ? $uangPhk->uang_pisah : ' ');
+                            $si->setCellValue('W'.$bar, $uangPhk->penggantian_hak > 0 ? $uangPhk->penggantian_hak : ' ');
+                        }
                         $si->setCellValue('X'.$bar, '=SUM(E'.$bar.':W'.$bar.')');
                         $bar++;
                         $nomor++;

@@ -215,6 +215,14 @@ $router->group(['prefix' => 'tarif_efektif', 'middleware' => 'auth:api'], functi
     $router->delete('{id}', 'TarifEfektifController@delete');
 });
 
+$router->group(['prefix' => 'uang_phk', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'UangPhkController@findAll');
+    $router->get('{id}', 'UangPhkController@findById');
+    $router->post('/', 'UangPhkController@create');
+    $router->put('{id}', 'UangPhkController@update');
+    $router->delete('{id}', 'UangPhkController@delete');
+});
+
 $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'UpahController@findAll');
     $router->get('{id}', 'UpahController@findById');
