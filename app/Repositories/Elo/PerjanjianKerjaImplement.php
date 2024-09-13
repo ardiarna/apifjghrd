@@ -70,9 +70,7 @@ class PerjanjianKerjaImplement implements PerjanjianKerjaRepository {
         if($inputs['tanggal_awal'] != null) {
             $model->tanggal_awal = $inputs['tanggal_awal'];
         }
-        if($inputs['tanggal_akhir'] != null) {
-            $model->tanggal_akhir = $inputs['tanggal_akhir'];
-        }
+        $model->tanggal_akhir = $inputs['tanggal_akhir'];
         if($inputs['status_kerja_id'] != null) {
             $model->status_kerja_id = $inputs['status_kerja_id'];
         }
