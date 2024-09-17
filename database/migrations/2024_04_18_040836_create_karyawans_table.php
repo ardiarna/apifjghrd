@@ -34,7 +34,7 @@ return new class extends Migration
             $table->foreignId('pendidikan_id')->nullable()->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('pendidikan_almamater')->nullable();
             $table->string('pendidikan_jurusan')->nullable();
-            $table->enum('aktif', ['Y', 'N']);
+            $table->enum('aktif', ['Y', 'N', 'P']);
             $table->enum('staf', ['Y', 'N']);
             $table->string('nomor_kk')->nullable();
             $table->string('nomor_paspor')->nullable();

@@ -47,12 +47,13 @@ class KaryawanController extends Controller
             'telepon' => 'required|numeric',
             'email' => 'email',
             'kawin' => 'in:Y,N,P',
+            'aktif' => 'required|in:Y,N,P',
             'kelamin' => 'required|in:L,P',
             'staf' => 'required|in:Y,N',
         ]);
         $inputs = $req->only([
             'nama', 'nomor_ktp', 'tanggal_masuk', 'area_id', 'jabatan_id',
-            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon', 'kelamin', 'staf'
+            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon', 'aktif', 'kelamin', 'staf'
         ]);
         $inputs['nik'] = $req->input('nik');
         $inputs['agama_id'] = $req->input('agama_id');
@@ -65,7 +66,6 @@ class KaryawanController extends Controller
         $inputs['pendidikan_id'] = $req->input('pendidikan_id');
         $inputs['pendidikan_almamater'] = $req->input('pendidikan_almamater');
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
-        $inputs['aktif'] = 'Y';
         $inputs['nomor_kk'] = $req->input('nomor_kk');
         $inputs['nomor_paspor'] = $req->input('nomor_paspor');
         $inputs['nomor_pwp'] = $req->input('nomor_pwp');
@@ -81,7 +81,7 @@ class KaryawanController extends Controller
             'telepon' => 'numeric',
             'email' => 'email',
             'kawin' => 'in:Y,N,P',
-            'aktif' => 'in:Y,N',
+            'aktif' => 'in:Y,N,P',
             'kelamin' => 'in:L,P',
             'staf' => 'in:Y,N',
         ]);
