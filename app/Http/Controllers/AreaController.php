@@ -33,18 +33,21 @@ class AreaController extends Controller
 
     public function create(Request $req) {
         $this->validate($req, [
+            'kode' => 'required|size:3',
             'nama' => 'required',
             'urutan' => 'required|integer|min:1'
         ]);
-        $inputs = $req->only(['nama', 'urutan']);
+        $inputs = $req->only(['kode', 'nama', 'urutan']);
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Area berhasil dibuat');
     }
 
     public function update(Request $req, $id) {
         $this->validate($req, [
+            'kode' => 'size:3',
             'urutan' => 'integer|min:1'
         ]);
+        $inputs['kode'] = $req->input('kode');
         $inputs['nama'] = $req->input('nama');
         $inputs['urutan'] = $req->input('urutan');
         $data = $this->repo->update($id, $inputs);

@@ -8,7 +8,7 @@ class Area extends Model
 {
 
     protected $fillable = [
-        'nama', 'urutan'
+        'kode', 'nama', 'urutan'
     ];
 
 }

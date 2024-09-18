@@ -34,6 +34,9 @@ class KaryawanImplement implements KaryawanRepository {
         if(isset($inputs['area']) && $inputs['area'] != '') {
             $hasil->where('karyawans.area_id', $inputs['area']);
         }
+        if(isset($inputs['status_kerja']) && $inputs['status_kerja'] != '') {
+            $hasil->where('karyawans.status_kerja_id', $inputs['status_kerja']);
+        }
         if(isset($inputs['search_by']) && isset($inputs['value']) && $inputs['search_by'] != '' && $inputs['value'] != '') {
             $value = $inputs['value'];
             $hasil->where($inputs['search_by'], 'like', "%$value%");

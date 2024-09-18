@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('areas', function (Blueprint $table) {
             $table->id();
+            $table->string('kode', 3)->unique();
             $table->string('nama')->unique();
             $table->smallInteger('urutan');
             $table->timestamps();

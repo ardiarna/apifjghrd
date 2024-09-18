@@ -38,6 +38,9 @@ class AreaImplement implements AreaRepository {
 
     public function update($id, array $inputs) {
         $model = $this->model->findOrFail($id);
+        if($inputs['kode'] != null) {
+            $model->kode = $inputs['kode'];
+        }
         if($inputs['nama'] != null) {
             $model->nama = $inputs['nama'];
         }
