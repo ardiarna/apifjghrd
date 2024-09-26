@@ -38,7 +38,7 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         return $hasil->get();
     }
 
-    public function findUpahByKaryawanIdAndTahun($karyawan_id, $tahun) {
+    public function findGajiByKaryawanIdAndTahun($karyawan_id, $tahun) {
         $subquery = $this->detil->query()
             ->select('payroll_headers.id', 'payroll_headers.bulan')
             ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
@@ -56,6 +56,39 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
             }
         }
         return 0;
+    }
+
+    public function findUpahByKaryawanIdAndTahun($karyawan_id, $tahun) {
+        $subquery = $this->detil->query()
+            ->select('payroll_headers.id', 'payroll_headers.bulan')
+            ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+            ->where('payroll_headers.tahun', $tahun)
+            ->where('payrolls.karyawan_id', $karyawan_id)
+            ->orderBy('payroll_headers.bulan', 'desc')
+            ->first();
+        if($subquery) {
+            $hasil = $this->detil
+                ->where('payroll_header_id', $subquery->id)
+                ->where('karyawan_id', $karyawan_id)
+                ->first();
+            return $hasil;
+        } else {
+            $subquery = $this->detil->query()
+                ->select('payroll_headers.id', 'payroll_headers.bulan')
+                ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+                ->where('payrolls.karyawan_id', $karyawan_id)
+                ->orderBy('payroll_headers.tahun', 'desc')
+                ->orderBy('payroll_headers.bulan', 'desc')
+                ->first();
+            if($subquery) {
+                $hasil = $this->detil
+                    ->where('payroll_header_id', $subquery->id)
+                    ->where('karyawan_id', $karyawan_id)
+                    ->first();
+                return $hasil;
+            }
+        }
+        return null;
     }
 
     public function findUpahsByTahun($tahun) {
@@ -150,8 +183,17 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
         if(isset($inputs['pot_bpjs'])) {
             $model->pot_bpjs = $inputs['pot_bpjs'];
         }
-        if(isset($inputs['pot_cuti'])) {
-            $model->pot_cuti = $inputs['pot_cuti'];
+        if(isset($inputs['pot_cuti_hari'])) {
+            $model->pot_cuti_hari = $inputs['pot_cuti_hari'];
+        }
+        if(isset($inputs['pot_cuti_jumlah'])) {
+            $model->pot_cuti_jumlah = $inputs['pot_cuti_jumlah'];
+        }
+        if(isset($inputs['pot_kompensasi_jam'])) {
+            $model->pot_kompensasi_jam = $inputs['pot_kompensasi_jam'];
+        }
+        if(isset($inputs['pot_kompensasi_jumlah'])) {
+            $model->pot_kompensasi_jumlah = $inputs['pot_kompensasi_jumlah'];
         }
         if(isset($inputs['pot_lain'])) {
             $model->pot_lain = $inputs['pot_lain'];
@@ -191,7 +233,10 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
                 DB::raw('SUM(pot_kas) as pot_kas'),
                 DB::raw('SUM(pot_cicilan) as pot_cicilan'),
                 DB::raw('SUM(pot_bpjs) as pot_bpjs'),
-                DB::raw('SUM(pot_cuti) as pot_cuti'),
+                DB::raw('SUM(pot_cuti_hari) as pot_cuti_hari'),
+                DB::raw('SUM(pot_cuti_jumlah) as pot_cuti_jumlah'),
+                DB::raw('SUM(pot_kompensasi_jam) as pot_kompensasi_jam'),
+                DB::raw('SUM(pot_kompensasi_jumlah) as pot_kompensasi_jumlah'),
                 DB::raw('SUM(pot_lain) as pot_lain'),
                 DB::raw('SUM(total_diterima) as total_diterima')
             )->first();
@@ -215,7 +260,10 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
                 'pot_kas' => $data->pot_kas,
                 'pot_cicilan' => $data->pot_cicilan,
                 'pot_bpjs' => $data->pot_bpjs,
-                'pot_cuti' => $data->pot_cuti,
+                'pot_cuti_hari' => $data->pot_cuti_hari,
+                'pot_cuti_jumlah' => $data->pot_cuti_jumlah,
+                'pot_kompensasi_jam' => $data->pot_kompensasi_jam,
+                'pot_kompensasi_jumlah' => $data->pot_kompensasi_jumlah,
                 'pot_lain' => $data->pot_lain,
                 'total_diterima' => $data->total_diterima,
             ]);

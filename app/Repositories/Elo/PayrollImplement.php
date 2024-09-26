@@ -79,7 +79,7 @@ class PayrollImplement implements PayrollRepository {
                 $h->kantor_jkm = round(($h->gaji+$h->kenaikan_gaji) / 100 * 0.3);
                 $h->kantor_bpjs = round(($h->gaji+$h->kenaikan_gaji) / 100 * 5);
                 if($h->kantor_bpjs > 600000) $h->kantor_bpjs = 600000;
-                $penghasilan_bruto = $h->gaji + $h->kenaikan_gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti;
+                $penghasilan_bruto = $h->gaji + $h->kenaikan_gaji + $h->uang_makan_jumlah + $h->overtime_fjg + $h->overtime_cus + $h->medical + $h->thr + $h->bonus + $h->insentif + $h->telkomsel + $h->lain + $h->kantor_jkk + $h->kantor_jkm + $h->kantor_bpjs - $h->pot_25_jumlah - $h->pot_cuti_jumlah - $h->pot_kompensasi_jumlah;
                 if($h->karyawan->ptkp) {
                     $ter = $this->repoTER->findByTerAndPenghasilan($h->karyawan->ptkp->ter, $penghasilan_bruto);
                     $terSatu = $ter->persen/100;
@@ -205,8 +205,17 @@ class PayrollImplement implements PayrollRepository {
         if(isset($inputs['pot_bpjs'])) {
             $model->pot_bpjs = $inputs['pot_bpjs'];
         }
-        if(isset($inputs['pot_cuti'])) {
-            $model->pot_cuti = $inputs['pot_cuti'];
+        if(isset($inputs['pot_cuti_hari'])) {
+            $model->pot_cuti_hari = $inputs['pot_cuti_hari'];
+        }
+        if(isset($inputs['pot_cuti_jumlah'])) {
+            $model->pot_cuti_jumlah = $inputs['pot_cuti_jumlah'];
+        }
+        if(isset($inputs['pot_kompensasi_jam'])) {
+            $model->pot_kompensasi_jam = $inputs['pot_kompensasi_jam'];
+        }
+        if(isset($inputs['pot_kompensasi_jumlah'])) {
+            $model->pot_kompensasi_jumlah = $inputs['pot_kompensasi_jumlah'];
         }
         if(isset($inputs['pot_lain'])) {
             $model->pot_lain = $inputs['pot_lain'];

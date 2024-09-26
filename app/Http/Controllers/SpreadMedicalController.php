@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repositories\UpahRepository;
 use App\Repositories\MedicalRepository;
 use App\Repositories\PayrollHeaderRepository;
+use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -13,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadMedicalController extends Controller
 {
+    use AFhelper;
+
     protected $repoKaryawan, $repoMedical, $repoPayrollHeader;
 
     public function __construct(UpahRepository $repoKaryawan, MedicalRepository $repoMedical, PayrollHeaderRepository $repoPayrollHeader) {
@@ -101,7 +104,7 @@ class SpreadMedicalController extends Controller
             foreach ($karyawan_ids as $karyawan_id => $ids) {
                 foreach ($ids as $id => $d) {
                     $si->setCellValue('A'.$bar, $nomor);
-                    $si->setCellValue('B'.$bar, $d->karyawan->nama);
+                    $si->setCellValue('B'.$bar, $this->afAbbreviateName($d->karyawan->nama));
                     $si->setCellValue('C'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
                     $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_lahir)));
                     $si->setCellValue('E'.$bar, $d->karyawan->jabatan->nama);
@@ -178,7 +181,7 @@ class SpreadMedicalController extends Controller
             foreach ($karyawan_ids as $karyawan_id => $ids) {
                 foreach ($ids as $id => $d) {
                     $si->setCellValue('A'.$bar, $nomor);
-                    $si->setCellValue('B'.$bar, $d->karyawan->nama);
+                    $si->setCellValue('B'.$bar, $this->afAbbreviateName($d->karyawan->nama));
                     $si->setCellValue('C'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_masuk)));
                     $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($d->karyawan->tanggal_lahir)));
                     $si->setCellValue('E'.$bar, $d->karyawan->jabatan->nama);
@@ -278,7 +281,7 @@ class SpreadMedicalController extends Controller
                 }
                 foreach ($karyawan_ids as $karyawan_id => $dkaryawan) {
                     $si->setCellValue('A'.$bar, $nomor);
-                    $si->setCellValue('B'.$bar, $dkaryawan->nama);
+                    $si->setCellValue('B'.$bar, $this->afAbbreviateName($dkaryawan->nama));
                     $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                     $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
                     $si->setCellValue('E'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_lahir)));

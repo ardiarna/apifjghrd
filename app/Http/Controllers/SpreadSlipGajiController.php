@@ -203,23 +203,29 @@ class SpreadSlipGajiController extends Controller
                 $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['UL']).')');
             }
             $si->setCellValue('O'.$bar, '=');
-            $si->setCellValue('P'.$bar, $d->pot_cuti > 0 ? $d->pot_cuti : '');
+            $si->setCellValue('P'.$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             $si->setCellValue('A'.$bar, 'Insentif');
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
+            $si->setCellValue('J'.$bar, 'Kompensasi');
+            if(isset($potongans[$d->karyawan->id]['KJ'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['KJ']).')');
+            }
+            $si->setCellValue('O'.$bar, '=');
+            $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
+            $si->getRowDimension($bar)->setRowHeight(17);
+            $bar++;
+            $si->setCellValue('A'.$bar, 'Telkomsel');
+            $si->setCellValue('G'.$bar, '=');
+            $si->setCellValue('H'.$bar, $d->telkomsel > 0 ? $d->telkomsel : '');
             $si->setCellValue('J'.$bar, 'Lain-lain');
             if(isset($potongans[$d->karyawan->id]['LL'])) {
                 $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['LL']).')');
             }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_lain > 0 ? $d->pot_lain : '');
-            $si->getRowDimension($bar)->setRowHeight(17);
-            $bar++;
-            $si->setCellValue('A'.$bar, 'Telkomsel');
-            $si->setCellValue('G'.$bar, '=');
-            $si->setCellValue('H'.$bar, $d->telkomsel > 0 ? $d->telkomsel : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             $si->setCellValue('E'.$bar, 'Total A');
@@ -495,23 +501,29 @@ class SpreadSlipGajiController extends Controller
                 $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['UL']).')');
             }
             $si->setCellValue('O'.$bar, '=');
-            $si->setCellValue('P'.$bar, $d->pot_cuti > 0 ? $d->pot_cuti : '');
+            $si->setCellValue('P'.$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             $si->setCellValue('A'.$bar, 'Insentif');
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
-            $si->setCellValue('J'.$bar, 'Lain-lain');
-            if(isset($potongans[$d->bulan]['LL'])) {
-                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['LL']).')');
+            $si->setCellValue('J'.$bar, 'Kompensasi');
+            if(isset($potongans[$d->bulan]['KJ'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['KJ']).')');
             }
             $si->setCellValue('O'.$bar, '=');
-            $si->setCellValue('P'.$bar, $d->pot_lain > 0 ? $d->pot_lain : '');
+            $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             $si->setCellValue('A'.$bar, 'Telkomsel');
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->telkomsel > 0 ? $d->telkomsel : '');
+            $si->setCellValue('J'.$bar, 'Lain-lain');
+            if(isset($potongans[$d->karyawan->id]['LL'])) {
+                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['LL']).')');
+            }
+            $si->setCellValue('O'.$bar, '=');
+            $si->setCellValue('P'.$bar, $d->pot_lain > 0 ? $d->pot_lain : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             $si->setCellValue('E'.$bar, 'Total A');

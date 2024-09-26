@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollRepository;
+use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -11,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadPphController extends Controller
 {
+    use AFhelper;
+
     protected $repoDetail, $repoArea;
 
     public function __construct(PayrollRepository $repoDetail, AreaRepository $repoArea) {
@@ -21,7 +24,7 @@ class SpreadPphController extends Controller
     public function karyawan($karyawan_id, $tahun) {
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
-        $kol_akhir = 'AH';
+        $kol_akhir = 'AI';
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
@@ -66,15 +69,15 @@ class SpreadPphController extends Controller
             $si->setCellValue('G'.$bar, 'TUNJANGAN LAIN');
             $si->mergeCells('G'.$bar.':N'.$bar);
             $si->setCellValue('O'.$bar, 'POTONGAN');
-            $si->mergeCells('O'.$bar.':W'.$bar);
-            $si->setCellValue('X'.$bar, 'TOTAL DITERIMA IDR');
-            $si->mergeCells('X'.$bar.':X'.($bar+2));
-            $si->setCellValue('Y'.$bar, 'BENEFIT LAINNYA');
-            $si->mergeCells('Y'.$bar.':AC'.$bar);
-            $si->setCellValue('AD'.$bar, 'PENGHITUNGAN PPh 21');
-            $si->mergeCells('AD'.$bar.':AG'.$bar);
-            $si->setCellValue('AH'.$bar, 'TOTAL IDR');
-            $si->mergeCells('AH'.$bar.':AH'.($bar+2));
+            $si->mergeCells('O'.$bar.':X'.$bar);
+            $si->setCellValue('Y'.$bar, 'TOTAL DITERIMA IDR');
+            $si->mergeCells('Y'.$bar.':Y'.($bar+2));
+            $si->setCellValue('Z'.$bar, 'BENEFIT LAINNYA');
+            $si->mergeCells('Z'.$bar.':AD'.$bar);
+            $si->setCellValue('AE'.$bar, 'PENGHITUNGAN PPh 21');
+            $si->mergeCells('AE'.$bar.':AH'.$bar);
+            $si->setCellValue('AI'.$bar, 'TOTAL IDR');
+            $si->mergeCells('AI'.$bar.':AI'.($bar+2));
             $bar++;
             $si->setCellValue('D'.$bar, 'HR');
             $si->mergeCells('D'.$bar.':D'.($bar+1));
@@ -108,26 +111,28 @@ class SpreadPphController extends Controller
             $si->mergeCells('U'.$bar.':U'.($bar+1));
             $si->setCellValue('V'.$bar, 'UNPAID LEAVE');
             $si->mergeCells('V'.$bar.':V'.($bar+1));
-            $si->setCellValue('W'.$bar, 'LAIN-LAIN IDR');
+            $si->setCellValue('W'.$bar, 'KOMPENSASI IDR');
             $si->mergeCells('W'.$bar.':W'.($bar+1));
-            $si->setCellValue('Y'.$bar, 'JP 3%');
-            $si->mergeCells('Y'.$bar.':Y'.($bar+1));
-            $si->setCellValue('Z'.$bar, 'JHT 5.7%');
+            $si->setCellValue('X'.$bar, 'LAIN-LAIN IDR');
+            $si->mergeCells('X'.$bar.':X'.($bar+1));
+            $si->setCellValue('Z'.$bar, 'JP 3%');
             $si->mergeCells('Z'.$bar.':Z'.($bar+1));
-            $si->setCellValue('AA'.$bar, 'JKK 0,24%');
+            $si->setCellValue('AA'.$bar, 'JHT 5.7%');
             $si->mergeCells('AA'.$bar.':AA'.($bar+1));
-            $si->setCellValue('AB'.$bar, 'JKM 0,3%');
+            $si->setCellValue('AB'.$bar, 'JKK 0,24%');
             $si->mergeCells('AB'.$bar.':AB'.($bar+1));
-            $si->setCellValue('AC'.$bar, 'BPJS KESEHATAN');
+            $si->setCellValue('AC'.$bar, 'JKM 0,3%');
             $si->mergeCells('AC'.$bar.':AC'.($bar+1));
-            $si->setCellValue('AD'.$bar, 'PENGHASILAN BRUTO');
+            $si->setCellValue('AD'.$bar, 'BPJS KESEHATAN');
             $si->mergeCells('AD'.$bar.':AD'.($bar+1));
-            $si->setCellValue('AE'.$bar, 'DPP');
+            $si->setCellValue('AE'.$bar, 'PENGHASILAN BRUTO');
             $si->mergeCells('AE'.$bar.':AE'.($bar+1));
-            $si->setCellValue('AF'.$bar, 'TER '.$dataKaryawan->ptkp->ter);
+            $si->setCellValue('AF'.$bar, 'DPP');
             $si->mergeCells('AF'.$bar.':AF'.($bar+1));
-            $si->setCellValue('AG'.$bar, 'PPh 21');
+            $si->setCellValue('AG'.$bar, 'TER '.$dataKaryawan->ptkp->ter);
             $si->mergeCells('AG'.$bar.':AG'.($bar+1));
+            $si->setCellValue('AH'.$bar, 'PPh 21');
+            $si->mergeCells('AH'.$bar.':AH'.($bar+1));
             $bar++;
             $si->setCellValue('G'.$bar, 'FRATEKINDO');
             $si->setCellValue('H'.$bar, 'CUSTOMER');
@@ -163,26 +168,27 @@ class SpreadPphController extends Controller
                     $si->setCellValue('S'.$bar, $d->pot_kas);
                     $si->setCellValue('T'.$bar, $d->pot_cicilan);
                     $si->setCellValue('U'.$bar, $d->pot_bpjs);
-                    $si->setCellValue('V'.$bar, $d->pot_cuti);
-                    $si->setCellValue('W'.$bar, $d->pot_lain);
-                    $si->setCellValue('X'.$bar, $d->total_diterima);
-                    $si->setCellValue('Y'.$bar, $d->kantor_jp);
-                    $si->setCellValue('Z'.$bar, $d->kantor_jht);
-                    $si->setCellValue('AA'.$bar, $d->kantor_jkk);
-                    $si->setCellValue('AB'.$bar, $d->kantor_jkm);
-                    $si->setCellValue('AC'.$bar, $d->kantor_bpjs);
-                    $si->setCellValue('AD'.$bar, $d->penghasilan_bruto);
-                    $si->setCellValue('AE'.$bar, $d->dpp);
-                    $si->setCellValue('AF'.$bar, $d->ter_persen/100);
+                    $si->setCellValue('V'.$bar, $d->pot_cuti_jumlah);
+                    $si->setCellValue('W'.$bar, $d->pot_kompensasi_jumlah);
+                    $si->setCellValue('X'.$bar, $d->pot_lain);
+                    $si->setCellValue('Y'.$bar, $d->total_diterima);
+                    $si->setCellValue('Z'.$bar, $d->kantor_jp);
+                    $si->setCellValue('AA'.$bar, $d->kantor_jht);
+                    $si->setCellValue('AB'.$bar, $d->kantor_jkk);
+                    $si->setCellValue('AC'.$bar, $d->kantor_jkm);
+                    $si->setCellValue('AD'.$bar, $d->kantor_bpjs);
+                    $si->setCellValue('AE'.$bar, $d->penghasilan_bruto);
+                    $si->setCellValue('AF'.$bar, $d->dpp);
+                    $si->setCellValue('AG'.$bar, $d->ter_persen/100);
                     if($k != 12) {
-                        $si->setCellValue('AG'.$bar, $d->pph21);
+                        $si->setCellValue('AH'.$bar, $d->pph21);
                         $totPph21 += $d->pph21;
                     }
-                    $si->setCellValue('AH'.$bar, '=X'.$bar.'+Y'.$bar.'+Z'.$bar.'+AA'.$bar.'+AB'.$bar.'+AC'.$bar.'+AG'.$bar);
+                    $si->setCellValue('AI'.$bar, '=Y'.$bar.'+Z'.$bar.'+AA'.$bar.'+AB'.$bar.'+AC'.$bar.'+AG'.$bar.'+AH'.$bar);
                     $totPenghasilanBruto += $d->penghasilan_bruto;
                     $totAccMonth += 1;
                 } else {
-                    for ($z=2; $z <= 28; $z++) {
+                    for ($z=2; $z <= 29; $z++) {
                         $si->setCellValue($kol[$z].$bar, 0);
                     }
                 }
@@ -220,85 +226,85 @@ class SpreadPphController extends Controller
 
             $bar+=2;
             $barAwal = $bar;  // 21
-            $si->setCellValue('AC'.$bar, 'Penghitungan PPh Pasal 21 pada masa pajak terakhir (Desember)');
+            $si->setCellValue('AD'.$bar, 'Penghitungan PPh Pasal 21 pada masa pajak terakhir (Desember)');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Penghasilan Bruto Setahun');
-            $si->setCellValue('AH'.$bar, '=AD19');
+            $si->setCellValue('AD'.$bar, 'Penghasilan Bruto Setahun');
+            $si->setCellValue('AI'.$bar, '=AE19');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Dasar Pengenaan Pajak (DPP)');
-            $si->setCellValue('AH'.$bar, $hitung['dpp']);
+            $si->setCellValue('AD'.$bar, 'Dasar Pengenaan Pajak (DPP)');
+            $si->setCellValue('AI'.$bar, $hitung['dpp']);
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Pengurang:');
+            $si->setCellValue('AD'.$bar, 'Pengurang:');
             $bar++;
-            $si->setCellValue('AC'.$bar, '-');
-            $si->setCellValue('AD'.$bar, 'Biaya Jabatan Setahun :');
+            $si->setCellValue('AD'.$bar, '-');
+            $si->setCellValue('AE'.$bar, 'Biaya Jabatan Setahun :');
             $bar++;
-            $si->setCellValue('AD'.$bar, '5% x');
-            $si->setCellValue('AE'.$bar, '=AH23');
+            $si->setCellValue('AE'.$bar, '5% x');
+            $si->setCellValue('AF'.$bar, '=AI23');
             $bar++;
-            $si->setCellValue('AD'.$bar, '(  max '.$totAccMonth.' x');
-            $si->setCellValue('AE'.$bar, '500000');
-            $si->setCellValue('AF'.$bar, ')');
-            $si->setCellValue('AG'.$bar, $hitung['biaya_jabatan']);
+            $si->setCellValue('AE'.$bar, '(  max '.$totAccMonth.' x');
+            $si->setCellValue('AF'.$bar, '500000');
+            $si->setCellValue('AG'.$bar, ')');
+            $si->setCellValue('AH'.$bar, $hitung['biaya_jabatan']);
             $bar++;
-            $si->setCellValue('AC'.$bar, '-');
-            $si->setCellValue('AD'.$bar, 'Iuran Pensiun & Hari Tua :');
-            $si->setCellValue('AG'.$bar, '0');
+            $si->setCellValue('AD'.$bar, '-');
+            $si->setCellValue('AE'.$bar, 'Iuran Pensiun & Hari Tua :');
+            $si->setCellValue('AH'.$bar, '0');
             $bar++;
-            $si->setCellValue('AC'.$bar, '-');
-            $si->setCellValue('AD'.$bar, 'Zakat & Sumbangan :');
-            $si->setCellValue('AG'.$bar, '0');
-            $si->setCellValue('AH'.$bar, '+');
+            $si->setCellValue('AD'.$bar, '-');
+            $si->setCellValue('AE'.$bar, 'Zakat & Sumbangan :');
+            $si->setCellValue('AH'.$bar, '0');
+            $si->setCellValue('AI'.$bar, '+');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Total Pengurang');
-            $si->setCellValue('AH'.$bar, '=SUM(AG27:AG29)');
-            $si->setCellValue('AI'.$bar, '-');
+            $si->setCellValue('AD'.$bar, 'Total Pengurang');
+            $si->setCellValue('AI'.$bar, '=SUM(AG27:AG29)');
+            $si->setCellValue('AJ'.$bar, '-');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Penghasilan Neto Setahun');
-            $si->setCellValue('AH'.$bar, '=AH23-AH30');
+            $si->setCellValue('AD'.$bar, 'Penghasilan Neto Setahun');
+            $si->setCellValue('AI'.$bar, '=AH23-AH30');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'PTKP Setahun untuk '.$dataKaryawan->ptkp->kode);
-            $si->setCellValue('AH'.$bar, $dataKaryawan->ptkp->jumlah);
-            $si->setCellValue('AI'.$bar, '-');
+            $si->setCellValue('AD'.$bar, 'PTKP Setahun untuk '.$dataKaryawan->ptkp->kode);
+            $si->setCellValue('AI'.$bar, $dataKaryawan->ptkp->jumlah);
+            $si->setCellValue('AJ'.$bar, '-');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'Penghasilan Kena Pajak Setahun');
-            $si->setCellValue('AH'.$bar, '=ROUNDDOWN(AH31-AH32,-3)');
+            $si->setCellValue('AD'.$bar, 'Penghasilan Kena Pajak Setahun');
+            $si->setCellValue('AI'.$bar, '=ROUNDDOWN(AH31-AH32,-3)');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'PPh Pasal 21 terutang setahun');
+            $si->setCellValue('AD'.$bar, 'PPh Pasal 21 terutang setahun');
             $bar++;
             $barBreakdown = $bar;
             foreach ($hitung['breakdown'] as $item) {
-                $si->setCellValue('AC'.$bar,  ($item['rate']*100).'% x');
-                $si->setCellValue('AD'.$bar, $item['amount']);
-                $si->setCellValue('AG'.$bar, $item['total']);
-                $si->getStyle('AC'.$bar)->getAlignment()->setHorizontal('right');
+                $si->setCellValue('AD'.$bar,  ($item['rate']*100).'% x');
+                $si->setCellValue('AE'.$bar, $item['amount']);
+                $si->setCellValue('AH'.$bar, $item['total']);
+                $si->getStyle('AD'.$bar)->getAlignment()->setHorizontal('right');
                 $bar++;
             }
-            $si->setCellValue('AH'.($bar-1), '+');
-            $si->setCellValue('AH'.$bar, '=SUM(AG'.$barBreakdown.':AG'.($bar-1).')');
+            $si->setCellValue('AI'.($bar-1), '+');
+            $si->setCellValue('AI'.$bar, '=SUM(AH'.$barBreakdown.':AH'.($bar-1).')');
             $bar++;
-            $si->setCellValue('AC'.$bar, 'PPh Pasal 21 yang telah dipotong sampai November '.$keyTahun);
-            $si->setCellValue('AH'.$bar, '=SUM(AG6:AG16)');
-            $si->setCellValue('AI'.$bar, '-');
+            $si->setCellValue('AD'.$bar, 'PPh Pasal 21 yang telah dipotong sampai November '.$keyTahun);
+            $si->setCellValue('AI'.$bar, '=SUM(AG6:AG16)');
+            $si->setCellValue('AJ'.$bar, '-');
             $si->getStyle('AH'.$bar)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
             $bar++;
             if($hitung['pph']-$totPph21 >= 0) {
-                $si->setCellValue('AC'.$bar, 'PPh Pasal 21 yang harus dipotong pada bulan Desember '.$keyTahun);
+                $si->setCellValue('AD'.$bar, 'PPh Pasal 21 yang harus dipotong pada bulan Desember '.$keyTahun);
             } else {
-                $si->setCellValue('AC'.$bar, 'PPh Pasal 21 yang lebih dipotong');
+                $si->setCellValue('AD'.$bar, 'PPh Pasal 21 yang lebih dipotong');
             }
-            $si->setCellValue('AH'.$bar, '=AH'.($bar-2).'-AH'.($bar-1));
+            $si->setCellValue('AI'.$bar, '=AI'.($bar-2).'-AI'.($bar-1));
 
-            $si->getStyle('AC'.$barAwal.':AH'.$bar)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
-            $si->getStyle('AE'.$barAwal.':AH'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-            $si->getStyle('AD'.$barBreakdown.':AD'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-            $si->getStyle('AC25:AC29')->getAlignment()->setHorizontal('right');
-            $si->getStyle('AD26:AD27')->getAlignment()->setHorizontal('right');
-            $si->getStyle('AG29')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('AH30')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('AH32')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('AG'.($barBreakdown+count($hitung['breakdown'])-1))->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
-            $si->getStyle('AH'.($barBreakdown+count($hitung['breakdown'])+1))->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('AD'.$barAwal.':AI'.$bar)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle('AF'.$barAwal.':AI'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('AE'.$barBreakdown.':AE'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('AD25:AD29')->getAlignment()->setHorizontal('right');
+            $si->getStyle('AE26:AE27')->getAlignment()->setHorizontal('right');
+            $si->getStyle('AH29')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('AI30')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('AI32')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('AH'.($barBreakdown+count($hitung['breakdown'])-1))->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
+            $si->getStyle('AI'.($barBreakdown+count($hitung['breakdown'])+1))->getBorders()->getBottom()->setBorderStyle(Border::BORDER_MEDIUM);
 
             $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
             $si->getColumnDimension('B')->setWidth(100, Dimension::UOM_PIXELS);
@@ -308,18 +314,18 @@ class SpreadPphController extends Controller
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
             $si->getColumnDimension('O')->setWidth(30, Dimension::UOM_PIXELS);
-            for ($k = 15; $k <= 22; $k++) { // P s/d W
+            for ($k = 15; $k <= 23; $k++) { // P s/d X
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('X')->setWidth(110, Dimension::UOM_PIXELS);
-            for ($k = 24; $k <= 28; $k++) { // Y s/d AC
+            $si->getColumnDimension('Y')->setWidth(110, Dimension::UOM_PIXELS);
+            for ($k = 25; $k <= 29; $k++) { // Z s/d AD
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('AD')->setWidth(110, Dimension::UOM_PIXELS);
-            for ($k = 30; $k <= 32; $k++) { // AE s/d AG
+            $si->getColumnDimension('AE')->setWidth(110, Dimension::UOM_PIXELS);
+            for ($k = 31; $k <= 33; $k++) { // AF s/d AH
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('AH')->setWidth(120, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('AI')->setWidth(120, Dimension::UOM_PIXELS);
             $i++;
         }
 
@@ -340,7 +346,7 @@ class SpreadPphController extends Controller
         // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
-        $kol_akhir = 'AE';
+        $kol_akhir = 'AF';
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
@@ -409,11 +415,11 @@ class SpreadPphController extends Controller
             $si->setCellValue('I'.$bar, 'TUNJANGAN LAIN');
             $si->mergeCells('I'.$bar.':P'.$bar);
             $si->setCellValue('Q'.$bar, 'POTONGAN');
-            $si->mergeCells('Q'.$bar.':Y'.$bar);
-            $si->setCellValue('Z'.$bar, 'TOTAL DITERIMA IDR');
-            $si->mergeCells('Z'.$bar.':Z'.($bar+2));
-            $si->setCellValue('AA'.$bar, 'BENEFIT LAINNYA');
-            $si->mergeCells('AA'.$bar.':AE'.$bar);
+            $si->mergeCells('Q'.$bar.':Z'.$bar);
+            $si->setCellValue('AA'.$bar, 'TOTAL DITERIMA IDR');
+            $si->mergeCells('AA'.$bar.':AA'.($bar+2));
+            $si->setCellValue('AB'.$bar, 'BENEFIT LAINNYA');
+            $si->mergeCells('AB'.$bar.':AF'.$bar);
             $bar++;
             $si->setCellValue('F'.$bar, 'HR');
             $si->mergeCells('F'.$bar.':F'.($bar+1));
@@ -447,18 +453,20 @@ class SpreadPphController extends Controller
             $si->mergeCells('W'.$bar.':W'.($bar+1));
             $si->setCellValue('X'.$bar, 'UNPAID LEAVE');
             $si->mergeCells('X'.$bar.':X'.($bar+1));
-            $si->setCellValue('Y'.$bar, 'LAIN-LAIN IDR');
+            $si->setCellValue('Y'.$bar, 'KOMPENSASI IDR');
             $si->mergeCells('Y'.$bar.':Y'.($bar+1));
-            $si->setCellValue('AA'.$bar, 'JP 3%');
-            $si->mergeCells('AA'.$bar.':AA'.($bar+1));
-            $si->setCellValue('AB'.$bar, 'JHT 5.7%');
+            $si->setCellValue('Z'.$bar, 'LAIN-LAIN IDR');
+            $si->mergeCells('Z'.$bar.':Z'.($bar+1));
+            $si->setCellValue('AB'.$bar, 'JP 3%');
             $si->mergeCells('AB'.$bar.':AB'.($bar+1));
-            $si->setCellValue('AC'.$bar, 'JKK 0,24%');
+            $si->setCellValue('AC'.$bar, 'JHT 5.7%');
             $si->mergeCells('AC'.$bar.':AC'.($bar+1));
-            $si->setCellValue('AD'.$bar, 'JKM 0,3%');
+            $si->setCellValue('AD'.$bar, 'JKK 0,24%');
             $si->mergeCells('AD'.$bar.':AD'.($bar+1));
-            $si->setCellValue('AE'.$bar, 'BPJS KESEHATAN');
+            $si->setCellValue('AE'.$bar, 'JKM 0,3%');
             $si->mergeCells('AE'.$bar.':AE'.($bar+1));
+            $si->setCellValue('AF'.$bar, 'BPJS KESEHATAN');
+            $si->mergeCells('AF'.$bar.':AF'.($bar+1));
             $bar++;
             $si->setCellValue('I'.$bar, 'FRATEKINDO');
             $si->setCellValue('J'.$bar, 'CUSTOMER');
@@ -472,7 +480,7 @@ class SpreadPphController extends Controller
                 $bar++;
                 $dkaryawan = $dataKaryawan[$karyawan_id];
                 $si->setCellValue('A'.$bar, $nomor);
-                $si->setCellValue('B'.$bar, $jenis == '3' ? $dkaryawan->nama.' ('.$dkaryawan->area->nama.')' : $dkaryawan->nama);
+                $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 for ($k=1; $k <= 12; $k++) {
                     $si->setCellValue('D'.$bar, $arrBulan[$k]);
@@ -497,14 +505,15 @@ class SpreadPphController extends Controller
                         $si->setCellValue('U'.$bar, $d->pot_kas);
                         $si->setCellValue('V'.$bar, $d->pot_cicilan);
                         $si->setCellValue('W'.$bar, $d->pot_bpjs);
-                        $si->setCellValue('X'.$bar, $d->pot_cuti);
-                        $si->setCellValue('Y'.$bar, $d->pot_lain);
-                        $si->setCellValue('Z'.$bar, $d->total_diterima);
-                        $si->setCellValue('AA'.$bar, $d->kantor_jp);
-                        $si->setCellValue('AB'.$bar, $d->kantor_jht);
-                        $si->setCellValue('AC'.$bar, $d->kantor_jkk);
-                        $si->setCellValue('AD'.$bar, $d->kantor_jkm);
-                        $si->setCellValue('AE'.$bar, $d->kantor_bpjs);
+                        $si->setCellValue('X'.$bar, $d->pot_cuti_jumlah);
+                        $si->setCellValue('Y'.$bar, $d->pot_kompensasi_jumlah);
+                        $si->setCellValue('Z'.$bar, $d->pot_lain);
+                        $si->setCellValue('AA'.$bar, $d->total_diterima);
+                        $si->setCellValue('AB'.$bar, $d->kantor_jp);
+                        $si->setCellValue('AC'.$bar, $d->kantor_jht);
+                        $si->setCellValue('AD'.$bar, $d->kantor_jkk);
+                        $si->setCellValue('AE'.$bar, $d->kantor_jkm);
+                        $si->setCellValue('AF'.$bar, $d->kantor_bpjs);
                         } else {
                         for ($z=4; $z <= 30; $z++) {
                             $si->setCellValue($kol[$z].$bar, 0);
@@ -517,7 +526,7 @@ class SpreadPphController extends Controller
                 for ($k = 7; $k <= 15; $k++) { // H s/d P
                     $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].($bar-12).':'.$kol[$k].($bar-1).')');
                 }
-                for ($k = 17; $k <= 30; $k++) { // R s/d AE
+                for ($k = 17; $k <= 31; $k++) { // R s/d AF
                     $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].($bar-12).':'.$kol[$k].($bar-1).')');
                 }
                 $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFF00');
@@ -537,7 +546,7 @@ class SpreadPphController extends Controller
                 }, $barSub);
                 $si->setCellValue($kol[$k].$bar, '=' . implode('+', $barSubKolom));
             }
-            for ($k = 17; $k <= 30; $k++) { // R s/d AE
+            for ($k = 17; $k <= 31; $k++) { // R s/d AF
                 $barSubKolom = array_map(function($num) use($kol, $k) {
                     return $kol[$k] . $num;
                 }, $barSub);
@@ -546,8 +555,8 @@ class SpreadPphController extends Controller
 
             $si->getStyle('A1:A2')->getFont()->setName('Algerian')->setSize(16)->setUnderline(TRUE)->getColor()->setARGB('0000FF');
             $si->getStyle('A1:A'.$bar)->getAlignment()->setHorizontal('center');
-            $si->getStyle('Q3:Y'.$bar)->getFont()->getColor()->setARGB('FF0000');
-            $si->getStyle('Z3:Z'.$bar)->getFont()->getColor()->setARGB('0000FF');
+            $si->getStyle('Q3:Z'.$bar)->getFont()->getColor()->setARGB('FF0000');
+            $si->getStyle('AA3:AA'.$bar)->getFont()->getColor()->setARGB('0000FF');
             $si->getStyle('A3:'.$kol_akhir.'5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(TRUE);
             $si->getStyle('A3:'.$kol_akhir.'5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
@@ -556,7 +565,7 @@ class SpreadPphController extends Controller
             $si->getStyle('B6:C'.($bar-1))->getAlignment()->setWrapText(TRUE);
             $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('D6:D'.$bar)->getNumberFormat()->setFormatCode('dd-mm-yy');
-            $si->getStyle('E6:AE'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('E6:AF'.$bar)->getNumberFormat()->setFormatCode('#,##0');
 
             $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
             $si->getColumnDimension('B')->setWidth(200, Dimension::UOM_PIXELS);
@@ -568,11 +577,11 @@ class SpreadPphController extends Controller
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
             $si->getColumnDimension('Q')->setWidth(30, Dimension::UOM_PIXELS);
-            for ($k = 17; $k <= 24; $k++) { // R s/d Y
+            for ($k = 17; $k <= 25; $k++) { // R s/d Z
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('Z')->setWidth(110, Dimension::UOM_PIXELS);
-            for ($k = 26; $k <= 30; $k++) { // AA s/d AE
+            $si->getColumnDimension('AA')->setWidth(110, Dimension::UOM_PIXELS);
+            for ($k = 27; $k <= 31; $k++) { // AB s/d AF
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
             $i++;
@@ -625,7 +634,7 @@ class SpreadPphController extends Controller
             foreach ($karyawan_ids as $karyawan_id => $bulans) {
                 $dkaryawan = $dataKaryawan[$karyawan_id];
                 $si->setCellValue('A'.$bar, $nomor);
-                $si->setCellValue('B'.$bar, $jenis == '3' ? $dkaryawan->nama.' ('.$dkaryawan->area->nama.')' : $dkaryawan->nama);
+                $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 $si->setCellValue('D'.$bar, $dkaryawan->nomor_pwp ? "'".$dkaryawan->nomor_pwp : "");
                 $kolnext = 4;
@@ -758,7 +767,7 @@ class SpreadPphController extends Controller
                     ];
                 }
                 $si->setCellValue('A'.$bar, $nomor);
-                $si->setCellValue('B'.$bar, $jenis == '3' ? $dkaryawan->nama.' ('.$dkaryawan->area->nama.')' : $dkaryawan->nama);
+                $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 $si->setCellValue('D'.$bar, $dkaryawan->nomor_pwp ? "'".$dkaryawan->nomor_pwp : "");
                 $si->setCellValue('E'.$bar, $dkaryawan->ptkp ? $dkaryawan->ptkp->kode : '');
@@ -863,7 +872,7 @@ class SpreadPphController extends Controller
             foreach ($karyawan_ids as $karyawan_id => $bulans) {
                 $dkaryawan = $dataKaryawan[$karyawan_id];
                 $si->setCellValue('A'.$bar, $nomor);
-                $si->setCellValue('B'.$bar, $jenis == '3' ? $dkaryawan->nama.' ('.$dkaryawan->area->nama.')' : $dkaryawan->nama);
+                $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 $si->setCellValue('D'.$bar, $dkaryawan->nomor_pwp ? "'".$dkaryawan->nomor_pwp : "");
                 $kolnext = 4;

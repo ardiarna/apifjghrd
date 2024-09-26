@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repositories\OncallCustomerRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
+use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -12,6 +13,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadOvertimeController extends Controller
 {
+    use AFhelper;
+
     protected $repoHeader, $repoDetail, $repoOncall;
 
     public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall) {
@@ -98,7 +101,7 @@ class SpreadOvertimeController extends Controller
                     foreach ($karyawan_ids as $karyawan_id => $bulans) {
                         $dkaryawan = $dataKaryawan[$karyawan_id];
                         $si->setCellValue('A'.$bar, $nomor);
-                        $si->setCellValue('B'.$bar, $dkaryawan->nama);
+                        $si->setCellValue('B'.$bar, $this->afAbbreviateName($dkaryawan->nama));
                         for ($k=1; $k <= 12; $k++) {
                             $si->setCellValue($kol[$k+1].$bar, isset($bulans[$k]) ? ($bulans[$k] > 0 ? $bulans[$k] : ' ') : ' ');
                         }

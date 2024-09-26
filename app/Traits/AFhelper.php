@@ -27,6 +27,18 @@ trait AFhelper {
         return 'Rp. '.number_format($nominal, 0, "," ,".");
     }
 
+    public function afAbbreviateName($string) {
+        $words = explode(' ', $string);
+        if (count($words) <= 2) {
+            return $string;
+        }
+        $result = $words[0] . ' ' . $words[1];
+        for ($i = 2; $i < count($words); $i++) {
+            $result .= ' ' . strtoupper($words[$i][0]);
+        }
+        return $result;
+    }
+
     public function afSendFCMessaging(array $receiver, string $title, string $body, string $halaman = '', string $nomor = '', string $image = '') {
         if(empty($receiver)) {
             return false;

@@ -6,6 +6,7 @@ use App\Repositories\OncallCustomerRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
 use App\Repositories\UangPhkRepository;
+use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -14,6 +15,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadsheetController extends Controller
 {
+    use AFhelper;
+
     protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk;
 
     public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk) {
@@ -50,7 +53,8 @@ class SpreadsheetController extends Controller
             $headers[$dh->bulan]['pot_telepon'] = $dh->pot_telepon;
             $headers[$dh->bulan]['pot_bensin'] = $dh->pot_bensin;
             $headers[$dh->bulan]['pot_bpjs'] = $dh->pot_bpjs;
-            $headers[$dh->bulan]['pot_cuti'] = $dh->pot_cuti;
+            $headers[$dh->bulan]['pot_cuti_jumlah'] = $dh->pot_cuti_jumlah;
+            $headers[$dh->bulan]['pot_kompensasi_jumlah'] = $dh->pot_kompensasi_jumlah;
             $headers[$dh->bulan]['pot_lain'] = $dh->pot_lain;
         }
         $i = 0;
@@ -78,6 +82,7 @@ class SpreadsheetController extends Controller
             $adaPotBensin = false;
             $adaPotBpjs = false;
             $adaPotCuti = false;
+            $adaPotKompensasi = false;
             $adaPotLain = false;
             if(isset($headers[$dh->bulan])) {
                 if($headers[$dh->bulan]['thr'] > 0) {
@@ -112,8 +117,12 @@ class SpreadsheetController extends Controller
                     $adaPotBpjs = true;
                     $kolPot++;
                 }
-                if($headers[$dh->bulan]['pot_cuti'] > 0) {
+                if($headers[$dh->bulan]['pot_cuti_jumlah'] > 0) {
                     $adaPotCuti = true;
+                    $kolPot++;
+                }
+                if($headers[$dh->bulan]['pot_kompensasi_jumlah'] > 0) {
+                    $adaPotKompensasi = true;
                     $kolPot++;
                 }
                 if($headers[$dh->bulan]['pot_lain'] > 0) {
@@ -236,6 +245,11 @@ class SpreadsheetController extends Controller
                 $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
                 $kolom++;
             }
+            if($adaPotKompensasi) {
+                $si->setCellValue($arrkol[$kolom].$bar, 'KOMPENSASI IDR');
+                $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
+                $kolom++;
+            }
             if($adaPotLain) {
                 $si->setCellValue($arrkol[$kolom].$bar, 'LAIN-LAIN IDR');
                 $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+1));
@@ -281,7 +295,7 @@ class SpreadsheetController extends Controller
                         $kolom = 0; // A
                         $si->setCellValue($arrkol[$kolom].$bar, $nomor);
                         $kolom++; // 1.B
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->karyawan->nama);
+                        $si->setCellValue($arrkol[$kolom].$bar, $this->afAbbreviateName($d->karyawan->nama));
                         $kolom++; // 2.C
                         $si->setCellValue($arrkol[$kolom].$bar, $d->karyawan->jabatan->nama);
                         $kolom++; // 3.D
@@ -342,7 +356,11 @@ class SpreadsheetController extends Controller
                             $kolom++;
                         }
                         if($adaPotCuti) {
-                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cuti > 0 ? $d->pot_cuti : ' ');
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : ' ');
+                            $kolom++;
+                        }
+                        if($adaPotKompensasi) {
+                            $si->setCellValue($arrkol[$kolom].$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : ' ');
                             $kolom++;
                         }
                         if($adaPotLain) {
@@ -415,6 +433,10 @@ class SpreadsheetController extends Controller
                 $kolom++;
             }
             if($adaPotCuti) {
+                $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
+                $kolom++;
+            }
+            if($adaPotKompensasi) {
                 $si->setCellValue($arrkol[$kolom].$bar, '=SUM('.$arrkol[$kolom].'6:'.$arrkol[$kolom].($bar-1).')');
                 $kolom++;
             }
@@ -619,6 +641,10 @@ class SpreadsheetController extends Controller
                 $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
                 $kolom++;
             }
+            if($adaPotKompensasi) {
+                $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
+                $kolom++;
+            }
             if($adaPotLain) {
                 $si->getColumnDimension($arrkol[$kolom])->setWidth(85, Dimension::UOM_PIXELS);
                 $kolom++;
@@ -741,7 +767,7 @@ class SpreadsheetController extends Controller
                     foreach ($karyawan_ids as $karyawan_id => $bulans) {
                         $dkaryawan = $dataKaryawan[$karyawan_id];
                         $si->setCellValue('A'.$bar, $nomor);
-                        $si->setCellValue('B'.$bar, $dkaryawan->nama);
+                        $si->setCellValue('B'.$bar, $this->afAbbreviateName($dkaryawan->nama));
                         $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                         $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
                         for ($k=1; $k <= 12; $k++) {

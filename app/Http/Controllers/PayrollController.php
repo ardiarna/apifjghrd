@@ -60,6 +60,11 @@ class PayrollController extends Controller
         return $this->successResponse($data);
     }
 
+    public function findUpahByKaryawanIdAndTahun($karyawan_id, $tahun) {
+        $data = $this->repoHeader->findUpahByKaryawanIdAndTahun($karyawan_id, $tahun);
+        return $this->successResponse($data);
+    }
+
     public function create(Request $req) {
         $this->validate($req, [
             'tanggal_awal' => 'required|date',
@@ -89,7 +94,10 @@ class PayrollController extends Controller
             'payrolls.*.pot_kas' => 'required|numeric',
             'payrolls.*.pot_cicilan' => 'required|numeric',
             'payrolls.*.pot_bpjs' => 'required|numeric',
-            'payrolls.*.pot_cuti' => 'required|numeric',
+            'payrolls.*.pot_cuti_hari' => 'required|numeric',
+            'payrolls.*.pot_cuti_jumlah' => 'required|numeric',
+            'payrolls.*.pot_kompensasi_jam' => 'required|numeric',
+            'payrolls.*.pot_kompensasi_jumlah' => 'required|numeric',
             'payrolls.*.pot_lain' => 'required|numeric',
             'payrolls.*.total_diterima' => 'required|numeric',
         ]);
@@ -156,7 +164,10 @@ class PayrollController extends Controller
             'pot_kas' => 'numeric',
             'pot_cicilan' => 'numeric',
             'pot_bpjs' => 'numeric',
-            'pot_cuti' => 'numeric',
+            'pot_cuti_hari' => 'numeric',
+            'pot_cuti_jumlah' => 'numeric',
+            'pot_kompensasi_jam' => 'numeric',
+            'pot_kompensasi_jumlah' => 'numeric',
             'pot_lain' => 'numeric',
             'total_diterima' => 'numeric',
         ]);
@@ -183,7 +194,10 @@ class PayrollController extends Controller
         $inputs['pot_kas'] = $req->input('pot_kas');
         $inputs['pot_cicilan'] = $req->input('pot_cicilan');
         $inputs['pot_bpjs'] = $req->input('pot_bpjs');
-        $inputs['pot_cuti'] = $req->input('pot_cuti');
+        $inputs['pot_cuti_hari'] = $req->input('pot_cuti_hari');
+        $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
+        $inputs['pot_kompensasi_jam'] = $req->input('pot_kompensasi_jam');
+        $inputs['pot_kompensasi_jumlah'] = $req->input('pot_kompensasi_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['total_diterima'] = $req->input('total_diterima');
         $inputs['keterangan'] = $req->input('keterangan');

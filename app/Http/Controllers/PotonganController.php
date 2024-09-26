@@ -52,11 +52,11 @@ class PotonganController extends Controller
     public function create(Request $req) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,LL',
+            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,KJ,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
-            'hari' => 'integer',
+            'hari' => 'numeric',
             'jumlah' => 'required|integer'
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
@@ -69,11 +69,11 @@ class PotonganController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,LL',
+            'jenis' => 'required|in:TB,TP,BN,KS,CC,BP,UL,KJ,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
-            'hari' => 'integer',
+            'hari' => 'numeric',
             'jumlah' => 'required|integer'
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);

@@ -47,7 +47,7 @@ class MedicalController extends Controller
 
     public function findRekapByKaryawanIdAndTahun(PayrollHeaderRepository $payrollRepo, $karyawan_id, $tahun) {
         $data = $this->repo->findRekapByKaryawanIdAndTahun($karyawan_id, $tahun);
-        $data->gaji = $payrollRepo->findUpahByKaryawanIdAndTahun($karyawan_id, $tahun);
+        $data->gaji = $payrollRepo->findGajiByKaryawanIdAndTahun($karyawan_id, $tahun);
         $data->tahun = $tahun;
         return $this->successResponse($data);
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
+use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
@@ -13,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 
 class SpreadPayrollController extends Controller
 {
+    use AFhelper;
+
     protected $repoHeader, $repoDetail, $repoArea;
 
     public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, AreaRepository $repoArea) {
@@ -25,7 +28,7 @@ class SpreadPayrollController extends Controller
         // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
-        $kol_akhir = 'AB';
+        $kol_akhir = 'AC';
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
@@ -86,13 +89,13 @@ class SpreadPayrollController extends Controller
             $si->setCellValue('I'.$bar, 'TUNJANGAN LAIN');
             $si->mergeCells('I'.$bar.':P'.$bar);
             $si->setCellValue('Q'.$bar, 'POTONGAN');
-            $si->mergeCells('Q'.$bar.':Y'.$bar);
-            $si->setCellValue('Z'.$bar, 'TOTAL DITERIMA IDR');
-            $si->mergeCells('Z'.$bar.':Z'.($bar+2));
-            $si->setCellValue('AA'.$bar, 'KETERANGAN');
+            $si->mergeCells('Q'.$bar.':Z'.$bar);
+            $si->setCellValue('AA'.$bar, 'TOTAL DITERIMA IDR');
             $si->mergeCells('AA'.$bar.':AA'.($bar+2));
-            $si->setCellValue('AB'.$bar, 'BULAN DAN TAHUN');
+            $si->setCellValue('AB'.$bar, 'KETERANGAN');
             $si->mergeCells('AB'.$bar.':AB'.($bar+2));
+            $si->setCellValue('AC'.$bar, 'BULAN DAN TAHUN');
+            $si->mergeCells('AC'.$bar.':AC'.($bar+2));
             $bar++;
             $si->setCellValue('F'.$bar, 'HR');
             $si->mergeCells('F'.$bar.':F'.($bar+1));
@@ -126,8 +129,10 @@ class SpreadPayrollController extends Controller
             $si->mergeCells('W'.$bar.':W'.($bar+1));
             $si->setCellValue('X'.$bar, 'UNPAID LEAVE');
             $si->mergeCells('X'.$bar.':X'.($bar+1));
-            $si->setCellValue('Y'.$bar, 'LAIN-LAIN IDR');
+            $si->setCellValue('Y'.$bar, 'KOMPENSASI IDR');
             $si->mergeCells('Y'.$bar.':Y'.($bar+1));
+            $si->setCellValue('Z'.$bar, 'LAIN-LAIN IDR');
+            $si->mergeCells('Z'.$bar.':Z'.($bar+1));
             $bar++;
             $si->setCellValue('I'.$bar, 'FRATEKINDO');
             $si->setCellValue('J'.$bar, 'CUSTOMER');
@@ -141,7 +146,7 @@ class SpreadPayrollController extends Controller
                 $bar++;
                 $dkaryawan = $dataKaryawan[$karyawan_id];
                 $si->setCellValue('A'.$bar, $nomor);
-                $si->setCellValue('B'.$bar, $jenis == '3' ? $dkaryawan->nama.' ('.$dkaryawan->area->nama.')' : $dkaryawan->nama);
+                $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
                 for ($k=1; $k <= 12; $k++) {
@@ -166,22 +171,23 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('U'.$bar, $d->pot_kas > 0 ? $d->pot_kas : ' ');
                         $si->setCellValue('V'.$bar, $d->pot_cicilan > 0 ? $d->pot_cicilan : ' ');
                         $si->setCellValue('W'.$bar, $d->pot_bpjs > 0 ? $d->pot_bpjs : ' ');
-                        $si->setCellValue('X'.$bar, $d->pot_cuti > 0 ? $d->pot_cuti : ' ');
-                        $si->setCellValue('Y'.$bar, $d->pot_lain > 0 ? $d->pot_lain : ' ');
-                        $si->setCellValue('Z'.$bar, $d->total_diterima > 0 ? $d->total_diterima : ' ');
-                        $si->setCellValue('AA'.$bar, $d->keterangan);
+                        $si->setCellValue('X'.$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : ' ');
+                        $si->setCellValue('Y'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : ' ');
+                        $si->setCellValue('Z'.$bar, $d->pot_lain > 0 ? $d->pot_lain : ' ');
+                        $si->setCellValue('AA'.$bar, $d->total_diterima > 0 ? $d->total_diterima : ' ');
+                        $si->setCellValue('AB'.$bar, $d->keterangan);
                     } else {
                         for ($z=4; $z <= 25; $z++) {
                             $si->setCellValue($kol[$z].$bar, ' ');
                         }
                     }
-                    $si->setCellValue('AB'.$bar, $arrBulan[$k]."'".substr($keyTahun, -2));
+                    $si->setCellValue('AC'.$bar, $arrBulan[$k]."'".substr($keyTahun, -2));
                     $bar++;
                 }
-                $si->setCellValue('AB'.$bar, 'THR');
+                $si->setCellValue('AC'.$bar, 'THR');
                 $bar++;
                 $barSub[] = $bar;
-                $si->setCellValue('Z'.$bar, '=SUM(Z'.($bar-13).':Z'.($bar-1).')');
+                $si->setCellValue('AA'.$bar, '=SUM(AA'.($bar-13).':AA'.($bar-1).')');
                 $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFF00');
                 $bar++;
                 $nomor++;
@@ -198,14 +204,14 @@ class SpreadPayrollController extends Controller
             //     $si->setCellValue($kol[$k].$bar, '=' . implode('+', $barSubKolom));
             // }
             $barSubKolom = array_map(function($num) {
-                return 'Z' . $num;
+                return 'AA' . $num;
             }, $barSub);
-            $si->setCellValue('Z'.$bar, '=' . implode('+', $barSubKolom));
+            $si->setCellValue('AA'.$bar, '=' . implode('+', $barSubKolom));
 
             $si->getStyle('A1:A2')->getFont()->setName('Algerian')->setSize(16)->setUnderline(TRUE)->getColor()->setARGB('0000FF');
             $si->getStyle('A1:A'.$bar)->getAlignment()->setHorizontal('center');
-            $si->getStyle('Q3:Y'.$bar)->getFont()->getColor()->setARGB('FF0000');
-            $si->getStyle('Z3:Z'.$bar)->getFont()->getColor()->setARGB('0000FF');
+            $si->getStyle('Q3:Z'.$bar)->getFont()->getColor()->setARGB('FF0000');
+            $si->getStyle('AA3:AA'.$bar)->getFont()->getColor()->setARGB('0000FF');
             $si->getStyle('A3:'.$kol_akhir.'5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(TRUE);
             $si->getStyle('A3:'.$kol_akhir.'5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
@@ -214,7 +220,7 @@ class SpreadPayrollController extends Controller
             $si->getStyle('B6:C'.($bar-1))->getAlignment()->setWrapText(TRUE);
             $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('D6:D'.$bar)->getNumberFormat()->setFormatCode('dd-mm-yy');
-            $si->getStyle('E6:Z'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('E6:AA'.$bar)->getNumberFormat()->setFormatCode('#,##0');
 
             $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
             $si->getColumnDimension('B')->setWidth(200, Dimension::UOM_PIXELS);
@@ -225,12 +231,12 @@ class SpreadPayrollController extends Controller
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
             $si->getColumnDimension('Q')->setWidth(30, Dimension::UOM_PIXELS);
-            for ($k = 17; $k <= 24; $k++) { // R s/d Y
+            for ($k = 17; $k <= 25; $k++) { // R s/d Z
                 $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('Z')->setWidth(110, Dimension::UOM_PIXELS);
             $si->getColumnDimension('AA')->setWidth(110, Dimension::UOM_PIXELS);
             $si->getColumnDimension('AB')->setWidth(110, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('AC')->setWidth(110, Dimension::UOM_PIXELS);
             $i++;
         }
 
