@@ -3,9 +3,22 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+use Doctrine\DBAL\Types\Type;
+use App\Doctrine\Types\EnumType;
 
 class AppServiceProvider extends ServiceProvider
 {
+
+    public function boot()
+    {
+        if (!Type::hasType('enum')) {
+            Type::addType('enum', EnumType::class);
+        }
+
+        $platform = DB::getDoctrineConnection()->getDatabasePlatform();
+        $platform->registerDoctrineTypeMapping('enum', 'enum');
+    }
     /**
      * Register any application services.
      *

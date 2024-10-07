@@ -52,7 +52,7 @@ class PenghasilanController extends Controller
     public function create(Request $req) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:HR,BN,IN,TK,LL',
+            'jenis' => 'required|in:AB,HR,BN,IN,TK,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
@@ -67,7 +67,7 @@ class PenghasilanController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:HR,BN,IN,TK,LL',
+            'jenis' => 'required|in:AB,HR,BN,IN,TK,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
