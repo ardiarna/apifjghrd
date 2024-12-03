@@ -209,9 +209,14 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('A'.$bar, 'Insentif');
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
-            $si->setCellValue('J'.$bar, 'Kompensasi');
             if(isset($potongans[$d->karyawan->id]['KJ'])) {
-                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['KJ']).')');
+                $si->setCellValue('J'.$bar, 'Kompensasi ('.implode(', ', $potongans[$d->karyawan->id]['KJ']).')');
+            } else {
+                $si->setCellValue('J'.$bar, 'Kompensasi');
+            }
+            if( $d->pot_kompensasi_jam > 0) {
+                $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' JM');
+                $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('right');
             }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
@@ -507,9 +512,14 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('A'.$bar, 'Insentif');
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
-            $si->setCellValue('J'.$bar, 'Kompensasi');
             if(isset($potongans[$d->bulan]['KJ'])) {
-                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['KJ']).')');
+                $si->setCellValue('J'.$bar, 'Kompensasi ('.implode(', ', $potongans[$d->bulan]['KJ']).')');
+            } else {
+                $si->setCellValue('J'.$bar, 'Kompensasi');
+            }
+            if( $d->pot_kompensasi_jam > 0) {
+                $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' JM');
+                $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('right');
             }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
