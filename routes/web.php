@@ -96,6 +96,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/timeline-masakerja', 'PerjanjianKerjaController@timelineMasaKerja');
     $router->get('{karyawan_id}/phk', 'PhkController@findAll');
     $router->get('{karyawan_id}/phk/{id}', 'PhkController@findById');
+    $router->get('{karyawan_id}/upah', 'UpahController@findByKaryawanId');
     $router->get('{karyawan_id}/upah/{tahun}', 'PayrollController@findUpahByKaryawanIdAndTahun');
     $router->get('{karyawan_id}/medical-rekap/{tahun}', 'MedicalController@findRekapByKaryawanIdAndTahun');
     $router->get('{karyawan_id}/overtime-rekap/{tahun}', 'OvertimeController@findRekapByKaryawanIdAndTahun');
@@ -106,7 +107,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->post('{karyawan_id}/kontak-keluarga', 'KeluargaKontakController@create');
     $router->post('{karyawan_id}/perjanjian-kerja', 'PerjanjianKerjaController@create');
     $router->post('{karyawan_id}/phk', 'PhkController@create');
-    $router->post('{karyawan_id}/upah', 'UpahController@create');
+    $router->post('{karyawan_id}/upah', 'UpahController@updateOrCreate');
     $router->put('{id}', 'KaryawanController@update');
     $router->put('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@update');
     $router->put('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@update');

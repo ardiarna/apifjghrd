@@ -58,6 +58,10 @@ class UpahImplement implements UpahRepository {
         return $this->model->create($inputs);
     }
 
+    public function updateOrCreate($karyawan_id, array $inputs) {
+        return $this->model->updateOrCreate(['karyawan_id' => $karyawan_id], $inputs);
+    }
+
     public function update($id, array $inputs) {
         $model = $this->model->findOrFail($id);
         if($model->karyawan_id != $inputs['karyawan_id']) {

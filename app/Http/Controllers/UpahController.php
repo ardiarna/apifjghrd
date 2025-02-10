@@ -38,6 +38,18 @@ class UpahController extends Controller
         return $this->successResponse($data);
     }
 
+    public function updateOrCreate(Request $req, $karyawan_id) {
+        $this->validate($req, [
+            'gaji' => 'numeric',
+            'uang_makan' => 'numeric',
+            'makan_harian' => 'in:Y,N',
+            'overtime' => 'in:Y,N'
+        ]);
+        $inputs = $req->only(['gaji', 'uang_makan', 'makan_harian', 'overtime']);
+        $data = $this->repo->updateOrCreate($karyawan_id, $inputs);
+        return $this->createdResponse($data, 'Upah berhasil diperbaharui');
+    }
+
     public function create(Request $req, $karyawan_id) {
         $this->validate($req, [
             'uang_makan' => 'required|numeric',
