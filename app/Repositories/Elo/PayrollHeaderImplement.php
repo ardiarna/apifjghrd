@@ -54,6 +54,23 @@ class PayrollHeaderImplement implements PayrollHeaderRepository {
             if($hasil) {
                 return ($hasil->gaji + $hasil->kenaikan_gaji);
             }
+        } else {
+            $subquery = $this->detil->query()
+                ->select('payroll_headers.id', 'payroll_headers.bulan')
+                ->join('payroll_headers', 'payrolls.payroll_header_id', '=', 'payroll_headers.id')
+                ->where('payrolls.karyawan_id', $karyawan_id)
+                ->orderBy('payroll_headers.tahun', 'desc')
+                ->orderBy('payroll_headers.bulan', 'desc')
+                ->first();
+            if($subquery) {
+                $hasil = $this->detil
+                    ->where('payroll_header_id', $subquery->id)
+                    ->where('karyawan_id', $karyawan_id)
+                    ->first();
+                if($hasil) {
+                    return ($hasil->gaji + $hasil->kenaikan_gaji);
+                }
+            }
         }
         return 0;
     }

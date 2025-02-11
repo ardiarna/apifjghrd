@@ -52,13 +52,15 @@ class PenghasilanController extends Controller
     public function create(Request $req) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:AB,HR,BN,IN,TK,LL',
+            'jenis' => 'required|in:AB,HR,BN,IN,TK,KG,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
+            'hari' => 'numeric',
             'jumlah' => 'required|integer'
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
+        $inputs['hari'] = $req->input('hari');
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Penghasilan berhasil dibuat');
@@ -67,13 +69,15 @@ class PenghasilanController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id' => 'required',
-            'jenis' => 'required|in:AB,HR,BN,IN,TK,LL',
+            'jenis' => 'required|in:AB,HR,BN,IN,TK,KG,LL',
             'tanggal' => 'required|date',
             'tahun' => 'required|integer',
             'bulan' => 'required|integer',
+            'hari' => 'numeric',
             'jumlah' => 'required|integer'
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
+        $inputs['hari'] = $req->input('hari');
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Penghasilan berhasil diubah');

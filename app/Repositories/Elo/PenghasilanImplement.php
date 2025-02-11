@@ -74,6 +74,9 @@ class PenghasilanImplement implements PenghasilanRepository {
         if(isset($inputs['bulan'])) {
             $model->bulan = $inputs['bulan'];
         }
+        if(isset($inputs['hari'])) {
+            $model->hari = $inputs['hari'];
+        }
         if(isset($inputs['jumlah'])) {
             $model->jumlah = $inputs['jumlah'];
         }

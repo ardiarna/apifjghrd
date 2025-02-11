@@ -9,7 +9,7 @@ class Penghasilan extends Model
 {
 
     protected $fillable = [
-        'karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah', 'keterangan'
+        'karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'hari', 'jumlah', 'keterangan'
     ];
 
     protected $casts = [
