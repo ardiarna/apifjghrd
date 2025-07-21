@@ -20,8 +20,7 @@ class MedicalImplement implements MedicalRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan'])
-            ->orderBy('medicals.jenis');
+        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan']);
 
         if(isset($inputs['tanggal_awal']) && $inputs['tanggal_awal'] != '' && isset($inputs['tanggal_akhir']) && $inputs['tanggal_akhir'] != '') {
             $hasil->whereBetween('medicals.tanggal', [$inputs['tanggal_awal'], $inputs['tanggal_akhir']]);

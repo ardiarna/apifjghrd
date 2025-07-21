@@ -43,7 +43,7 @@ class PerjanjianKerjaImplement implements PerjanjianKerjaRepository {
             ->selectRaw('status_kerjas.id as id,
                 status_kerjas.nama as nama,
                 MIN(perjanjian_kerjas.tanggal_awal) as tanggal_awal,
-                COALESCE(MAX(perjanjian_kerjas.tanggal_akhir), DATE_FORMAT(NOW(), "%Y-%m-%d")) as tanggal_akhir,
+                MAX(perjanjian_kerjas.tanggal_akhir) as tanggal_akhir,
                 DATEDIFF(COALESCE(MAX(perjanjian_kerjas.tanggal_akhir), NOW()), MIN(perjanjian_kerjas.tanggal_awal)) as masa_kerja,
                 TIMESTAMPDIFF(YEAR, MIN(perjanjian_kerjas.tanggal_awal), COALESCE(MAX(perjanjian_kerjas.tanggal_akhir), NOW())) as tahun,
                 TIMESTAMPDIFF(MONTH, MIN(perjanjian_kerjas.tanggal_awal), COALESCE(MAX(perjanjian_kerjas.tanggal_akhir), NOW())) % 12 as bulan')

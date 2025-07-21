@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class SpreadSlipGajiController extends Controller
 {
@@ -55,13 +56,41 @@ class SpreadSlipGajiController extends Controller
             }
         }
 
-        $spreadsheet->setActiveSheetIndex(0);
-        $si = $spreadsheet->getActiveSheet();
-        $si->setShowGridlines(false);
-        $si->setTitle($arrBulan[$bulan].' '.$tahun);
-        $bar = 1;
-        foreach ($dataDetails as $d) {
-            $bar+=2;
+        $sheetIndex = -1;
+        foreach ($dataDetails as $i => $d) {
+            if ($i % 2 == 0) {
+                $sheetIndex++;
+                if ($sheetIndex == 0) {
+                    $si = $spreadsheet->getActiveSheet();
+                } else {
+                    $si = $spreadsheet->createSheet();
+                }
+                $start = str_pad($sheetIndex * 2 + 1, 2, "0", STR_PAD_LEFT);
+                $end = str_pad($sheetIndex * 2 + 2, 2, "0", STR_PAD_LEFT);
+                $si->setTitle("{$start}-{$end}");
+                $spreadsheet->setActiveSheetIndex($sheetIndex);
+                $si->setShowGridlines(false);
+                $si->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+                $si->getPageSetup()->setFitToWidth(1);
+                $si->getPageSetup()->setFitToHeight(0);
+                $si->getColumnDimension('A')->setWidth(60*$px);
+                $si->getColumnDimension('B')->setWidth(63*$px);
+                $si->getColumnDimension('C')->setWidth(57*$px);
+                $si->getColumnDimension('D')->setWidth(13*$px);
+                $si->getColumnDimension('E')->setWidth(23*$px);
+                $si->getColumnDimension('F')->setWidth(27*$px);
+                $si->getColumnDimension('G')->setWidth(21*$px);
+                $si->getColumnDimension('H')->setWidth(83*$px);
+                $si->getColumnDimension('I')->setWidth(19*$px);
+                $si->getColumnDimension('J')->setWidth(172*$px);
+                $si->getColumnDimension('K')->setWidth(52*$px);
+                $si->getColumnDimension('L')->setWidth(18*$px);
+                $si->getColumnDimension('M')->setWidth(18*$px);
+                $si->getColumnDimension('N')->setWidth(16*$px);
+                $si->getColumnDimension('O')->setWidth(25*$px);
+                $si->getColumnDimension('P')->setWidth(103*$px);
+            }
+            $bar = ($i % 2 == 0) ? 1 : 35;
             $si->setCellValue('B'.$bar, 'PT.FRATEKINDO JAYA GEMILANG');
             $si->mergeCells('B'.$bar.':O'.$bar);
             $si->getStyle('B'.$bar.':O'.$bar)->getFont()->setName('Narkisim')->setSize(12)->getColor()->setARGB('0070C0');
@@ -293,28 +322,11 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('A'.($bar-26).':P'.$bar)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
+            $si->getStyle('C1:C'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('H1:H'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('J1:K'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('P1:P'.$bar)->getNumberFormat()->setFormatCode('#,##0');
         }
-        $si->getStyle('C1:C'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-        $si->getStyle('H1:H'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-        $si->getStyle('J1:K'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-        $si->getStyle('P1:P'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-
-        $si->getColumnDimension('A')->setWidth(60*$px);
-        $si->getColumnDimension('B')->setWidth(63*$px);
-        $si->getColumnDimension('C')->setWidth(57*$px);
-        $si->getColumnDimension('D')->setWidth(13*$px);
-        $si->getColumnDimension('E')->setWidth(23*$px);
-        $si->getColumnDimension('F')->setWidth(27*$px);
-        $si->getColumnDimension('G')->setWidth(21*$px);
-        $si->getColumnDimension('H')->setWidth(83*$px);
-        $si->getColumnDimension('I')->setWidth(19*$px);
-        $si->getColumnDimension('J')->setWidth(172*$px);
-        $si->getColumnDimension('K')->setWidth(52*$px);
-        $si->getColumnDimension('L')->setWidth(18*$px);
-        $si->getColumnDimension('M')->setWidth(18*$px);
-        $si->getColumnDimension('N')->setWidth(16*$px);
-        $si->getColumnDimension('O')->setWidth(25*$px);
-        $si->getColumnDimension('P')->setWidth(103*$px);
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="SLIP_GAJI_'.($jenis == '1' ? 'ENGINEERING_' : ($jenis == '2' ? 'STAF_' : ($jenis == '3' ? 'NON_STAF_' : ''))).str_replace(' ', '_', $namaArea).strtoupper($arrBulan[$bulan]).'_'.substr($tahun, -2). '.xlsx"');

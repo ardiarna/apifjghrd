@@ -36,7 +36,7 @@ class KeluargaKaryawanController extends Controller
         $this->validate($req, [
             'nama' => 'required',
             'nomor_ktp' => 'digits:16',
-            'hubungan' => 'required|in:S,I,A',
+            'hubungan' => 'required',
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required|date',
             'telepon' => 'numeric',
@@ -54,7 +54,6 @@ class KeluargaKaryawanController extends Controller
     public function update(Request $req, $karyawan_id, $id) {
         $this->validate($req, [
             'nomor_ktp' => 'digits:16',
-            'hubungan' => 'in:S,I,A',
             'tanggal_lahir' => 'date',
             'telepon' => 'numeric',
             'email' => 'email'
