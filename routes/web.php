@@ -127,6 +127,7 @@ $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () 
     $router->get('{id}', 'MedicalController@findById');
     $router->post('/', 'MedicalController@create');
     $router->put('{id}', 'MedicalController@update');
+    $router->delete('all', 'MedicalController@deleteAll');
     $router->delete('{id}', 'MedicalController@delete');
 });
 
@@ -135,6 +136,7 @@ $router->group(['prefix' => 'oncall_customer', 'middleware' => 'auth:api'], func
     $router->get('{id}', 'OncallCustomerController@findById');
     $router->post('/', 'OncallCustomerController@create');
     $router->put('{id}', 'OncallCustomerController@update');
+    $router->delete('all', 'OncallCustomerController@deleteAll');
     $router->delete('{id}', 'OncallCustomerController@delete');
 });
 
@@ -143,6 +145,7 @@ $router->group(['prefix' => 'overtime', 'middleware' => 'auth:api'], function ()
     $router->get('{id}', 'OvertimeController@findById');
     $router->post('/', 'OvertimeController@create');
     $router->put('{id}', 'OvertimeController@update');
+    $router->delete('all', 'OvertimeController@deleteAll');
     $router->delete('{id}', 'OvertimeController@delete');
 });
 
@@ -171,6 +174,7 @@ $router->group(['prefix' => 'penghasilan', 'middleware' => 'auth:api'], function
     $router->get('{id}', 'PenghasilanController@findById');
     $router->post('/', 'PenghasilanController@create');
     $router->put('{id}', 'PenghasilanController@update');
+    $router->delete('all', 'PenghasilanController@deleteAll');
     $router->delete('{id}', 'PenghasilanController@delete');
 });
 
@@ -179,6 +183,7 @@ $router->group(['prefix' => 'potongan', 'middleware' => 'auth:api'], function ()
     $router->get('{id}', 'PotonganController@findById');
     $router->post('/', 'PotonganController@create');
     $router->put('{id}', 'PotonganController@update');
+    $router->delete('all', 'PotonganController@deleteAll');
     $router->delete('{id}', 'PotonganController@delete');
 });
 

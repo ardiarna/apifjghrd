@@ -77,4 +77,14 @@ class OncallCustomerImplement implements OncallCustomerRepository {
         return $this->model->destroy($id);
     }
 
+    public function deleteAll($inputs = []) {
+        if (empty($inputs['tahun']) || empty($inputs['bulan'])) {
+            return false;
+        }
+        $hasil = $this->model->query();
+        $hasil->where('tahun', $inputs['tahun']);
+        $hasil->where('bulan', $inputs['bulan']);
+        return $hasil->delete();
+    }
+
 }

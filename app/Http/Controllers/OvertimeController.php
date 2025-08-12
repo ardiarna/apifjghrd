@@ -88,4 +88,22 @@ class OvertimeController extends Controller
         return $this->successResponse($data, 'Overtime berhasil dihapus');
     }
 
+    public function deleteAll(Request $req) {
+        $tahun = $req->query('tahun');
+        $bulan = $req->query('bulan');
+        $jenis = $req->query('jenis');
+        if (empty($tahun) || empty($bulan)) {
+            return $this->failRespBadReq('Tahun dan bulan wajib diisi');
+        }
+        $data = $this->repo->deleteAll([
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'jenis' => $jenis,
+        ]);
+        if($data == 0) {
+            return $this->failRespNotFound("Overtime tahun {$tahun} bulan {$bulan} tidak ditemukan");
+        }
+        return $this->successResponse($data, "Overtime tahun {$tahun} bulan {$bulan} sebanyak {$data} data berhasil dihapus");
+    }
+
 }
