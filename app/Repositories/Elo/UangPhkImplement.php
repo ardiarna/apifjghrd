@@ -65,6 +65,30 @@ class UangPhkImplement implements UangPhkRepository {
         if(isset($inputs['penggantian_hak'])) {
             $model->penggantian_hak = $inputs['penggantian_hak'];
         }
+        if(isset($inputs['sisa_cuti_hari'])) {
+            $model->sisa_cuti_hari = $inputs['sisa_cuti_hari'];
+        }
+        if(isset($inputs['sisa_cuti_jumlah'])) {
+            $model->sisa_cuti_jumlah = $inputs['sisa_cuti_jumlah'];
+        }
+        if(isset($inputs['lain'])) {
+            $model->lain = $inputs['lain'];
+        }
+        if(isset($inputs['pot_kas'])) {
+            $model->pot_kas = $inputs['pot_kas'];
+        }
+        if(isset($inputs['pot_cuti_hari'])) {
+            $model->pot_cuti_hari = $inputs['pot_cuti_hari'];
+        }
+        if(isset($inputs['pot_cuti_jumlah'])) {
+            $model->pot_cuti_jumlah = $inputs['pot_cuti_jumlah'];
+        }
+        if(isset($inputs['pot_lain'])) {
+            $model->pot_lain = $inputs['pot_lain'];
+        }
+        if(isset($inputs['keterangan'])) {
+            $model->keterangan = $inputs['keterangan'];
+        }
         $model->save();
         return $model;
     }

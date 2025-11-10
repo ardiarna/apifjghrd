@@ -230,32 +230,59 @@ class SpreadSlipGajiController extends Controller
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->thr > 0 ? $d->thr : '');
             $si->setCellValue('J'.$bar, 'Unpaid Leave / Cuti Bersama');
-            if(isset($potongans[$d->karyawan->id]['UL'])) {
-                $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['UL']).')');
-            }
+            $si->setCellValue('M'.$bar, $d->pot_cuti_hari > 0 ? $d->pot_cuti_hari : '');
+            $si->setCellValue('N'.$bar, $d->pot_cuti_hari > 0 ? 'HR' : '');
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
-            $si->setCellValue('A'.$bar, 'Insentif');
-            $si->setCellValue('G'.$bar, '=');
-            $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
+            if($d->bonus > 0 && $d->insentif > 0) {
+                $si->setCellValue('A'.$bar, 'Bonus & Insentif');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, ($d->bonus+$d->insentif));
+            } else if($d->bonus > 0) {
+                $si->setCellValue('A'.$bar, 'Bonus');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, $d->bonus);
+            } else if($d->insentif > 0) {
+                $si->setCellValue('A'.$bar, 'Insentif');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, $d->insentif);
+            } else {
+                $si->setCellValue('A'.$bar, 'Bonus');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, '');
+            }
             if(isset($potongans[$d->karyawan->id]['KJ'])) {
                 $si->setCellValue('J'.$bar, 'Kompensasi ('.implode(', ', $potongans[$d->karyawan->id]['KJ']).')');
             } else {
-                $si->setCellValue('J'.$bar, 'Kompensasi');
+                $si->setCellValue('J'.$bar, 'Kompensasi Ijin');
             }
             if( $d->pot_kompensasi_jam > 0) {
-                $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' JM');
+                $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' Jam');
                 $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('right');
             }
             $si->setCellValue('O'.$bar, '=');
             $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
-            $si->setCellValue('A'.$bar, 'Telkomsel');
-            $si->setCellValue('G'.$bar, '=');
-            $si->setCellValue('H'.$bar, $d->telkomsel > 0 ? $d->telkomsel : '');
+            if($d->telkomsel > 0 && $d->lain > 0) {
+                $si->setCellValue('A'.$bar, 'Telkomsel & Lain-lain');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, ($d->telkomsel+$d->lain));
+            } else if($d->telkomsel > 0) {
+                $si->setCellValue('A'.$bar, 'Telkomsel');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, $d->telkomsel);
+            } else if($d->lain > 0) {
+                $si->setCellValue('A'.$bar, 'Lain-lain');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, $d->lain);
+            } else {
+                $si->setCellValue('A'.$bar, 'Lain-lain');
+                $si->setCellValue('G'.$bar, '=');
+                $si->setCellValue('H'.$bar, '');
+            }
             $si->setCellValue('J'.$bar, 'Lain-lain');
             if(isset($potongans[$d->karyawan->id]['LL'])) {
                 $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['LL']).')');
@@ -549,32 +576,59 @@ class SpreadSlipGajiController extends Controller
                 $si->setCellValue('G'.$bar, '=');
                 $si->setCellValue('H'.$bar, $d->thr > 0 ? $d->thr : '');
                 $si->setCellValue('J'.$bar, 'Unpaid Leave / Cuti Bersama');
-                if(isset($potongans[$d->bulan]['UL'])) {
-                    $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['UL']).')');
-                }
+                $si->setCellValue('M'.$bar, $d->pot_cuti_hari > 0 ? $d->pot_cuti_hari : '');
+                $si->setCellValue('N'.$bar, $d->pot_cuti_hari > 0 ? 'HR' : '');
                 $si->setCellValue('O'.$bar, '=');
                 $si->setCellValue('P'.$bar, $d->pot_cuti_jumlah > 0 ? $d->pot_cuti_jumlah : '');
                 $si->getRowDimension($bar)->setRowHeight(17);
                 $bar++;
-                $si->setCellValue('A'.$bar, 'Insentif');
-                $si->setCellValue('G'.$bar, '=');
-                $si->setCellValue('H'.$bar, $d->insentif > 0 ? $d->insentif : '');
+                if($d->bonus > 0 && $d->insentif > 0) {
+                    $si->setCellValue('A'.$bar, 'Bonus & Insentif');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, ($d->bonus+$d->insentif));
+                } else if($d->bonus > 0) {
+                    $si->setCellValue('A'.$bar, 'Bonus');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, $d->bonus);
+                } else if($d->insentif > 0) {
+                    $si->setCellValue('A'.$bar, 'Insentif');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, $d->insentif);
+                } else {
+                    $si->setCellValue('A'.$bar, 'Bonus');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, '');
+                }
                 if(isset($potongans[$d->bulan]['KJ'])) {
                     $si->setCellValue('J'.$bar, 'Kompensasi ('.implode(', ', $potongans[$d->bulan]['KJ']).')');
                 } else {
-                    $si->setCellValue('J'.$bar, 'Kompensasi');
+                    $si->setCellValue('J'.$bar, 'Kompensasi Ijin');
                 }
                 if( $d->pot_kompensasi_jam > 0) {
-                    $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' JM');
+                    $si->setCellValue('N'.$bar, $d->pot_kompensasi_jam.' Jam');
                     $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('right');
                 }
                 $si->setCellValue('O'.$bar, '=');
                 $si->setCellValue('P'.$bar, $d->pot_kompensasi_jumlah > 0 ? $d->pot_kompensasi_jumlah : '');
                 $si->getRowDimension($bar)->setRowHeight(17);
                 $bar++;
-                $si->setCellValue('A'.$bar, 'Telkomsel');
-                $si->setCellValue('G'.$bar, '=');
-                $si->setCellValue('H'.$bar, $d->telkomsel > 0 ? $d->telkomsel : '');
+                if($d->telkomsel > 0 && $d->lain > 0) {
+                    $si->setCellValue('A'.$bar, 'Telkomsel & Lain-lain');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, ($d->telkomsel+$d->lain));
+                } else if($d->telkomsel > 0) {
+                    $si->setCellValue('A'.$bar, 'Telkomsel');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, $d->telkomsel);
+                } else if($d->lain > 0) {
+                    $si->setCellValue('A'.$bar, 'Lain-lain');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, $d->lain);
+                } else {
+                    $si->setCellValue('A'.$bar, 'Lain-lain');
+                    $si->setCellValue('G'.$bar, '=');
+                    $si->setCellValue('H'.$bar, '');
+                }
                 $si->setCellValue('J'.$bar, 'Lain-lain');
                 if(isset($potongans[$d->karyawan->id]['LL'])) {
                     $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['LL']).')');

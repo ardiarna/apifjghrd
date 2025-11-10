@@ -15,12 +15,12 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findById($id) {
-        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','ptkp'])
+        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','uangPhk','ptkp'])
             ->find($id);
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','ptkp'])
+        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk','uangPhk','ptkp'])
             ->select('karyawans.*')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')
@@ -156,6 +156,13 @@ class KaryawanImplement implements KaryawanRepository {
         $model->aktif = 'N';
         $model->tanggal_keluar = $tanggal_keluar;
         $model->phk_id = $phk_id;
+        $model->save();
+        return $model;
+    }
+
+    public function setUangPhk($id, $uang_phk_id) {
+        $model = $this->model->findOrFail($id);
+        $model->uang_phk_id = $uang_phk_id;
         $model->save();
         return $model;
     }
