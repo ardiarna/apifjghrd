@@ -66,6 +66,7 @@ class PhkController extends Controller
     }
 
     public function delete($karyawan_id, $id) {
+        $this->karyawanRepo->setAktif($karyawan_id);
         if($id == 'all') {
             $data = $this->repo->deletesByKaryawanId($karyawan_id);
         } else {

@@ -151,6 +151,15 @@ class KaryawanImplement implements KaryawanRepository {
         return $this->model->destroy($id);
     }
 
+    public function setAktif($id) {
+        $model = $this->model->findOrFail($id);
+        $model->aktif = 'Y';
+        $model->tanggal_keluar = null;
+        $model->phk_id = null;
+        $model->save();
+        return $model;
+    }
+
     public function setNonAktif($id, $phk_id, $tanggal_keluar) {
         $model = $this->model->findOrFail($id);
         $model->aktif = 'N';
