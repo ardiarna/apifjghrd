@@ -59,7 +59,7 @@ class SpreadsheetController extends Controller
         }
         $i = 0;
 
-        $dataOncalls = $this->repoOncall->findAll(['tahun' => $dh->tahun]);
+        $dataOncalls = $this->repoOncall->findAll(['tahun' => $tahun]);
         $oncallJumlahs = [];
         foreach ($dataOncalls as $r) {
             $dOncalls[$r->bulan][$r->id] = $r;
@@ -655,16 +655,18 @@ class SpreadsheetController extends Controller
             $i++;
         }
 
+        $tmpFile = tempnam(sys_get_temp_dir(), 'list_payroll_');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save($tmpFile);
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="LIST_PAYROLL_'.substr($tahun, -2). '.xlsx"');
-        header('Cache-Control: max-age=0');
-        header('Cache-Control: max-age=1');
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
-        header('Cache-Control: cache, must-revalidate');
+        header('Content-Length: ' . filesize($tmpFile));
+        header('Cache-Control: no-store, no-cache, must-revalidate');
         header('Pragma: public');
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
+
+        readfile($tmpFile);
+        unlink($tmpFile);
         exit;
     }
 
