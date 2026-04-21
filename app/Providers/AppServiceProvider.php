@@ -40,6 +40,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\OvertimeRepository', 'App\Repositories\Elo\OvertimeImplement');
         $this->app->bind('App\Repositories\PayrollHeaderRepository', 'App\Repositories\Elo\PayrollHeaderImplement');
         $this->app->bind('App\Repositories\PayrollRepository', 'App\Repositories\Elo\PayrollImplement');
+        $this->app->bind('App\Repositories\PayrollPhkRepository', 'App\Repositories\Elo\PayrollPhkImplement');
         $this->app->bind('App\Repositories\PendidikanRepository', 'App\Repositories\Elo\PendidikanImplement');
         $this->app->bind('App\Repositories\PenghasilanRepository', 'App\Repositories\Elo\PenghasilanImplement');
         $this->app->bind('App\Repositories\PerjanjianKerjaRepository', 'App\Repositories\Elo\PerjanjianKerjaImplement');

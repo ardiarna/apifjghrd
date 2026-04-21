@@ -101,6 +101,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->get('{karyawan_id}/medical-rekap/{tahun}', 'MedicalController@findRekapByKaryawanIdAndTahun');
     $router->get('{karyawan_id}/overtime-rekap/{tahun}', 'OvertimeController@findRekapByKaryawanIdAndTahun');
     $router->get('{karyawan_id}/payroll', 'PayrollController@findDetailByKaryawanId');
+    $router->get('{karyawan_id}/payroll-phk', 'PayrollPhkController@findByKaryawanId');
     $router->get('rekap/area-kelamin', 'KaryawanController@rekapKaryawanByAreaAndKelamin');
     $router->post('/', 'KaryawanController@create');
     $router->post('{karyawan_id}/keluarga', 'KeluargaKaryawanController@create');
@@ -159,6 +160,14 @@ $router->group(['prefix' => 'payroll', 'middleware' => 'auth:api'], function () 
     $router->put('{id}/kunci', 'PayrollController@kunciPayroll');
     $router->put('{header_id}/detil/{id}', 'PayrollController@updateDetail');
     $router->delete('{id}', 'PayrollController@delete');
+});
+
+$router->group(['prefix' => 'payroll_phk', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'PayrollPhkController@findAll');
+    $router->get('{id}', 'PayrollPhkController@findById');
+    $router->post('/', 'PayrollPhkController@create');
+    $router->put('{id}', 'PayrollPhkController@update');
+    $router->delete('{id}', 'PayrollPhkController@delete');
 });
 
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
