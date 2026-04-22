@@ -109,6 +109,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->post('{karyawan_id}/perjanjian-kerja', 'PerjanjianKerjaController@create');
     $router->post('{karyawan_id}/phk', 'PhkController@create');
     $router->post('{karyawan_id}/upah', 'UpahController@updateOrCreate');
+    $router->post('{karyawan_id}/payroll-phk', 'PayrollPhkController@updateOrCreate');
     $router->put('{id}', 'KaryawanController@update');
     $router->put('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@update');
     $router->put('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@update');

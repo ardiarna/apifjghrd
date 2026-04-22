@@ -5,7 +5,6 @@ namespace App\Repositories\Elo;
 use App\Models\PayrollPhk;
 use App\Repositories\PayrollPhkRepository;
 use App\Repositories\TarifEfektifRepository;
-use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PayrollPhkImplement implements PayrollPhkRepository {
@@ -113,6 +112,12 @@ class PayrollPhkImplement implements PayrollPhkRepository {
         if($model->karyawan_id != $inputs['karyawan_id']) {
             throw new HttpException(403, 'Karyawan dan payroll PHK tidak sesuai');
         }
+        if(isset($inputs['tanggal_awal'])) {
+            $model->tanggal_awal = $inputs['tanggal_awal'];
+        }
+        if(isset($inputs['tanggal_akhir'])) {
+            $model->tanggal_akhir = $inputs['tanggal_akhir'];
+        }
         if(isset($inputs['tahun'])) {
             $model->tahun = $inputs['tahun'];
         }
@@ -213,6 +218,25 @@ class PayrollPhkImplement implements PayrollPhkRepository {
 
     public function deleteByKaryawanId($karyawan_id) {
         return $this->model->where('karyawan_id', $karyawan_id)->delete();
+    }
+
+    public function findByKaryawanId($karyawan_id) {
+        return $this->model->where('karyawan_id', $karyawan_id)
+            ->orderBy('tahun', 'desc')
+            ->orderBy('bulan', 'desc')
+            ->first();
+    }
+
+    public function updateOrCreate(array $inputs) {
+        $model = $this->model->updateOrCreate(
+            [
+                'karyawan_id' => $inputs['karyawan_id'],
+                'tahun' => $inputs['tahun'],
+                'bulan' => $inputs['bulan']
+            ],
+            $inputs
+        );
+        return $model;
     }
 
 }

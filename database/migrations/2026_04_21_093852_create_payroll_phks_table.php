@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::create('payroll_phks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('karyawan_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
+            $table->date('tanggal_awal');
+            $table->date('tanggal_akhir');
             $table->smallInteger('tahun', false, true);
             $table->smallInteger('bulan', false, true);
             $table->integer('gaji', false, true);

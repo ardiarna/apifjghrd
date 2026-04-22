@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollHeaderRepository;
+use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PayrollRepository;
 use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
@@ -16,12 +17,13 @@ class SpreadPayrollController extends Controller
 {
     use AFhelper;
 
-    protected $repoHeader, $repoDetail, $repoArea;
+    protected $repoHeader, $repoDetail, $repoArea, $repoPhk;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, AreaRepository $repoArea) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, AreaRepository $repoArea, PayrollPhkRepository $repoPhk) {
         $this->repoHeader = $repoHeader;
         $this->repoDetail = $repoDetail;
         $this->repoArea = $repoArea;
+        $this->repoPhk = $repoPhk;
     }
 
     public function rekapPerKaryawan($jenis, $tahun, $area) {
@@ -50,6 +52,21 @@ class SpreadPayrollController extends Controller
         $dataKaryawan = array();
         foreach ($dataDetails as $dt) {
             $details[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
+            if(!isset($dataKaryawan[$dt->karyawan->id])) {
+                $dataKaryawan[$dt->karyawan->id] = $dt->karyawan;
+            }
+        }
+
+        // Merge data payroll_phks
+        $dataPhks = $this->repoPhk->findAll([
+            'tahun' => $tahun,
+            'staf' => $jenis == '3' ? 'N' : ($jenis == '4' ? '' : 'Y'),
+            'area' => $area == 'all' ? '' : $area,
+            'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
+        ]);
+        $detailsPhk = array();
+        foreach ($dataPhks as $dt) {
+            $detailsPhk[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
             if(!isset($dataKaryawan[$dt->karyawan->id])) {
                 $dataKaryawan[$dt->karyawan->id] = $dt->karyawan;
             }
@@ -142,6 +159,16 @@ class SpreadPayrollController extends Controller
             $si->setCellValue('V'.$bar, 'CICILAN');
             $bar++;
             $nomor = 1;
+            // Gabungkan karyawan dari payroll_phks yang belum ada di $karyawan_ids
+            $allKaryawanIds = array_keys($karyawan_ids);
+            if(isset($detailsPhk[$keyTahun])) {
+                foreach ($detailsPhk[$keyTahun] as $phkKaryawanId => $phkBulans) {
+                    if(!in_array($phkKaryawanId, $allKaryawanIds)) {
+                        $allKaryawanIds[] = $phkKaryawanId;
+                        $karyawan_ids[$phkKaryawanId] = [];
+                    }
+                }
+            }
             foreach ($karyawan_ids as $karyawan_id => $bulans) {
                 $bar++;
                 $dkaryawan = $dataKaryawan[$karyawan_id];
@@ -176,6 +203,32 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('Z'.$bar, $d->pot_lain > 0 ? $d->pot_lain : ' ');
                         $si->setCellValue('AA'.$bar, $d->total_diterima > 0 ? $d->total_diterima : ' ');
                         $si->setCellValue('AB'.$bar, $d->keterangan);
+                    } elseif(isset($detailsPhk[$keyTahun][$karyawan_id][$k])) {
+                        $dp = $detailsPhk[$keyTahun][$karyawan_id][$k];
+                        $si->setCellValue('E'.$bar, ($dp->gaji + $dp->kenaikan_gaji) > 0 ? ($dp->gaji + $dp->kenaikan_gaji) : ' ');
+                        $si->setCellValue('F'.$bar, $dp->hari_makan > 0 ? $dp->hari_makan : ' ');
+                        $si->setCellValue('G'.$bar, $dp->uang_makan_harian > 0 ? $dp->uang_makan_harian : ' ');
+                        $si->setCellValue('H'.$bar, $dp->uang_makan_jumlah > 0 ? $dp->uang_makan_jumlah : ' ');
+                        $si->setCellValue('I'.$bar, $dp->overtime_fjg > 0 ? $dp->overtime_fjg : ' ');
+                        $si->setCellValue('J'.$bar, $dp->overtime_cus > 0 ? $dp->overtime_cus : ' ');
+                        $si->setCellValue('K'.$bar, $dp->medical > 0 ? $dp->medical : ' ');
+                        $si->setCellValue('L'.$bar, $dp->thr > 0 ? $dp->thr : ' ');
+                        $si->setCellValue('M'.$bar, $dp->bonus > 0 ? $dp->bonus : ' ');
+                        $si->setCellValue('N'.$bar, $dp->insentif > 0 ? $dp->insentif : ' ');
+                        $si->setCellValue('O'.$bar, $dp->telkomsel > 0 ? $dp->telkomsel : ' ');
+                        $si->setCellValue('P'.$bar, $dp->lain > 0 ? $dp->lain : ' ');
+                        $si->setCellValue('Q'.$bar, $dp->pot_25_hari > 0 ? $dp->pot_25_hari : ' ');
+                        $si->setCellValue('R'.$bar, $dp->pot_25_jumlah > 0 ? $dp->pot_25_jumlah : ' ');
+                        $si->setCellValue('S'.$bar, $dp->pot_telepon > 0 ? $dp->pot_telepon : ' ');
+                        $si->setCellValue('T'.$bar, $dp->pot_bensin > 0 ? $dp->pot_bensin : ' ');
+                        $si->setCellValue('U'.$bar, $dp->pot_kas > 0 ? $dp->pot_kas : ' ');
+                        $si->setCellValue('V'.$bar, $dp->pot_cicilan > 0 ? $dp->pot_cicilan : ' ');
+                        $si->setCellValue('W'.$bar, $dp->pot_bpjs > 0 ? $dp->pot_bpjs : ' ');
+                        $si->setCellValue('X'.$bar, $dp->pot_cuti_jumlah > 0 ? $dp->pot_cuti_jumlah : ' ');
+                        $si->setCellValue('Y'.$bar, $dp->pot_kompensasi_jumlah > 0 ? $dp->pot_kompensasi_jumlah : ' ');
+                        $si->setCellValue('Z'.$bar, $dp->pot_lain > 0 ? $dp->pot_lain : ' ');
+                        $si->setCellValue('AA'.$bar, $dp->total_diterima > 0 ? $dp->total_diterima : ' ');
+                        $si->setCellValue('AB'.$bar, $dp->keterangan);
                     } else {
                         for ($z=4; $z <= 25; $z++) {
                             $si->setCellValue($kol[$z].$bar, ' ');

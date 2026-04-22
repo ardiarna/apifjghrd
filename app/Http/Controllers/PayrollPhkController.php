@@ -39,6 +39,10 @@ class PayrollPhkController extends Controller
     }
 
     public function findByKaryawanId(Request $req, $karyawan_id) {
+        if (!$req->query('tahun') && !$req->query('bulan')) {
+            $data = $this->repo->findByKaryawanId($karyawan_id);
+            return $this->successResponse($data);
+        }
         $data = $this->repo->findAll([
             'karyawan_id' => $karyawan_id,
             'tahun'       => $req->query('tahun'),
@@ -53,6 +57,8 @@ class PayrollPhkController extends Controller
     public function create(Request $req) {
         $this->validate($req, [
             'karyawan_id'           => 'required',
+            'tanggal_awal'          => 'required|date',
+            'tanggal_akhir'         => 'required|date',
             'tahun'                 => 'required|integer',
             'bulan'                 => 'required|integer',
             'gaji'                  => 'required|numeric',
@@ -84,7 +90,7 @@ class PayrollPhkController extends Controller
             'total_diterima'        => 'required|numeric',
         ]);
         $inputs = $req->only([
-            'karyawan_id', 'tahun', 'bulan', 'gaji', 'kenaikan_gaji', 'makan_harian',
+            'karyawan_id', 'tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan', 'gaji', 'kenaikan_gaji', 'makan_harian',
             'hari_makan', 'uang_makan_harian', 'uang_makan_jumlah', 'overtime_fjg', 'overtime_cus',
             'medical', 'thr', 'bonus', 'insentif', 'telkomsel', 'lain',
             'pot_25_hari', 'pot_25_jumlah', 'pot_telepon', 'pot_bensin', 'pot_kas', 'pot_cicilan', 'pot_bpjs',
@@ -99,6 +105,8 @@ class PayrollPhkController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id'           => 'required',
+            'tanggal_awal'          => 'date',
+            'tanggal_akhir'         => 'date',
             'tahun'                 => 'required|integer',
             'bulan'                 => 'required|integer',
             'gaji'                  => 'numeric',
@@ -130,6 +138,8 @@ class PayrollPhkController extends Controller
             'total_diterima'        => 'numeric',
         ]);
         $inputs['karyawan_id']           = $req->input('karyawan_id');
+        $inputs['tanggal_awal']          = $req->input('tanggal_awal');
+        $inputs['tanggal_akhir']         = $req->input('tanggal_akhir');
         $inputs['tahun']                 = $req->input('tahun');
         $inputs['bulan']                 = $req->input('bulan');
         $inputs['gaji']                  = $req->input('gaji');
@@ -170,6 +180,53 @@ class PayrollPhkController extends Controller
             return $this->failRespNotFound('Payroll PHK tidak ditemukan');
         }
         return $this->successResponse($data, 'Payroll PHK berhasil dihapus');
+    }
+
+    public function updateOrCreate(Request $req, $karyawan_id) {
+        $this->validate($req, [
+            'tanggal_awal'          => 'date',
+            'tanggal_akhir'         => 'date',
+            'tahun'                 => 'required|integer',
+            'bulan'                 => 'required|integer',
+            'gaji'                  => 'numeric',
+            'kenaikan_gaji'         => 'numeric',
+            'makan_harian'          => 'in:Y,N',
+            'hari_makan'            => 'numeric',
+            'uang_makan_harian'     => 'numeric',
+            'uang_makan_jumlah'     => 'numeric',
+            'overtime_fjg'          => 'numeric',
+            'overtime_cus'          => 'numeric',
+            'medical'               => 'numeric',
+            'thr'                   => 'numeric',
+            'bonus'                 => 'numeric',
+            'insentif'              => 'numeric',
+            'telkomsel'             => 'numeric',
+            'lain'                  => 'numeric',
+            'pot_25_hari'           => 'numeric',
+            'pot_25_jumlah'         => 'numeric',
+            'pot_telepon'           => 'numeric',
+            'pot_bensin'            => 'numeric',
+            'pot_kas'               => 'numeric',
+            'pot_cicilan'           => 'numeric',
+            'pot_bpjs'              => 'numeric',
+            'pot_cuti_hari'         => 'numeric',
+            'pot_cuti_jumlah'       => 'numeric',
+            'pot_kompensasi_jam'    => 'numeric',
+            'pot_kompensasi_jumlah' => 'numeric',
+            'pot_lain'              => 'numeric',
+            'total_diterima'        => 'numeric',
+        ]);
+        $inputs = $req->only([
+            'tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan', 'gaji', 'kenaikan_gaji', 'makan_harian',
+            'hari_makan', 'uang_makan_harian', 'uang_makan_jumlah', 'overtime_fjg', 'overtime_cus',
+            'medical', 'thr', 'bonus', 'insentif', 'telkomsel', 'lain',
+            'pot_25_hari', 'pot_25_jumlah', 'pot_telepon', 'pot_bensin', 'pot_kas', 'pot_cicilan', 'pot_bpjs',
+            'pot_cuti_hari', 'pot_cuti_jumlah', 'pot_kompensasi_jam', 'pot_kompensasi_jumlah',
+            'pot_lain', 'total_diterima', 'keterangan'
+        ]);
+        $inputs['karyawan_id'] = $karyawan_id;
+        $data = $this->repo->updateOrCreate($inputs);
+        return $this->successResponse($data, 'Payroll PHK berhasil disimpan');
     }
 
 }

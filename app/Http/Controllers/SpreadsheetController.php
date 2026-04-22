@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\OncallCustomerRepository;
 use App\Repositories\PayrollHeaderRepository;
+use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PayrollRepository;
 use App\Repositories\UangPhkRepository;
 use App\Traits\AFhelper;
@@ -17,13 +18,14 @@ class SpreadsheetController extends Controller
 {
     use AFhelper;
 
-    protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk;
+    protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk, $repoPhk;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk, PayrollPhkRepository $repoPhk) {
         $this->repoHeader = $repoHeader;
         $this->repoDetail = $repoDetail;
         $this->repoOncall = $repoOncall;
         $this->repoUangPhk = $repoUangPhk;
+        $this->repoPhk = $repoPhk;
     }
 
     public function listPayroll($tahun) {
@@ -683,6 +685,22 @@ class SpreadsheetController extends Controller
         foreach ($dataDetails as $dt) {
             $details[$dt->tahun][$dt->karyawan->staf][$dt->karyawan->area->nama][$dt->karyawan->id][$dt->bulan] = ($dt->gaji + $dt->kenaikan_gaji);
             $dataKaryawan[$dt->karyawan->id] = $dt->karyawan;
+        }
+
+        // Merge data payroll_phks: isi slot bulan yang tidak ada di payroll biasa
+        $dataPhks = $this->repoPhk->findAll(['tahun' => $tahun]);
+        foreach ($dataPhks as $dp) {
+            $staf  = $dp->karyawan->staf;
+            $area  = $dp->karyawan->area->nama;
+            $kid   = $dp->karyawan->id;
+            $bulan = $dp->bulan;
+            if(!isset($dataKaryawan[$kid])) {
+                $dataKaryawan[$kid] = $dp->karyawan;
+            }
+            // Hanya isi jika bulan tersebut belum ada dari payroll biasa
+            if(!isset($details[$dp->tahun][$staf][$area][$kid][$bulan])) {
+                $details[$dp->tahun][$staf][$area][$kid][$bulan] = ($dp->gaji + $dp->kenaikan_gaji);
+            }
         }
 
         $i = 0;
