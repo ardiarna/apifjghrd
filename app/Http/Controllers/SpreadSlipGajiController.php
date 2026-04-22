@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollRepository;
+use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PotonganRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -13,12 +14,13 @@ use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
 class SpreadSlipGajiController extends Controller
 {
-    protected $repo, $rpArea, $rpPotongan;
+    protected $repo, $rpArea, $rpPotongan, $repoPhk;
 
-    public function __construct(PayrollRepository $repo, AreaRepository $rpArea, PotonganRepository $rpPotongan) {
+    public function __construct(PayrollRepository $repo, AreaRepository $rpArea, PotonganRepository $rpPotongan, PayrollPhkRepository $repoPhk) {
         $this->repo = $repo;
         $this->rpArea = $rpArea;
         $this->rpPotongan = $rpPotongan;
+        $this->repoPhk = $repoPhk;
     }
 
     public function cetak($tahun, $bulan, $jenis, $area) {
@@ -44,6 +46,22 @@ class SpreadSlipGajiController extends Controller
             'area' => $area == 'all' ? '' : $area,
             'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
         ]);
+        $dataPhk = $this->repoPhk->findAll([
+            'tahun' => $tahun,
+            'bulan' => $bulan,
+            'staf' => $jenis == '3' ? 'N' : ($jenis == '4' ? '' : 'Y'),
+            'area' => $area == 'all' ? '' : $area,
+            'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
+        ]);
+        $dataDetails = $dataDetails->merge($dataPhk)->sort(function($a, $b) {
+            if ($a->karyawan->staf != $b->karyawan->staf) {
+                return $a->karyawan->staf <=> $b->karyawan->staf;
+            }
+            if ($a->karyawan->area->urutan != $b->karyawan->area->urutan) {
+                return $a->karyawan->area->urutan <=> $b->karyawan->area->urutan;
+            }
+            return $a->karyawan_id <=> $b->karyawan_id;
+        });
 
         $dataPotongans = $this->rpPotongan->findAll([
             'tahun' => $tahun,
@@ -323,7 +341,7 @@ class SpreadSlipGajiController extends Controller
 
             $drawing = new Drawing();
             $drawing->setPath(public_path('images/stempel_fjg.png'));
-            $drawing->setHeight(61,44);
+            $drawing->setHeight(61.44);
             $drawing->setCoordinates('K'.$bar);
             $drawing->setOffsetX(31);
             $drawing->setOffsetY(15);
@@ -331,7 +349,7 @@ class SpreadSlipGajiController extends Controller
 
             $drawing = new Drawing();
             $drawing->setPath(public_path('images/stempel_ttd.png'));
-            $drawing->setHeight(74,88);
+            $drawing->setHeight(74.88);
             $drawing->setCoordinates('K'.$bar);
             $drawing->setOffsetX(-27);
             $drawing->setOffsetY(7);
@@ -382,6 +400,11 @@ class SpreadSlipGajiController extends Controller
             'tahun' => $tahun,
             'karyawan_id' => $karyawan_id,
         ]);
+        $dataPhk = $this->repoPhk->findAll([
+            'tahun' => $tahun,
+            'karyawan_id' => $karyawan_id,
+        ]);
+        $dataDetails = $dataDetails->merge($dataPhk)->sortBy('bulan');
 
         $dataPotongans = $this->rpPotongan->findAll([
             'tahun' => $tahun,
@@ -669,7 +692,7 @@ class SpreadSlipGajiController extends Controller
 
                 $drawing = new Drawing();
                 $drawing->setPath(public_path('images/stempel_fjg.png'));
-                $drawing->setHeight(61,44);
+                $drawing->setHeight(61.44);
                 $drawing->setCoordinates('K'.$bar);
                 $drawing->setOffsetX(31);
                 $drawing->setOffsetY(15);
@@ -677,7 +700,7 @@ class SpreadSlipGajiController extends Controller
 
                 $drawing = new Drawing();
                 $drawing->setPath(public_path('images/stempel_ttd.png'));
-                $drawing->setHeight(74,88);
+                $drawing->setHeight(74.88);
                 $drawing->setCoordinates('K'.$bar);
                 $drawing->setOffsetX(-27);
                 $drawing->setOffsetY(7);

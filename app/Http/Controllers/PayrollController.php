@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollRepository;
+use App\Repositories\PayrollPhkRepository;
 use App\Traits\ApiResponser;
 use Illuminate\Support\Carbon;
 use Illuminate\Http\Request;
@@ -12,11 +13,12 @@ class PayrollController extends Controller
 {
     use ApiResponser;
 
-    protected $repoHeader, $repo;
+    protected $repoHeader, $repo, $repoPhk;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repo) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repo, PayrollPhkRepository $repoPhk) {
         $this->repoHeader = $repoHeader;
         $this->repo = $repo;
+        $this->repoPhk = $repoPhk;
     }
 
     public function findById($id) {
@@ -49,15 +51,35 @@ class PayrollController extends Controller
     }
 
     public function findDetailByKaryawanId(Request $req, $karyawan_id) {
-        $data = $this->repo->findAll([
+        $inputs = [
             'karyawan_id' => $karyawan_id,
             'tahun' => $req->query('tahun'),
             'bulan' => $req->query('bulan'),
             'pph21' => $req->query('pph21'),
             'sort_by' => $req->query('sort_by'),
             'sort_order' => $req->query('sort_order')
-        ]);
-        return $this->successResponse($data);
+        ];
+
+        $dataReguler = $this->repo->findAll($inputs);
+        foreach ($dataReguler as $d) {
+            $d->is_phk = false;
+        }
+
+        $dataPhk = $this->repoPhk->findAll($inputs);
+        foreach ($dataPhk as $d) {
+            $d->is_phk = true;
+        }
+
+        $merged = $dataReguler->merge($dataPhk);
+
+        $sorted = $merged->sort(function($a, $b) {
+            if ($a->tahun != $b->tahun) {
+                return $b->tahun <=> $a->tahun;
+            }
+            return $b->bulan <=> $a->bulan;
+        })->values();
+
+        return $this->successResponse($sorted);
     }
 
     public function findUpahByKaryawanIdAndTahun($karyawan_id, $tahun) {

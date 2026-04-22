@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Repositories\AreaRepository;
 use App\Repositories\PayrollRepository;
+use App\Repositories\PayrollPhkRepository;
 use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -14,11 +15,12 @@ class SpreadPphController extends Controller
 {
     use AFhelper;
 
-    protected $repoDetail, $repoArea;
+    protected $repoDetail, $repoArea, $repoPhk;
 
-    public function __construct(PayrollRepository $repoDetail, AreaRepository $repoArea) {
+    public function __construct(PayrollRepository $repoDetail, AreaRepository $repoArea, PayrollPhkRepository $repoPhk) {
         $this->repoDetail = $repoDetail;
         $this->repoArea = $repoArea;
+        $this->repoPhk = $repoPhk;
     }
 
     public function karyawan($karyawan_id, $tahun) {
@@ -34,9 +36,53 @@ class SpreadPphController extends Controller
             'tahun' => $tahun,
             'pph21' => 'Y',
         ]);
+        $dataPhk = $this->repoPhk->findAll([
+            'karyawan_id' => $karyawan_id,
+            'tahun' => $tahun,
+            'pph21' => 'Y',
+        ]);
+        $merged = $dataDetails->merge($dataPhk);
         $details = array();
-        foreach ($dataDetails as $dt) {
-            $details[$dt->tahun][$dt->bulan] = $dt;
+        foreach ($merged as $dt) {
+            if(isset($details[$dt->tahun][$dt->bulan])) {
+                $existing = $details[$dt->tahun][$dt->bulan];
+                $existing->gaji += $dt->gaji;
+                $existing->kenaikan_gaji += $dt->kenaikan_gaji;
+                $existing->hari_makan += $dt->hari_makan;
+                $existing->uang_makan_harian += $dt->uang_makan_harian;
+                $existing->uang_makan_jumlah += $dt->uang_makan_jumlah;
+                $existing->overtime_fjg += $dt->overtime_fjg;
+                $existing->overtime_cus += $dt->overtime_cus;
+                $existing->medical += $dt->medical;
+                $existing->thr += $dt->thr;
+                $existing->bonus += $dt->bonus;
+                $existing->insentif += $dt->insentif;
+                $existing->telkomsel += $dt->telkomsel;
+                $existing->lain += $dt->lain;
+                $existing->pot_25_hari += $dt->pot_25_hari;
+                $existing->pot_25_jumlah += $dt->pot_25_jumlah;
+                $existing->pot_telepon += $dt->pot_telepon;
+                $existing->pot_bensin += $dt->pot_bensin;
+                $existing->pot_kas += $dt->pot_kas;
+                $existing->pot_cicilan += $dt->pot_cicilan;
+                $existing->pot_bpjs += $dt->pot_bpjs;
+                $existing->pot_cuti_hari += $dt->pot_cuti_hari;
+                $existing->pot_cuti_jumlah += $dt->pot_cuti_jumlah;
+                $existing->pot_kompensasi_jam += $dt->pot_kompensasi_jam;
+                $existing->pot_kompensasi_jumlah += $dt->pot_kompensasi_jumlah;
+                $existing->pot_lain += $dt->pot_lain;
+                $existing->total_diterima += $dt->total_diterima;
+                $existing->kantor_jp += $dt->kantor_jp;
+                $existing->kantor_jht += $dt->kantor_jht;
+                $existing->kantor_jkk += $dt->kantor_jkk;
+                $existing->kantor_jkm += $dt->kantor_jkm;
+                $existing->kantor_bpjs += $dt->kantor_bpjs;
+                $existing->penghasilan_bruto += $dt->penghasilan_bruto;
+                $existing->dpp += $dt->dpp;
+                $existing->pph21 += $dt->pph21;
+            } else {
+                $details[$dt->tahun][$dt->bulan] = $dt;
+            }
             $dataKaryawan = $dt->karyawan;
         }
 
@@ -365,11 +411,58 @@ class SpreadPphController extends Controller
             'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
             'pph21' => 'Y',
         ]);
+        $dataPhk = $this->repoPhk->findAll([
+            'tahun' => $tahun,
+            'staf' => $jenis == '3' ? 'N' : ($jenis == '4' ? '' : 'Y'),
+            'area' => $area == 'all' ? '' : $area,
+            'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
+            'pph21' => 'Y',
+        ]);
+        $merged = $dataDetails->merge($dataPhk);
         $details = array();
         $dataKaryawan = array();
         $arrTotal = array();
-        foreach ($dataDetails as $dt) {
-            $details[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
+        foreach ($merged as $dt) {
+            if(isset($details[$dt->tahun][$dt->karyawan->id][$dt->bulan])) {
+                $existing = $details[$dt->tahun][$dt->karyawan->id][$dt->bulan];
+                $existing->gaji += $dt->gaji;
+                $existing->kenaikan_gaji += $dt->kenaikan_gaji;
+                $existing->hari_makan += $dt->hari_makan;
+                $existing->uang_makan_harian += $dt->uang_makan_harian;
+                $existing->uang_makan_jumlah += $dt->uang_makan_jumlah;
+                $existing->overtime_fjg += $dt->overtime_fjg;
+                $existing->overtime_cus += $dt->overtime_cus;
+                $existing->medical += $dt->medical;
+                $existing->thr += $dt->thr;
+                $existing->bonus += $dt->bonus;
+                $existing->insentif += $dt->insentif;
+                $existing->telkomsel += $dt->telkomsel;
+                $existing->lain += $dt->lain;
+                $existing->pot_25_hari += $dt->pot_25_hari;
+                $existing->pot_25_jumlah += $dt->pot_25_jumlah;
+                $existing->pot_telepon += $dt->pot_telepon;
+                $existing->pot_bensin += $dt->pot_bensin;
+                $existing->pot_kas += $dt->pot_kas;
+                $existing->pot_cicilan += $dt->pot_cicilan;
+                $existing->pot_bpjs += $dt->pot_bpjs;
+                $existing->pot_cuti_hari += $dt->pot_cuti_hari;
+                $existing->pot_cuti_jumlah += $dt->pot_cuti_jumlah;
+                $existing->pot_kompensasi_jam += $dt->pot_kompensasi_jam;
+                $existing->pot_kompensasi_jumlah += $dt->pot_kompensasi_jumlah;
+                $existing->pot_lain += $dt->pot_lain;
+                $existing->total_diterima += $dt->total_diterima;
+                $existing->kantor_jp += $dt->kantor_jp;
+                $existing->kantor_jht += $dt->kantor_jht;
+                $existing->kantor_jkk += $dt->kantor_jkk;
+                $existing->kantor_jkm += $dt->kantor_jkm;
+                $existing->kantor_bpjs += $dt->kantor_bpjs;
+                $existing->penghasilan_bruto += $dt->penghasilan_bruto;
+                $existing->dpp += $dt->dpp;
+                $existing->pph21 += $dt->pph21;
+            } else {
+                $details[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
+            }
+
             if(isset($arrTotal[$dt->tahun][$dt->karyawan->id])) {
                 $arrTotal[$dt->tahun][$dt->karyawan->id]['penghasilan_bruto'] += $dt->penghasilan_bruto;
             } else {
