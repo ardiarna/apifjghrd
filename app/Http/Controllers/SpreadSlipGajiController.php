@@ -91,6 +91,8 @@ class SpreadSlipGajiController extends Controller
                 $endLabel = str_pad(min($end, count($dataDetails)), 2, "0", STR_PAD_LEFT);
                 $si->setTitle($start == $end || $end > count($dataDetails) ? $startLabel : "{$startLabel}-{$endLabel}");
                 $si->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+                $si->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+                $si->getPageSetup()->setFitToPage(TRUE);
                 $si->getPageSetup()->setFitToWidth(1);
                 $si->getPageSetup()->setFitToHeight(0);
                 $si->getColumnDimension('A')->setWidth(60*$px);
@@ -443,6 +445,7 @@ class SpreadSlipGajiController extends Controller
             $si->setTitle($sheetName);
             $si->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
             $si->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+            $si->getPageSetup()->setFitToPage(TRUE);
             $si->getPageSetup()->setFitToWidth(1);
             $si->getPageSetup()->setFitToHeight(0);
             $si->getColumnDimension('A')->setWidth(60*$px);
