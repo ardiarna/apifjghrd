@@ -7,8 +7,6 @@ use App\Repositories\PayrollRepository;
 use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PotonganRepository;
 use Mpdf\Mpdf;
-use Mpdf\Config\ConfigVariables;
-use Mpdf\Config\FontVariables;
 
 class PdfSlipGajiController extends Controller
 {
@@ -26,302 +24,495 @@ class PdfSlipGajiController extends Controller
         $this->rpPotongan   = $rpPotongan;
     }
 
-    public function perKaryawan($karyawan_id, $tahun, $bulans) {
-        $bulans    = explode('-', $bulans);
-        $arrBulan  = ['Desember','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+    public function perKaryawan($karyawan_id, $tahun, $bulans)
+    {
+        $bulansList = explode('-', $bulans);
+        $arrBulan   = [
+            'Desember','Januari','Februari','Maret','April','Mei',
+            'Juni','Juli','Agustus','September','Oktober','November','Desember'
+        ];
 
-        // Ambil data karyawan untuk password
+        /* ── Karyawan & password ────────────────────────────────────────── */
         $karyawan = $this->repoKaryawan->findById($karyawan_id);
-        $tanggalLahir = $karyawan->tanggal_lahir; // format Y-m-d
         $password = '';
-        if ($tanggalLahir) {
-            $dt = \DateTime::createFromFormat('Y-m-d', $tanggalLahir);
-            if ($dt) {
-                $password = $dt->format('dmY'); // DDMMYYYY
-            }
+        if (!empty($karyawan->tanggal_lahir)) {
+            $dt = \DateTime::createFromFormat('Y-m-d', $karyawan->tanggal_lahir);
+            if ($dt) $password = $dt->format('dmY');   // DDMMYYYY
         }
 
-        // Ambil data payroll
-        $dataDetails = $this->repo->findAll([
-            'tahun'       => $tahun,
-            'karyawan_id' => $karyawan_id,
-        ]);
-        $dataPhk = $this->repoPhk->findAll([
-            'tahun'       => $tahun,
-            'karyawan_id' => $karyawan_id,
-        ]);
+        /* ── Data payroll ───────────────────────────────────────────────── */
+        $dataDetails = $this->repo->findAll(['tahun' => $tahun, 'karyawan_id' => $karyawan_id]);
+        $dataPhk     = $this->repoPhk->findAll(['tahun' => $tahun, 'karyawan_id' => $karyawan_id]);
         $dataDetails = $dataDetails->merge($dataPhk)->sortBy('bulan');
 
-        $dataPotongans = $this->rpPotongan->findAll([
-            'tahun'       => $tahun,
-            'karyawan_id' => $karyawan_id,
-        ]);
+        /* ── Potongan keterangan ────────────────────────────────────────── */
+        $dataPotongans = $this->rpPotongan->findAll(['tahun' => $tahun, 'karyawan_id' => $karyawan_id]);
         $potongans = [];
-        foreach ($dataPotongans as $d) {
-            if ($d->keterangan != '') {
-                $potongans[$d->bulan][$d->jenis][] = $d->keterangan;
+        foreach ($dataPotongans as $pot) {
+            if ($pot->keterangan != '') {
+                $potongans[$pot->bulan][$pot->jenis][] = $pot->keterangan;
             }
         }
 
-        // Filter bulan yang dipilih
+        /* ── Filter bulan yang dipilih ──────────────────────────────────── */
         $filteredDetails = [];
         foreach ($dataDetails as $d) {
-            if (in_array($d->bulan, $bulans)) {
+            if (in_array((string)$d->bulan, $bulansList)) {
                 $filteredDetails[] = $d;
             }
         }
 
-        // Buat HTML untuk setiap slip
-        $namaKaryawan = count($filteredDetails) > 0 ? $filteredDetails[0]->karyawan->nama : 'Karyawan';
-        $htmlAll = '';
+        $namaKaryawan = count($filteredDetails) > 0
+            ? $filteredDetails[0]->karyawan->nama
+            : 'Karyawan';
+
+        /* ── Images ─────────────────────────────────────────────────────── */
+        $logoB64    = $this->imgB64(public_path('images/logo_fjg.jpg'),      'jpeg');
+        $stempelB64 = $this->imgB64(public_path('images/stempel_fjg.png'),   'png');
+        $ttdB64     = $this->imgB64(public_path('images/stempel_ttd.png'),   'png');
+
+        /* ── Build HTML ─────────────────────────────────────────────────── */
+        /*
+         * Excel column widths (px = 10.7/64, total=770 px):
+         * A=60  B=63  C=57  D=13  E=23  F=27  G=21  H=83
+         * I=19  J=172 K=52  L=18  M=18  N=16  O=25  P=103
+         *
+         * Mapped to A4 usable width 186mm (12mm margin each side):
+         * A=14.5 B=15.2 C=13.8 D=3.1 E=5.6 F=6.5 G=5.1 H=20.0
+         * I=4.6  J=41.6 K=12.6 L=4.3 M=4.3 N=3.9 O=6.0 P=24.9  Total=186mm
+         *
+         * Excel row heights (all in pt; 1pt ≈ 0.353mm):
+         * H21 = 7.41mm   H17 = 6.00mm   H12 = 4.24mm
+         */
+        $css = '<style>
+body  { font-family: dejavusans; font-size: 9pt; font-weight: bold; margin:0; padding:0; }
+table { border-collapse: collapse; }
+td    { padding: 0.3pt 1.5pt; vertical-align: middle; line-height: 1.1; }
+
+/* heights (Excel pt → mm) */
+.r21  { height: 7.41mm; }
+.r17  { height: 6.00mm; }
+.r12  { height: 4.24mm; }
+
+/* colours / fills */
+.cgray  { background-color: #D9D9D9; }
+.cblue  { color: #0070C0; }
+.cred   { color: #FF0000; }
+
+/* alignment */
+.ac { text-align: center; }
+.ar { text-align: right; }
+.al { text-align: left;  }
+
+/* typography */
+.ul   { text-decoration: underline; }
+.sz12 { font-size: 12pt; }
+.sz11 { font-size: 11pt; }
+.sz8  { font-size:  8pt; }
+
+/* borders */
+.bb   { border-bottom: 0.5pt solid #000; }
+.bt   { border-top:    0.5pt solid #000; }
+</style>';
+
+        $htmlAll = $css;
 
         foreach ($filteredDetails as $idx => $d) {
-            $bulanLabel = $arrBulan[$d->bulan];
-            $periodeAwal  = '26 ' . $arrBulan[$d->bulan - 1] . ' ' . ($d->bulan == 1 ? $tahun - 1 : $tahun);
-            $periodeAkhir = '25 ' . $bulanLabel . ' ' . $tahun;
+            $bulanInt = (int)$d->bulan;
 
-            // Kalkulasi total
-            $totalA = $d->gaji + ($d->kenaikan_gaji ?? 0) + $d->uang_makan_jumlah
-                    + $d->overtime_fjg + $d->overtime_cus
-                    + $d->medical + $d->thr + $d->bonus + $d->insentif
-                    + $d->telkomsel + $d->lain;
-            $totalB = $d->pot_25_jumlah + $d->pot_telepon + $d->pot_kas
-                    + $d->pot_cicilan + $d->pot_bpjs + $d->pot_bensin
-                    + $d->pot_cuti_jumlah + $d->pot_kompensasi_jumlah + $d->pot_lain;
-            $bersih  = $totalA - $totalB;
+            /* periode */
+            $tahunAwal   = ($bulanInt == 1) ? $tahun - 1 : $tahun;
+            $periodeAwal  = '26 ' . $arrBulan[$bulanInt - 1] . ' ' . $tahunAwal;
+            $periodeAkhir = '25 ' . $arrBulan[$bulanInt]     . ' ' . $tahun;
 
-            // Keterangan potongan
-            $ketTP = isset($potongans[$d->bulan]['TP']) ? '(' . implode(', ', $potongans[$d->bulan]['TP']) . ')' : '';
-            $ketKS = isset($potongans[$d->bulan]['KS']) ? '(' . implode(', ', $potongans[$d->bulan]['KS']) . ')' : '';
-            $ketCC = isset($potongans[$d->bulan]['CC']) ? '(' . implode(', ', $potongans[$d->bulan]['CC']) . ')' : '';
-            $ketBP = isset($potongans[$d->bulan]['BP']) ? '(' . implode(', ', $potongans[$d->bulan]['BP']) . ')' : '';
-            $ketBN = isset($potongans[$d->bulan]['BN']) ? '(' . implode(', ', $potongans[$d->bulan]['BN']) . ')' : '';
-            $ketKJ = isset($potongans[$d->bulan]['KJ']) ? '('. implode(', ', $potongans[$d->bulan]['KJ']) . ')' : '';
-            $ketLL = isset($potongans[$d->bulan]['LL']) ? '(' . implode(', ', $potongans[$d->bulan]['LL']) . ')' : '';
+            /* potongan keterangan */
+            $ketTP = isset($potongans[$bulanInt]['TP']) ? '(' . implode(', ', $potongans[$bulanInt]['TP']) . ')' : '';
+            $ketKS = isset($potongans[$bulanInt]['KS']) ? '(' . implode(', ', $potongans[$bulanInt]['KS']) . ')' : '';
+            $ketCC = isset($potongans[$bulanInt]['CC']) ? '(' . implode(', ', $potongans[$bulanInt]['CC']) . ')' : '';
+            $ketBP = isset($potongans[$bulanInt]['BP']) ? '(' . implode(', ', $potongans[$bulanInt]['BP']) . ')' : '';
+            $ketBN = isset($potongans[$bulanInt]['BN']) ? '(' . implode(', ', $potongans[$bulanInt]['BN']) . ')' : '';
+            $ketKJ = isset($potongans[$bulanInt]['KJ']) ? implode(', ', $potongans[$bulanInt]['KJ'])              : '';
+            $ketLL = isset($potongans[$bulanInt]['LL']) ? '(' . implode(', ', $potongans[$bulanInt]['LL']) . ')' : '';
 
-            // Uang makan label
+            /* uang makan */
             if ($d->makan_harian == 'Y') {
                 $uMakanLabel = 'U/makan &amp; Transport';
-                $uMakanDetail = $this->fmt($d->uang_makan_harian) . ' x ' . $d->hari_makan . ' HR';
-                $ttgl  = explode('-', $d->tanggal_awal);
-                $ttgm  = explode('-', $d->tanggal_akhir);
-                $uMakanSub = '(Per: ' . $ttgl[2] . ' ' . $arrBulan[intval($ttgl[1])] . "'" . substr($ttgl[0], -2)
-                           . ' s/d ' . $ttgm[2] . ' ' . $arrBulan[intval($ttgm[1])] . "'" . substr($ttgm[0], -2) . ')';
+                $ttgl = explode('-', $d->tanggal_awal);
+                $ttgm = explode('-', $d->tanggal_akhir);
+                $uMakanSub = '(Per: ' . $ttgl[2] . ' ' . $arrBulan[(int)$ttgl[1]] . "'" . substr($ttgl[0], -2)
+                           . ' s/d ' . $ttgm[2] . ' ' . $arrBulan[(int)$ttgm[1]] . "'" . substr($ttgm[0], -2) . ')';
+                $makanC = $this->n($d->uang_makan_harian);
+                $makanD = 'x';
+                $makanE = $d->hari_makan;
+                $makanF = 'HR';
             } else {
-                $uMakanLabel  = 'Tunjangan U/makan &amp; Transportasi';
-                $uMakanDetail = '';
-                $uMakanSub    = 'Bulan ' . $bulanLabel . ' ' . $tahun;
+                $uMakanLabel = 'Tunjangan U/makan &amp; Transportasi';
+                $uMakanSub   = 'Bulan ' . $arrBulan[$bulanInt] . ' ' . $tahun;
+                $makanC = $makanD = $makanE = $makanF = '';
             }
 
-            // Kompensasi
-            $kompLabel = $ketKJ != '' ? 'Kompensasi ' . $ketKJ : 'Kompensasi Ijin';
-            $kompJam   = $d->pot_kompensasi_jam > 0 ? $d->pot_kompensasi_jam . ' Jam' : '';
+            /* keterlambatan */
+            $ket25K = ($d->pot_25_hari > 0) ? $this->n($d->uang_makan_harian / 4) : '';
+            $ket25L = ($d->pot_25_hari > 0) ? 'x'               : '';
+            $ket25M = ($d->pot_25_hari > 0) ? $d->pot_25_hari   : '';
+            $ket25N = ($d->pot_25_hari > 0) ? 'HR'              : '';
 
-            // Keterlambatan
-            $ketHadir = $d->pot_25_hari > 0 ? $this->fmt($d->uang_makan_harian / 4) . ' x ' . $d->pot_25_hari . ' HR' : '';
-
-            // Bonus/Insentif
+            /* bonus / insentif */
             if ($d->bonus > 0 && $d->insentif > 0) {
-                $bonusLabel = 'Bonus &amp; Insentif';
-                $bonusVal   = $d->bonus + $d->insentif;
+                $bonusLabel = 'Bonus &amp; Insentif'; $bonusVal = $d->bonus + $d->insentif;
             } elseif ($d->bonus > 0) {
-                $bonusLabel = 'Bonus';
-                $bonusVal   = $d->bonus;
+                $bonusLabel = 'Bonus';    $bonusVal = $d->bonus;
             } elseif ($d->insentif > 0) {
-                $bonusLabel = 'Insentif';
-                $bonusVal   = $d->insentif;
+                $bonusLabel = 'Insentif'; $bonusVal = $d->insentif;
             } else {
-                $bonusLabel = 'Bonus';
-                $bonusVal   = 0;
+                $bonusLabel = 'Bonus';    $bonusVal = 0;
             }
 
-            // Telkomsel/Lain
+            /* telkomsel / lain */
             if ($d->telkomsel > 0 && $d->lain > 0) {
-                $lainLabel = 'Telkomsel &amp; Lain-lain';
-                $lainVal   = $d->telkomsel + $d->lain;
+                $lainLabel = 'Telkomsel &amp; Lain-lain'; $lainVal = $d->telkomsel + $d->lain;
             } elseif ($d->telkomsel > 0) {
-                $lainLabel = 'Telkomsel';
-                $lainVal   = $d->telkomsel;
+                $lainLabel = 'Telkomsel'; $lainVal = $d->telkomsel;
             } elseif ($d->lain > 0) {
-                $lainLabel = 'Lain-lain';
-                $lainVal   = $d->lain;
+                $lainLabel = 'Lain-lain'; $lainVal = $d->lain;
             } else {
-                $lainLabel = 'Lain-lain';
-                $lainVal   = 0;
+                $lainLabel = 'Lain-lain'; $lainVal = 0;
             }
 
-            $pageBreak = ($idx > 0) ? '<pagebreak />' : '';
+            /* kompensasi */
+            $kompLabel = $ketKJ != '' ? 'Kompensasi (' . $ketKJ . ')' : 'Kompensasi Ijin';
+            $kompN     = ($d->pot_kompensasi_jam > 0) ? $d->pot_kompensasi_jam . ' Jam' : '';
 
-            $logoPath = public_path('images/logo_fjg.jpg');
-            $logoBase64 = '';
-            if (file_exists($logoPath)) {
-                $logoBase64 = 'data:image/jpeg;base64,' . base64_encode(file_get_contents($logoPath));
-            }
-            $stempelPath = public_path('images/stempel_fjg.png');
-            $stempelBase64 = '';
-            if (file_exists($stempelPath)) {
-                $stempelBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($stempelPath));
-            }
-            $ttdPath = public_path('images/stempel_ttd.png');
-            $ttdBase64 = '';
-            if (file_exists($ttdPath)) {
-                $ttdBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($ttdPath));
-            }
+            /* cuti */
+            $cutiM = ($d->pot_cuti_hari > 0) ? $d->pot_cuti_hari : '';
+            $cutiN = ($d->pot_cuti_hari > 0) ? 'HR' : '';
 
-            $htmlAll .= $pageBreak . '
-<div style="font-family: Arial, sans-serif; font-size: 9pt; padding: 0;">
-  <!-- HEADER -->
-  <table width="100%" style="border-bottom: 1px solid #000; margin-bottom: 4px;">
-    <tr>
-      <td width="75%">
-        <div style="font-size: 13pt; font-weight: bold; color: #0070C0;">PT. FRATEKINDO JAYA GEMILANG</div>
-        <div style="font-size: 10pt; font-weight: bold;">SOVEREIGN PLAZA</div>
-        <div style="font-size: 9pt;">TB. Simatupang Kav.36, Cilandak - Jakarta Selatan 12430</div>
-      </td>
-      <td width="25%" align="right">
-        ' . ($logoBase64 ? '<img src="' . $logoBase64 . '" height="44" />' : '') . '
-      </td>
-    </tr>
-  </table>
+            /* totals */
+            $totalA = $d->gaji
+                    + ($d->kenaikan_gaji ?? 0)
+                    + $d->uang_makan_jumlah
+                    + $d->overtime_fjg + $d->overtime_cus
+                    + $d->medical + $d->thr
+                    + $d->bonus + $d->insentif
+                    + $d->telkomsel + $d->lain;
+            $totalB = $d->pot_25_jumlah + $d->pot_telepon + $d->pot_kas
+                    + $d->pot_cicilan  + $d->pot_bpjs    + $d->pot_bensin
+                    + $d->pot_cuti_jumlah + $d->pot_kompensasi_jumlah + $d->pot_lain;
+            $bersih = $totalA - $totalB;
 
-  <!-- JUDUL -->
-  <div style="text-align: center; background-color: #D9D9D9; padding: 3px 0; margin-bottom: 3px;">
-    <div style="font-size: 11pt; font-weight: bold; text-decoration: underline;">SLIP GAJI KARYAWAN</div>
-    <div style="font-size: 9pt;">Periode : ' . $periodeAwal . ' - ' . $periodeAkhir . '</div>
-  </div>
+            /* page break between slips */
+            if ($idx > 0) $htmlAll .= '<pagebreak />';
 
-  <!-- IDENTITAS -->
-  <table width="100%" style="margin-bottom: 4px;">
-    <tr>
-      <td width="90px"><b>Nama</b></td>
-      <td>: ' . htmlspecialchars($d->karyawan->nama) . '</td>
-    </tr>
-    <tr>
-      <td><b>Jabatan</b></td>
-      <td>: ' . htmlspecialchars($d->karyawan->jabatan->nama) . '</td>
-    </tr>
-    <tr>
-      <td><b>Divisi</b></td>
-      <td>: ' . htmlspecialchars($d->karyawan->divisi->nama) . '</td>
-    </tr>
-  </table>
-  <hr style="border: 0.5px solid #ccc; margin: 3px 0;" />
+            /* ── Slip HTML ───────────────────────────────────────────────
+             * Single table, 16 columns (A–P), identical column proportions
+             * to Excel perKaryawan (px = 10.7/64 mapping → 186mm total).
+             * One td = one Excel cell; colspan used for merged cells.
+             * ──────────────────────────────────────────────────────────── */
+            $logoImg    = $logoB64    ? '<img src="' . $logoB64    . '" height="44" />' : '';
+            $stempelImg = $stempelB64 ? '<img src="' . $stempelB64 . '" height="55" />' : '';
+            $ttdImg     = $ttdB64     ? '<img src="' . $ttdB64     . '" height="65" />' : '';
 
-  <!-- PENGHASILAN & POTONGAN -->
-  <table width="100%" cellspacing="0" cellpadding="2">
-    <tr>
-      <td width="48%" valign="top">
-        <table width="100%" cellspacing="0" cellpadding="1">
-          <tr><td colspan="3" style="color:#0070C0; font-weight:bold; text-decoration:underline; padding-bottom:3px;">A. PENGHASILAN :</td></tr>
-          ' . $this->rowPenghasilan('Gaji Pokok', $d->gaji) . '
-          ' . $this->rowPenghasilan('Kenaikan Gaji', $d->kenaikan_gaji ?? 0) . '
-          ' . $this->rowPenghasilan($uMakanLabel . ($uMakanDetail ? '<br/><small style="color:#888">' . $uMakanDetail . '</small><br/><small style="color:#888">' . $uMakanSub . '</small>' : '<br/><small style="color:#888">' . $uMakanSub . '</small>'), $d->uang_makan_jumlah) . '
-          ' . $this->rowPenghasilan('Lembur/Overtime', $d->overtime_fjg + $d->overtime_cus, true) . '
-          ' . $this->rowPenghasilan('Reimbursement Medical', $d->medical, true) . '
-          ' . $this->rowPenghasilan('Tunjangan Hari Raya', $d->thr, true) . '
-          ' . $this->rowPenghasilan($bonusLabel, $bonusVal, true) . '
-          ' . $this->rowPenghasilan($lainLabel, $lainVal, true) . '
-          <tr style="border-top: 1px solid #999;">
-            <td colspan="2" style="padding-top:2px;"><b>Total A</b></td>
-            <td align="right" style="padding-top:2px;"><b>' . $this->fmt($totalA) . '</b></td>
-          </tr>
-        </table>
-      </td>
-      <td width="4%"></td>
-      <td width="48%" valign="top">
-        <table width="100%" cellspacing="0" cellpadding="1">
-          <tr><td colspan="3" style="color:#0070C0; font-weight:bold; text-decoration:underline; padding-bottom:3px;">B. POTONGAN :</td></tr>
-          ' . $this->rowPotongan('Keterlambatan 25%', $ketHadir, $d->pot_25_jumlah) . '
-          ' . $this->rowPotongan('Pemakaian Telepon ' . $ketTP, '', $d->pot_telepon) . '
-          ' . $this->rowPotongan('Pinjaman Kas ' . $ketKS, '', $d->pot_kas) . '
-          ' . $this->rowPotongan('Pinjaman/Cicilan ' . $ketCC, '', $d->pot_cicilan) . '
-          ' . $this->rowPotongan('BPJS Kesehatan ' . $ketBP, '', $d->pot_bpjs) . '
-          ' . $this->rowPotongan('Pemakaian Bensin ' . $ketBN, '', $d->pot_bensin) . '
-          ' . $this->rowPotongan('Unpaid Leave / Cuti', ($d->pot_cuti_hari > 0 ? $d->pot_cuti_hari . ' HR' : ''), $d->pot_cuti_jumlah) . '
-          ' . $this->rowPotongan($kompLabel, $kompJam, $d->pot_kompensasi_jumlah) . '
-          ' . $this->rowPotongan('Lain-lain ' . $ketLL, '', $d->pot_lain) . '
-          <tr style="border-top: 1px solid #999;">
-            <td colspan="2" style="padding-top:2px;"><b>Total B</b></td>
-            <td align="right" style="padding-top:2px;"><b>' . $this->fmt($totalB) . '</b></td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+            $htmlAll .= '
+<table style="width:186mm; border:0.5pt solid #000;">
+<colgroup>
+  <col style="width:14.5mm"/><!-- A -->
+  <col style="width:15.2mm"/><!-- B -->
+  <col style="width:13.8mm"/><!-- C -->
+  <col style="width:3.1mm" /><!-- D -->
+  <col style="width:5.6mm" /><!-- E -->
+  <col style="width:6.5mm" /><!-- F -->
+  <col style="width:5.1mm" /><!-- G -->
+  <col style="width:20.0mm"/><!-- H -->
+  <col style="width:4.6mm" /><!-- I -->
+  <col style="width:41.6mm"/><!-- J -->
+  <col style="width:12.6mm"/><!-- K -->
+  <col style="width:4.3mm" /><!-- L -->
+  <col style="width:4.3mm" /><!-- M -->
+  <col style="width:3.9mm" /><!-- N -->
+  <col style="width:6.0mm" /><!-- O -->
+  <col style="width:24.9mm"/><!-- P -->
+</colgroup>
 
-  <hr style="border: 0.5px solid #ccc; margin: 4px 0;" />
+<!-- ROW 1 · Company name + logo  (H=21pt) ─────────────────────────── -->
+<tr class="r21">
+  <td></td><!-- A -->
+  <td colspan="12" class="ac cblue sz12">PT.FRATEKINDO JAYA GEMILANG</td><!-- B–M -->
+  <td colspan="2"></td><!-- N–O -->
+  <td rowspan="3" class="ar" style="vertical-align:top;padding-top:1mm;">' . $logoImg . '</td><!-- P (rowspan=3) -->
+</tr>
 
-  <!-- PENERIMAAN BERSIH -->
-  <table width="100%" style="background-color:#D9D9D9; border-top:1px solid #000; border-bottom:1px solid #000; margin-bottom:6px;">
-    <tr>
-      <td width="70%" style="padding:3px 5px;"><b>PENERIMAAN BERSIH (A - B)</b></td>
-      <td align="right" style="padding:3px 5px; color:red; font-weight:bold;">Rp ' . $this->fmt($bersih) . '</td>
-    </tr>
-  </table>
+<!-- ROW 2 · SOVEREIGN PLAZA  (H=17pt) ──────────────────────────────── -->
+<tr class="r17">
+  <td></td><!-- A -->
+  <td colspan="14" class="ac sz11">SOVEREIGN PLAZA</td><!-- B–O -->
+</tr>
 
-  <!-- TTD -->
-  <table width="100%" style="margin-top: 5px;">
-    <tr>
-      <td width="50%"></td>
-      <td width="50%" align="center">
-        <div>Head of HR Dept.</div>
-        <div style="position:relative; height:70px;">
-          ' . ($stempelBase64 ? '<img src="' . $stempelBase64 . '" height="55" style="position:absolute; left:30px; top:5px;" />' : '') . '
-          ' . ($ttdBase64 ? '<img src="' . $ttdBase64 . '" height="65" style="position:absolute; left:-15px; top:3px;" />' : '') . '
-        </div>
-        <div><b>Sri Erni.S</b></div>
-      </td>
-    </tr>
-  </table>
-</div>';
-        } // end foreach
+<!-- ROW 3 · Address / border-bottom  (H=17pt) ──────────────────────── -->
+<tr class="r17">
+  <td class="bb"></td><!-- A -->
+  <td colspan="14" class="ac bb">TB.Simatupang Kav.36, Cilandak - Jakarta selatan 12430</td><!-- B–O -->
+</tr>
 
-        // Generate PDF dengan mPDF
+<!-- ROW 4 · SLIP GAJI KARYAWAN  (H=21pt, gray) ─────────────────────── -->
+<tr class="r21 cgray">
+  <td colspan="16" class="ac sz11 ul">SLIP GAJI KARYAWAN</td>
+</tr>
+
+<!-- ROW 5 · Periode  (H=17pt, gray) ────────────────────────────────── -->
+<tr class="r17 cgray">
+  <td colspan="16" class="ac">Periode : ' . $periodeAwal . ' - ' . $periodeAkhir . '</td>
+</tr>
+
+<!-- ROW 6 · Nama  (H=21pt) ─────────────────────────────────────────── -->
+<tr class="r21">
+  <td>Nama</td>
+  <td colspan="15">: ' . htmlspecialchars($d->karyawan->nama) . '</td>
+</tr>
+
+<!-- ROW 7 · Jabatan  (H=17pt) ──────────────────────────────────────── -->
+<tr class="r17">
+  <td>Jabatan</td>
+  <td colspan="15">: ' . htmlspecialchars($d->karyawan->jabatan->nama) . '</td>
+</tr>
+
+<!-- ROW 8 · Divisi  (H=17pt) ───────────────────────────────────────── -->
+<tr class="r17">
+  <td>Divisi</td>
+  <td colspan="15">: ' . htmlspecialchars($d->karyawan->divisi->nama) . '</td>
+</tr>
+
+<!-- ROW 9 · Separator  (H=12pt, border-bottom) ─────────────────────── -->
+<tr class="r12">
+  <td colspan="16" class="bb"></td>
+</tr>
+
+<!-- ROW 10 · A.PENGHASILAN / B.POTONGAN headers  (H=21pt) ──────────── -->
+<tr class="r21">
+  <td colspan="8"  class="cblue ul">A. PENGHASILAN :</td><!-- A–H -->
+  <td></td><!-- I -->
+  <td colspan="7"  class="cblue ul">B. POTONGAN :</td><!-- J–P -->
+</tr>
+
+<!-- ROW 11 · Gaji Pokok / Keterlambatan  (H=17pt) ──────────────────── -->
+<tr class="r17">
+  <td colspan="6">Gaji Pokok</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . $this->n($d->gaji) . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Keterlambatan Kehadiran 25%</td><!-- J -->
+  <td class="ar">' . $ket25K . '</td><!-- K -->
+  <td class="ac">' . $ket25L . '</td><!-- L -->
+  <td class="ar">' . $ket25M . '</td><!-- M -->
+  <td class="ac">' . $ket25N . '</td><!-- N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_25_jumlah > 0 ? $this->n($d->pot_25_jumlah) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 12 · Kenaikan Gaji / Telepon  (H=17pt) ─────────────────────── -->
+<tr class="r17">
+  <td colspan="6">Kenaikan Gaji</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . ($d->kenaikan_gaji > 0 ? $this->n($d->kenaikan_gaji) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Pemakaian Telepon/Telkomsel</td><!-- J -->
+  <td>' . $ketTP . '</td><!-- K -->
+  <td colspan="3"></td><!-- L–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_telepon > 0 ? $this->n($d->pot_telepon) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 13 · Uang Makan / Pinjaman Kas  (H=17pt) ───────────────────── -->
+<tr class="r17">
+  <td>' . $uMakanLabel . '</td><!-- A -->
+  <td></td><!-- B -->
+  <td class="ar">' . $makanC . '</td><!-- C -->
+  <td class="ac">' . $makanD . '</td><!-- D -->
+  <td>' . $makanE . '</td><!-- E -->
+  <td>' . $makanF . '</td><!-- F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . $this->n($d->uang_makan_jumlah) . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Pinjaman Kas</td><!-- J -->
+  <td>' . $ketKS . '</td><!-- K -->
+  <td colspan="3"></td><!-- L–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_kas > 0 ? $this->n($d->pot_kas) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 14 · Makan sub-label / Pinjaman Cicilan  (H=17pt) ──────────── -->
+<tr class="r17">
+  <td colspan="8" class="sz8">' . $uMakanSub . '</td><!-- A–H -->
+  <td></td><!-- I -->
+  <td>Pinjaman / Cicilan</td><!-- J -->
+  <td>' . $ketCC . '</td><!-- K -->
+  <td colspan="3"></td><!-- L–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_cicilan > 0 ? $this->n($d->pot_cicilan) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 15 · Lembur / BPJS  (H=17pt) ──────────────────────────────── -->
+<tr class="r17">
+  <td colspan="6">Lembur/Overtime</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . (($d->overtime_fjg + $d->overtime_cus) > 0 ? $this->n($d->overtime_fjg + $d->overtime_cus) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>BPJS Kesehatan</td><!-- J -->
+  <td>' . $ketBP . '</td><!-- K -->
+  <td colspan="3"></td><!-- L–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_bpjs > 0 ? $this->n($d->pot_bpjs) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 16 · Reimbursement Medical / Bensin  (H=17pt) ──────────────── -->
+<tr class="r17">
+  <td colspan="6">Reimbursement Medical</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . ($d->medical > 0 ? $this->n($d->medical) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Pemakaian Bensin</td><!-- J -->
+  <td>' . $ketBN . '</td><!-- K -->
+  <td colspan="3"></td><!-- L–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_bensin > 0 ? $this->n($d->pot_bensin) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 17 · THR / Cuti  (H=17pt) ─────────────────────────────────── -->
+<tr class="r17">
+  <td colspan="6">Tunjangan Hari Raya</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . ($d->thr > 0 ? $this->n($d->thr) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Unpaid Leave / Cuti Bersama</td><!-- J -->
+  <td></td><!-- K -->
+  <td></td><!-- L -->
+  <td class="ar">' . $cutiM . '</td><!-- M -->
+  <td class="ac">' . $cutiN . '</td><!-- N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_cuti_jumlah > 0 ? $this->n($d->pot_cuti_jumlah) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 18 · Bonus/Insentif / Kompensasi  (H=17pt) ─────────────────── -->
+<tr class="r17">
+  <td colspan="6">' . $bonusLabel . '</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . ($bonusVal > 0 ? $this->n($bonusVal) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>' . $kompLabel . '</td><!-- J -->
+  <td colspan="3"></td><!-- K–M -->
+  <td class="ar">' . $kompN . '</td><!-- N (right-aligned per Excel) -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_kompensasi_jumlah > 0 ? $this->n($d->pot_kompensasi_jumlah) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 19 · Lain-lain / Lain-lain  (H=17pt) ───────────────────────── -->
+<tr class="r17">
+  <td colspan="6">' . $lainLabel . '</td><!-- A–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar">' . ($lainVal > 0 ? $this->n($lainVal) : '') . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td>Lain-lain ' . $ketLL . '</td><!-- J -->
+  <td colspan="4"></td><!-- K–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar">' . ($d->pot_lain > 0 ? $this->n($d->pot_lain) : '') . '</td><!-- P -->
+</tr>
+
+<!-- ROW 20 · Total A / Total B  (H=17pt, border-top on H & P) ──────── -->
+<tr class="r17">
+  <td colspan="4"></td><!-- A–D -->
+  <td colspan="2" class="ar">Total A</td><!-- E–F -->
+  <td class="ac">=</td><!-- G -->
+  <td class="ar bt">' . $this->n($totalA) . '</td><!-- H -->
+  <td></td><!-- I -->
+  <td></td><!-- J -->
+  <td></td><!-- K -->
+  <td>Total B</td><!-- L -->
+  <td colspan="2"></td><!-- M–N -->
+  <td class="ac">=</td><!-- O -->
+  <td class="ar bt">' . $this->n($totalB) . '</td><!-- P -->
+</tr>
+
+<!-- ROW 21 · Separator (H=17pt, border-bottom) ─────────────────────── -->
+<tr class="r17">
+  <td colspan="16" class="bb"></td>
+</tr>
+
+<!-- ROW 22 · Penerimaan Bersih (H=17pt, gray, border-bottom) ───────── -->
+<tr class="r17 cgray bb">
+  <td colspan="7" class="ar bb">PENERIMAAN BERSIH (A-B)</td><!-- A–G -->
+  <td class="bb"></td><!-- H -->
+  <td class="ac cred bb">Rp</td><!-- I -->
+  <td class="ar cred bb">' . $this->n($bersih) . '</td><!-- J -->
+  <td colspan="6" class="bb"></td><!-- K–P -->
+</tr>
+
+<!-- ROW 23 · Head of HR Dept. (H=17pt) ─────────────────────────────── -->
+<tr class="r17">
+  <td colspan="10"></td><!-- A–I -->
+  <td colspan="5" class="ac">Head of HR Dept.</td><!-- K–O (merged in Excel) -->
+  <td></td><!-- P -->
+</tr>
+
+<!-- ROW 24–25 · Stempel & TTD images (~20mm) ───────────────────────── -->
+<tr style="height:20mm;">
+  <td colspan="10"></td><!-- A–I -->
+  <td colspan="5" class="ac" style="vertical-align:middle;">' . $ttdImg . '&nbsp;' . $stempelImg . '</td><!-- K–O -->
+  <td></td><!-- P -->
+</tr>
+
+<!-- ROW 26 · Sri Erni.S (H=17pt) ───────────────────────────────────── -->
+<tr class="r17">
+  <td colspan="10"></td><!-- A–I -->
+  <td colspan="5" class="ac">Sri Erni.S</td><!-- K–O -->
+  <td></td><!-- P -->
+</tr>
+
+</table>';
+        } // end foreach slip
+
+        /* ── Generate PDF ───────────────────────────────────────────────── */
         $mpdf = new Mpdf([
-            'margin_top'    => 8,
-            'margin_bottom' => 8,
-            'margin_left'   => 12,
-            'margin_right'  => 12,
-            'format'        => 'A4',
+            'format'            => 'A4',
+            'margin_top'        => 8,
+            'margin_bottom'     => 8,
+            'margin_left'       => 12,
+            'margin_right'      => 12,
+            'default_font'      => 'dejavusans',
+            'default_font_size' => 9,
         ]);
 
-        // Set proteksi password
+        /* Password protection:
+         * SetProtection(permissions, user_password, owner_password, length)
+         * - user_password  → password WAJIB untuk membuka dokumen (tanggal lahir DDMMYYYY)
+         * - owner_password → password owner (random kuat, tidak diketahui siapapun)
+         * - length = 128   → RC4 128-bit (lebih kuat dari default 40-bit)
+         * Harus dipanggil SEBELUM WriteHTML.                               */
         if ($password !== '') {
-            $mpdf->SetProtection(['print', 'print-highres', 'copy'], $password, '');
+            $ownerPass = bin2hex(random_bytes(16)); // 32-char random hex owner password
+            $mpdf->SetProtection(['print', 'print-highres'], $password, $ownerPass, 128);
         }
 
         $mpdf->SetTitle('Slip Gaji - ' . $namaKaryawan);
         $mpdf->WriteHTML($htmlAll);
 
-        $namaFile = 'PDF_SLIP_GAJI_' . substr($tahun, -2) . '_' . str_replace(' ', '_', $namaKaryawan) . '.pdf';
+        $namaFile = 'PDF_SLIP_GAJI_' . substr($tahun, -2) . '_'
+                  . str_replace(' ', '_', $namaKaryawan) . '.pdf';
 
-        // Dengan Destination::DOWNLOAD, parameter pertama adalah FILENAME
-        // mPDF akan set Content-Type dan Content-Disposition secara otomatis
         $mpdf->Output($namaFile, \Mpdf\Output\Destination::DOWNLOAD);
         exit;
     }
 
-    // Helper: format angka
-    private function fmt($val) {
+    /* ── Helpers ─────────────────────────────────────────────────────────── */
+
+    /** Format angka → Indonesian (dot as thousands separator) */
+    private function n($val): string
+    {
         return number_format((float)$val, 0, ',', '.');
     }
 
-    // Helper: baris penghasilan
-    private function rowPenghasilan($label, $val, $skipZero = false) {
-        if ($skipZero && $val == 0) return '';
-        return '<tr>
-          <td style="width:55%;">' . $label . '</td>
-          <td style="width:5%; text-align:center;">=</td>
-          <td style="width:40%; text-align:right;">' . ($val > 0 ? $this->fmt($val) : '') . '</td>
-        </tr>';
-    }
-
-    // Helper: baris potongan
-    private function rowPotongan($label, $detail, $val) {
-        return '<tr>
-          <td style="width:50%;">' . $label . ($detail ? '<br/><small style="color:#888">' . $detail . '</small>' : '') . '</td>
-          <td style="width:5%; text-align:center;">=</td>
-          <td style="width:45%; text-align:right;">' . ($val > 0 ? $this->fmt($val) : '') . '</td>
-        </tr>';
+    /** Load image file → base64 data-URI */
+    private function imgB64(string $path, string $mime): ?string
+    {
+        if (!file_exists($path)) return null;
+        return 'data:image/' . $mime . ';base64,' . base64_encode(file_get_contents($path));
     }
 }
