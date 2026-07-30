@@ -61,7 +61,7 @@ class SpreadSlipGajiController extends Controller
                 return $a->karyawan->area->urutan <=> $b->karyawan->area->urutan;
             }
             return $a->karyawan_id <=> $b->karyawan_id;
-        });
+        })->values();
 
         $dataPotongans = $this->rpPotongan->findAll([
             'tahun' => $tahun,
@@ -75,6 +75,7 @@ class SpreadSlipGajiController extends Controller
         }
 
         $sheetIndex = -1;
+        $si = null;
         foreach ($dataDetails as $i => $d) {
             if ($i % 2 == 0) {
                 $sheetIndex++;
@@ -142,7 +143,7 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setSize(11)->setUnderline(TRUE);
             $si->getRowDimension($bar)->setRowHeight(21);
             $bar++;
-            $si->setCellValue('A'.$bar, 'Periode : 26 '.$arrBulan[$bulan-1].' '.($bulan == '1' ? $tahun-1 : $tahun).' - 25 '.$arrBulan[$bulan].' '.$tahun);
+            $si->setCellValue('A'.$bar, '');
             $si->mergeCells('A'.$bar.':P'.$bar);
             $si->getStyle('A'.($bar-1).':P'.$bar)->getFill()->setFillType('solid')->getStartColor()->setARGB('D9D9D9');
             $si->getStyle('A'.($bar-4).':O'.$bar)->getAlignment()->setHorizontal('center');
@@ -168,7 +169,7 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
             $si->getRowDimension($bar)->setRowHeight(21);
             $bar++;
-            $si->setCellValue('A'.$bar, 'Gaji Pokok');
+            $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[$bulan-1]."'".substr($bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[$bulan]."'".substr($tahun, -2));
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->gaji);
             $si->setCellValue('J'.$bar, 'Keterlambatan Kehadiran 25%');
@@ -494,7 +495,7 @@ class SpreadSlipGajiController extends Controller
                 $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setSize(11)->setUnderline(TRUE);
                 $si->getRowDimension($bar)->setRowHeight(21);
                 $bar++;
-                $si->setCellValue('A'.$bar, 'Periode : 26 '.$arrBulan[$d->bulan-1].' '.($d->bulan == '1' ? $tahun-1 : $tahun).' - 25 '.$arrBulan[$d->bulan].' '.$tahun);
+                $si->setCellValue('A'.$bar, '');
                 $si->mergeCells('A'.$bar.':P'.$bar);
                 $si->getStyle('A'.($bar-1).':P'.$bar)->getFill()->setFillType('solid')->getStartColor()->setARGB('D9D9D9');
                 $si->getStyle('A'.($bar-4).':O'.$bar)->getAlignment()->setHorizontal('center');
@@ -520,7 +521,7 @@ class SpreadSlipGajiController extends Controller
                 $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
                 $si->getRowDimension($bar)->setRowHeight(21);
                 $bar++;
-                $si->setCellValue('A'.$bar, 'Gaji Pokok');
+                $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[$d->bulan-1]."'".substr($d->bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[$d->bulan]."'".substr($tahun, -2));
                 $si->setCellValue('G'.$bar, '=');
                 $si->setCellValue('H'.$bar, $d->gaji);
                 $si->setCellValue('J'.$bar, 'Keterlambatan Kehadiran 25%');
