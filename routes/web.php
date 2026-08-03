@@ -257,5 +257,6 @@ $router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () us
     $router->get('slip-karyawan/{karyawan_id}/{tahun}/{bulans}', 'SpreadSlipGajiController@perKaryawan');
     $router->get('pdf-slip-karyawan/{karyawan_id}/{tahun}/{bulans}', 'PdfSlipGajiController@perKaryawan');
     $router->get('payroll/{karyawan_id}/{tahun}', 'SpreadPphController@karyawan');
+    $router->get('payroll-periode/{karyawan_id}/{tahun_awal}/{bulan_awal}/{tahun_akhir}/{bulan_akhir}', 'SpreadPphController@karyawanPeriode');
     $router->get('rekap-pph21/{jenis}/{tahun}/{area}', 'SpreadPphController@rekap');
 });

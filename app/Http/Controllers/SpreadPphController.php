@@ -388,6 +388,306 @@ class SpreadPphController extends Controller
         exit;
     }
 
+    public function karyawanPeriode($karyawan_id, $tahun_awal, $bulan_awal, $tahun_akhir, $bulan_akhir) {
+        $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
+        $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
+        $kol_akhir = 'AI';
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
+
+        // Bangun daftar tahun-bulan dalam rentang periode
+        $periodeList = []; // array of [tahun, bulan]
+        $tahunCur = (int)$tahun_awal;
+        $bulanCur = (int)$bulan_awal;
+        $tahunEnd = (int)$tahun_akhir;
+        $bulanEnd = (int)$bulan_akhir;
+        while ($tahunCur < $tahunEnd || ($tahunCur === $tahunEnd && $bulanCur <= $bulanEnd)) {
+            $periodeList[] = ['tahun' => $tahunCur, 'bulan' => $bulanCur];
+            $bulanCur++;
+            if ($bulanCur > 12) {
+                $bulanCur = 1;
+                $tahunCur++;
+            }
+        }
+
+        // Kumpulkan semua tahun unik dalam periode
+        $tahunList = array_unique(array_column($periodeList, 'tahun'));
+
+        $dataKaryawan = null;
+        $details = [];
+
+        foreach ($tahunList as $tahun) {
+            $dataDetails = $this->repoDetail->findAll([
+                'karyawan_id' => $karyawan_id,
+                'tahun' => $tahun,
+                'pph21' => 'Y',
+            ]);
+            $dataPhk = $this->repoPhk->findAll([
+                'karyawan_id' => $karyawan_id,
+                'tahun' => $tahun,
+                'pph21' => 'Y',
+            ]);
+            $merged = $dataDetails->merge($dataPhk);
+            foreach ($merged as $dt) {
+                if (isset($details[$dt->tahun][$dt->bulan])) {
+                    $existing = $details[$dt->tahun][$dt->bulan];
+                    $existing->gaji += $dt->gaji;
+                    $existing->kenaikan_gaji += $dt->kenaikan_gaji;
+                    $existing->hari_makan += $dt->hari_makan;
+                    $existing->uang_makan_harian += $dt->uang_makan_harian;
+                    $existing->uang_makan_jumlah += $dt->uang_makan_jumlah;
+                    $existing->overtime_fjg += $dt->overtime_fjg;
+                    $existing->overtime_cus += $dt->overtime_cus;
+                    $existing->medical += $dt->medical;
+                    $existing->thr += $dt->thr;
+                    $existing->bonus += $dt->bonus;
+                    $existing->insentif += $dt->insentif;
+                    $existing->telkomsel += $dt->telkomsel;
+                    $existing->lain += $dt->lain;
+                    $existing->pot_25_hari += $dt->pot_25_hari;
+                    $existing->pot_25_jumlah += $dt->pot_25_jumlah;
+                    $existing->pot_telepon += $dt->pot_telepon;
+                    $existing->pot_bensin += $dt->pot_bensin;
+                    $existing->pot_kas += $dt->pot_kas;
+                    $existing->pot_cicilan += $dt->pot_cicilan;
+                    $existing->pot_bpjs += $dt->pot_bpjs;
+                    $existing->pot_cuti_hari += $dt->pot_cuti_hari;
+                    $existing->pot_cuti_jumlah += $dt->pot_cuti_jumlah;
+                    $existing->pot_kompensasi_jam += $dt->pot_kompensasi_jam;
+                    $existing->pot_kompensasi_jumlah += $dt->pot_kompensasi_jumlah;
+                    $existing->pot_lain += $dt->pot_lain;
+                    $existing->total_diterima += $dt->total_diterima;
+                    $existing->kantor_jp += $dt->kantor_jp;
+                    $existing->kantor_jht += $dt->kantor_jht;
+                    $existing->kantor_jkk += $dt->kantor_jkk;
+                    $existing->kantor_jkm += $dt->kantor_jkm;
+                    $existing->kantor_bpjs += $dt->kantor_bpjs;
+                    $existing->penghasilan_bruto += $dt->penghasilan_bruto;
+                    $existing->dpp += $dt->dpp;
+                    $existing->pph21 += $dt->pph21;
+                } else {
+                    $details[$dt->tahun][$dt->bulan] = $dt;
+                }
+                $dataKaryawan = $dt->karyawan;
+            }
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+        $si = $spreadsheet->getActiveSheet();
+        $si->setShowGridlines(false);
+        $si->setTitle('PAYROLL');
+        $si->freezePane('C6');
+
+        $labelAwal = $arrBulan[(int)$bulan_awal].' '.$tahun_awal;
+        $labelAkhir = $arrBulan[(int)$bulan_akhir].' '.$tahun_akhir;
+
+        $bar = 1;
+        $si->setCellValue('A'.$bar, 'PAYROLL '.$labelAwal.' S/D '.$labelAkhir);
+        $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
+        $bar++;
+        $namaKaryawan = $dataKaryawan ? $dataKaryawan->nama.'('.$dataKaryawan->jabatan->nama.' '.$dataKaryawan->area->nama.')' : '-';
+        $si->setCellValue('A'.$bar, $namaKaryawan);
+        $si->mergeCells('A'.$bar.':'.$kol_akhir.$bar);
+        $bar++;
+        $si->setCellValue('A'.$bar, 'NO');
+        $si->mergeCells('A'.$bar.':A'.($bar+2));
+        $si->setCellValue('B'.$bar, 'BULAN');
+        $si->mergeCells('B'.$bar.':B'.($bar+2));
+        $si->setCellValue('C'.$bar, 'GAJI / UPAH IDR');
+        $si->mergeCells('C'.$bar.':C'.($bar+2));
+        $si->setCellValue('D'.$bar, 'U/MAKAN & TRANSPORTASI');
+        $si->mergeCells('D'.$bar.':F'.$bar);
+        $si->setCellValue('G'.$bar, 'TUNJANGAN LAIN');
+        $si->mergeCells('G'.$bar.':N'.$bar);
+        $si->setCellValue('O'.$bar, 'POTONGAN');
+        $si->mergeCells('O'.$bar.':X'.$bar);
+        $si->setCellValue('Y'.$bar, 'TOTAL DITERIMA IDR');
+        $si->mergeCells('Y'.$bar.':Y'.($bar+2));
+        $si->setCellValue('Z'.$bar, 'BENEFIT LAINNYA');
+        $si->mergeCells('Z'.$bar.':AD'.$bar);
+        $si->setCellValue('AE'.$bar, 'PENGHITUNGAN PPh 21');
+        $si->mergeCells('AE'.$bar.':AH'.$bar);
+        $si->setCellValue('AI'.$bar, 'TOTAL IDR');
+        $si->mergeCells('AI'.$bar.':AI'.($bar+2));
+        $bar++;
+        $si->setCellValue('D'.$bar, 'HR');
+        $si->mergeCells('D'.$bar.':D'.($bar+1));
+        $si->setCellValue('E'.$bar, '@ HARI IDR');
+        $si->mergeCells('E'.$bar.':E'.($bar+1));
+        $si->setCellValue('F'.$bar, 'JUMLAH IDR');
+        $si->mergeCells('F'.$bar.':F'.($bar+1));
+        $si->setCellValue('G'.$bar, 'OVERTIME');
+        $si->mergeCells('G'.$bar.':H'.$bar);
+        $si->setCellValue('I'.$bar, 'MEDICAL IDR');
+        $si->mergeCells('I'.$bar.':I'.($bar+1));
+        $si->setCellValue('J'.$bar, 'THR IDR');
+        $si->mergeCells('J'.$bar.':J'.($bar+1));
+        $si->setCellValue('K'.$bar, 'BONUS IDR');
+        $si->mergeCells('K'.$bar.':K'.($bar+1));
+        $si->setCellValue('L'.$bar, 'INSENTIF IDR');
+        $si->mergeCells('L'.$bar.':L'.($bar+1));
+        $si->setCellValue('M'.$bar, 'TELKOMSEL IDR');
+        $si->mergeCells('M'.$bar.':M'.($bar+1));
+        $si->setCellValue('N'.$bar, 'LAIN-LAIN IDR');
+        $si->mergeCells('N'.$bar.':N'.($bar+1));
+        $si->setCellValue('O'.$bar, '25%');
+        $si->mergeCells('O'.$bar.':P'.$bar);
+        $si->setCellValue('Q'.$bar, 'TELP. IDR');
+        $si->mergeCells('Q'.$bar.':Q'.($bar+1));
+        $si->setCellValue('R'.$bar, 'BENSIN IDR');
+        $si->mergeCells('R'.$bar.':R'.($bar+1));
+        $si->setCellValue('S'.$bar, 'PINJAMAN');
+        $si->mergeCells('S'.$bar.':T'.$bar);
+        $si->setCellValue('U'.$bar, 'BPJS (KIS) IDR');
+        $si->mergeCells('U'.$bar.':U'.($bar+1));
+        $si->setCellValue('V'.$bar, 'UNPAID LEAVE');
+        $si->mergeCells('V'.$bar.':V'.($bar+1));
+        $si->setCellValue('W'.$bar, 'KOMPENSASI IDR');
+        $si->mergeCells('W'.$bar.':W'.($bar+1));
+        $si->setCellValue('X'.$bar, 'LAIN-LAIN IDR');
+        $si->mergeCells('X'.$bar.':X'.($bar+1));
+        $si->setCellValue('Z'.$bar, 'JP 3%');
+        $si->mergeCells('Z'.$bar.':Z'.($bar+1));
+        $si->setCellValue('AA'.$bar, 'JHT 5.7%');
+        $si->mergeCells('AA'.$bar.':AA'.($bar+1));
+        $si->setCellValue('AB'.$bar, 'JKK 0,24%');
+        $si->mergeCells('AB'.$bar.':AB'.($bar+1));
+        $si->setCellValue('AC'.$bar, 'JKM 0,3%');
+        $si->mergeCells('AC'.$bar.':AC'.($bar+1));
+        $si->setCellValue('AD'.$bar, 'BPJS KESEHATAN');
+        $si->mergeCells('AD'.$bar.':AD'.($bar+1));
+        $si->setCellValue('AE'.$bar, 'PENGHASILAN BRUTO');
+        $si->mergeCells('AE'.$bar.':AE'.($bar+1));
+        $si->setCellValue('AF'.$bar, 'DPP');
+        $si->mergeCells('AF'.$bar.':AF'.($bar+1));
+        $si->setCellValue('AG'.$bar, 'TER '.($dataKaryawan ? $dataKaryawan->ptkp->ter : ''));
+        $si->mergeCells('AG'.$bar.':AG'.($bar+1));
+        $si->setCellValue('AH'.$bar, 'PPh 21');
+        $si->mergeCells('AH'.$bar.':AH'.($bar+1));
+        $bar++;
+        $si->setCellValue('G'.$bar, 'FRATEKINDO');
+        $si->setCellValue('H'.$bar, 'CUSTOMER');
+        $si->setCellValue('O'.$bar, 'HR');
+        $si->setCellValue('P'.$bar, 'JUMLAH IDR');
+        $si->setCellValue('S'.$bar, 'KAS');
+        $si->setCellValue('T'.$bar, 'CICILAN');
+        $bar++;
+
+        $nomor = 1;
+        foreach ($periodeList as $periode) {
+            $thn = $periode['tahun'];
+            $bln = $periode['bulan'];
+            $si->setCellValue('A'.$bar, $nomor);
+            $si->setCellValue('B'.$bar, $arrBulan[$bln].' '.$thn);
+            if (isset($details[$thn][$bln])) {
+                $d = $details[$thn][$bln];
+                $si->setCellValue('C'.$bar, ($d->gaji + $d->kenaikan_gaji));
+                $si->setCellValue('D'.$bar, $d->hari_makan);
+                $si->setCellValue('E'.$bar, $d->uang_makan_harian);
+                $si->setCellValue('F'.$bar, $d->uang_makan_jumlah);
+                $si->setCellValue('G'.$bar, $d->overtime_fjg);
+                $si->setCellValue('H'.$bar, $d->overtime_cus);
+                $si->setCellValue('I'.$bar, $d->medical);
+                $si->setCellValue('J'.$bar, $d->thr);
+                $si->setCellValue('K'.$bar, $d->bonus);
+                $si->setCellValue('L'.$bar, $d->insentif);
+                $si->setCellValue('M'.$bar, $d->telkomsel);
+                $si->setCellValue('N'.$bar, $d->lain);
+                $si->setCellValue('O'.$bar, $d->pot_25_hari);
+                $si->setCellValue('P'.$bar, $d->pot_25_jumlah);
+                $si->setCellValue('Q'.$bar, $d->pot_telepon);
+                $si->setCellValue('R'.$bar, $d->pot_bensin);
+                $si->setCellValue('S'.$bar, $d->pot_kas);
+                $si->setCellValue('T'.$bar, $d->pot_cicilan);
+                $si->setCellValue('U'.$bar, $d->pot_bpjs);
+                $si->setCellValue('V'.$bar, $d->pot_cuti_jumlah);
+                $si->setCellValue('W'.$bar, $d->pot_kompensasi_jumlah);
+                $si->setCellValue('X'.$bar, $d->pot_lain);
+                $si->setCellValue('Y'.$bar, $d->total_diterima);
+                $si->setCellValue('Z'.$bar, $d->kantor_jp);
+                $si->setCellValue('AA'.$bar, $d->kantor_jht);
+                $si->setCellValue('AB'.$bar, $d->kantor_jkk);
+                $si->setCellValue('AC'.$bar, $d->kantor_jkm);
+                $si->setCellValue('AD'.$bar, $d->kantor_bpjs);
+                $si->setCellValue('AE'.$bar, $d->penghasilan_bruto);
+                $si->setCellValue('AF'.$bar, $d->dpp);
+                $si->setCellValue('AG'.$bar, $d->ter_persen/100);
+                $si->setCellValue('AH'.$bar, $d->pph21);
+                $si->setCellValue('AI'.$bar, '=Y'.$bar.'+Z'.$bar.'+AA'.$bar.'+AB'.$bar.'+AC'.$bar.'+AG'.$bar.'+AH'.$bar);
+            } else {
+                for ($z=2; $z <= 29; $z++) {
+                    $si->setCellValue($kol[$z].$bar, 0);
+                }
+            }
+            $nomor++;
+            $bar++;
+        }
+
+        $bar++;
+        $si->setCellValue('A'.$bar, 'TOTAL');
+        $si->mergeCells('A'.$bar.':B'.$bar);
+        $si->setCellValue('C'.$bar, '=SUM(C6:C'.($bar-1).')');
+        $si->setCellValue('F'.$bar, '=SUM(F6:F'.($bar-1).')');
+        for ($k = 6; $k <= 13; $k++) { // G s/d N
+            $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].'6:'.$kol[$k].($bar-1).')');
+        }
+        for ($k = 15; $k <= 30; $k++) { // P s/d AE
+            $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].'6:'.$kol[$k].($bar-1).')');
+        }
+        $si->setCellValue('AG'.$bar, '=SUM(AG6:AG'.($bar-1).')');
+        $si->setCellValue('AH'.$bar, '=SUM(AH6:AH'.($bar-1).')');
+
+        $si->getStyle('A1:A2')->getFont()->setName('Algerian')->setSize(16)->setUnderline(TRUE)->getColor()->setARGB('0000FF');
+        $si->getStyle('A1:A'.$bar)->getAlignment()->setHorizontal('center');
+        $si->getStyle('O3:W'.$bar)->getFont()->getColor()->setARGB('FF0000');
+        $si->getStyle('X3:X'.$bar)->getFont()->getColor()->setARGB('0000FF');
+        $si->getStyle('AD3:AF'.$bar)->getFont()->getColor()->setARGB('FFAA00');
+        $si->getStyle('A3:'.$kol_akhir.'5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(TRUE);
+        $si->getStyle('A3:'.$kol_akhir.'5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
+        $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_MEDIUM);
+        $si->getStyle('A6:'.$kol_akhir.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+        $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
+        $si->getStyle('C6:AE'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+        $si->getStyle('AF6:AF'.$bar)->getNumberFormat()->setFormatCode('0.00%');
+        $si->getStyle('AG6:AH'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+
+        $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
+        $si->getColumnDimension('B')->setWidth(100, Dimension::UOM_PIXELS);
+        $si->getColumnDimension('C')->setWidth(100, Dimension::UOM_PIXELS);
+        $si->getColumnDimension('D')->setWidth(30, Dimension::UOM_PIXELS);
+        for ($k = 4; $k <= 13; $k++) { // E s/d N
+            $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+        }
+        $si->getColumnDimension('O')->setWidth(30, Dimension::UOM_PIXELS);
+        for ($k = 15; $k <= 23; $k++) { // P s/d X
+            $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+        }
+        $si->getColumnDimension('Y')->setWidth(110, Dimension::UOM_PIXELS);
+        for ($k = 25; $k <= 29; $k++) { // Z s/d AD
+            $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+        }
+        $si->getColumnDimension('AE')->setWidth(110, Dimension::UOM_PIXELS);
+        for ($k = 31; $k <= 33; $k++) { // AF s/d AH
+            $si->getColumnDimension($kol[$k])->setWidth(85, Dimension::UOM_PIXELS);
+        }
+        $si->getColumnDimension('AI')->setWidth(120, Dimension::UOM_PIXELS);
+
+        $namaFile = $dataKaryawan ? str_replace(' ', '_', $dataKaryawan->nama) : 'KARYAWAN';
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="PAYROLL_'.$namaFile.'_'.$tahun_awal.'_'.$bulan_awal.'-'.$tahun_akhir.'_'.$bulan_akhir.'.xlsx"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
     public function rekap($jenis, $tahun, $area) {
         // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
