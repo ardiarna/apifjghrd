@@ -66,7 +66,9 @@ class PayrollPhkImplement implements PayrollPhkRepository {
         if(isset($inputs['pph21']) && ($inputs['pph21'] == 'Y' || $inputs['pph21'] == 'y')) {
             $hasil = $hasil->get();
             foreach ($hasil as $h) {
-                $h->kantor_jp = round(($h->gaji+$h->kenaikan_gaji) / 100 * 3);
+                $dasar_jp = $h->gaji + $h->kenaikan_gaji;
+                if ($dasar_jp > 11086300) $dasar_jp = 11086300;
+                $h->kantor_jp = round($dasar_jp / 100 * 3);
                 $h->kantor_jht = round(($h->gaji+$h->kenaikan_gaji) / 100 * 5.7);
                 $h->kantor_jkk = round(($h->gaji+$h->kenaikan_gaji) / 100 * 0.24);
                 $h->kantor_jkm = round(($h->gaji+$h->kenaikan_gaji) / 100 * 0.3);
