@@ -67,15 +67,8 @@ class PhkController extends Controller
 
     public function delete($karyawan_id, $id) {
         $this->karyawanRepo->setAktif($karyawan_id);
-        if($id == 'all') {
-            $data = $this->repo->deletesByKaryawanId($karyawan_id);
-        } else {
-            $data = $this->repo->delete($id);
-        }
-        if($data == 0) {
-            return $this->failRespNotFound('PHK tidak ditemukan');
-        }
-        return $this->successResponse($data, 'PHK berhasil dihapus');
+        
+        return $this->successResponse(1, 'Karyawan berhasil diaktifkan kembali');
     }
 
 }
