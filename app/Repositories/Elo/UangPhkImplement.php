@@ -23,6 +23,9 @@ class UangPhkImplement implements UangPhkRepository {
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->where('uang_phks.tahun', $inputs['tahun']);
         }
+        if(isset($inputs['tahun_awal']) && $inputs['tahun_awal'] != '' && isset($inputs['tahun_akhir']) && $inputs['tahun_akhir'] != '') {
+            $hasil->whereBetween('uang_phks.tahun', [$inputs['tahun_awal'], $inputs['tahun_akhir']]);
+        }
         if(isset($inputs['karyawan_id']) && $inputs['karyawan_id'] != '') {
             $hasil->where('uang_phks.karyawan_id', $inputs['karyawan_id']);
         } else {
