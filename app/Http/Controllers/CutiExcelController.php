@@ -230,76 +230,121 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $sheet->setCellValue('A'.$row, $idx++);
-                    $sheet->setCellValue('B'.$row, $k->nama);
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                        ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
+                        ->whereHas('cuti', function($q) use ($k, $tahun) {
+                            $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                        })
+                        ->get();
                     
-                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
-                    $sheet->setCellValue('C'.$row, $tgl_masuk);
-                    
-                    $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
-                    
-                    $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
-                    $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
-                    $min = $jatah ? $jatah->min_tahun_lalu : 0;
-                    $totalHak = $jmlCuti + $plus - $min;
-
-                    // 4. jika tidak ada data atau 0 jangan tulis 0 tapi kosongkan
-                    $sheet->setCellValue('D'.$row, $jmlCuti != 0 ? $jmlCuti : '');
-                    $sheet->setCellValue('E'.$row, $plus != 0 ? $plus : '');
-                    $sheet->setCellValue('F'.$row, $min != 0 ? $min : '');
-                    $sheet->setCellValue('G'.$row, $totalHak != 0 ? $totalHak : '');
-
-                    $totalDiambilTahunan = 0;
-                    for($m=1; $m<=12; $m++) {
-                        $diambilBulan = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                            $q->where('kategori', 'TAHUNAN')
-                              ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                                  $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                              });
-                        })->whereMonth('tanggal', $m)->count();
-                        $totalDiambilTahunan += $diambilBulan;
-                        $colIdx = 7 + $m - 1; 
-                        $sheet->setCellValue($arrkol[$colIdx].$row, $diambilBulan != 0 ? $diambilBulan : '');
+                    $lines = [];
+                    foreach($detailsKet as $det) {
+                        if($det->dates->count() == 0) continue;
+                        
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                            $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
+                        }
+                        
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
+                        
+                        $dateStr = implode(', ', $dateStrings);
+                        $ket = $det->kategori == 'CUTI_MASAL' ? ($det->cuti->keperluan ?? 'Cutber') : ($det->keterangan ?? $det->cuti->keperluan ?? 'Ijin');
+                        $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
+                    
+                    $maxRows = max(1, count($lines));
+                    $startRow = $row;
+                    
+                    for ($i = 0; $i < $maxRows; $i++) {
+                        if ($i == 0) {
+                            $sheet->setCellValue('A'.$row, $idx++);
+                            $sheet->setCellValue('B'.$row, $k->nama);
+                            $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                            $sheet->setCellValue('C'.$row, $tgl_masuk);
+                            
+                            $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                            $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
+                            $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
+                            $min = $jatah ? $jatah->min_tahun_lalu : 0;
+                            $totalHak = $jmlCuti + $plus - $min;
 
-                    $sisaTahunan = $totalHak - $totalDiambilTahunan;
-                    $sheet->setCellValue('T'.$row, $sisaTahunan != 0 ? $sisaTahunan : '');
-                    
-                    $cutiBersama = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                        $q->where('kategori', 'CUTI_MASAL')
-                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                          });
-                    })->count();
-                    $sheet->setCellValue('U'.$row, $cutiBersama != 0 ? $cutiBersama : '');
-                    
-                    $jmlIjin = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                        $q->where('kategori', 'IJIN')
-                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                          });
-                    })->count();
-                    $sheet->setCellValue('V'.$row, $jmlIjin != 0 ? $jmlIjin : '');
-                    
-                    $sisaCuti = $sisaTahunan - $cutiBersama - $jmlIjin;
-                    $sheet->setCellValue('W'.$row, $sisaCuti != 0 ? $sisaCuti : '');
-                    
-                    $sheet->setCellValue('X'.$row, ''); // Keterangan
-                    
-                    // Alignments
-                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center'); // NO
-                    $sheet->getStyle('D'.$row.':W'.$row)->getAlignment()->setHorizontal('center'); // numbers
-                    
-                    $row += 2;
+                            $sheet->setCellValue('D'.$row, $jmlCuti != 0 ? $jmlCuti : '');
+                            $sheet->setCellValue('E'.$row, $plus != 0 ? $plus : '');
+                            $sheet->setCellValue('F'.$row, $min != 0 ? $min : '');
+                            $sheet->setCellValue('G'.$row, $totalHak != 0 ? $totalHak : '');
+
+                            $totalDiambilTahunan = 0;
+                            for($m=1; $m<=12; $m++) {
+                                $diambilBulan = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                    $q->where('kategori', 'TAHUNAN')
+                                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                      });
+                                })->whereMonth('tanggal', $m)->count();
+                                $totalDiambilTahunan += $diambilBulan;
+                                $colIdx = 7 + $m - 1; 
+                                $sheet->setCellValue($arrkol[$colIdx].$row, $diambilBulan != 0 ? $diambilBulan : '');
+                            }
+
+                            $sisaTahunan = $totalHak - $totalDiambilTahunan;
+                            $sheet->setCellValue('T'.$row, $jatah ? $sisaTahunan : ($sisaTahunan != 0 ? $sisaTahunan : ''));
+                            
+                            $cutiBersama = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                $q->where('kategori', 'CUTI_MASAL')
+                                  ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                      $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                  });
+                            })->count();
+                            $sheet->setCellValue('U'.$row, $cutiBersama != 0 ? $cutiBersama : '');
+                            
+                            $jmlIjin = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                $q->where('kategori', 'IJIN')
+                                  ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                      $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                  });
+                            })->count();
+                            $sheet->setCellValue('V'.$row, $jmlIjin != 0 ? $jmlIjin : '');
+                            
+                            $sisaCuti = $sisaTahunan - $cutiBersama - $jmlIjin;
+                                                        $sheet->setCellValue('W'.$row, $jatah ? $sisaCuti : ($sisaCuti != 0 ? $sisaCuti : ''));
+                            
+                            // Font Color Red for G, T, W
+                            $sheet->getStyle('G'.$row)->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
+                            $sheet->getStyle('T'.$row)->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
+                            $sheet->getStyle('W'.$row)->getFont()->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_RED);
+                        }
+                        
+                        if (isset($lines[$i])) {
+                            $sheet->setCellValue('X'.$row, $lines[$i]);
+                        } else {
+                            $sheet->setCellValue('X'.$row, '');
+                        }
+                        
+                        $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                        $sheet->getStyle('D'.$row.':W'.$row)->getAlignment()->setHorizontal('center');
+                        
+                        $row++;
+                    }
+                    $row++; // blank row
                 }
             }
         }
-        
         $sheet->getStyle('A6:X'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A6:X'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A6:X'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
         
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>8.0, 'Q'=>8.0, 'R'=>8.0, 'S'=>8.0, 'T'=>10.0, 'U'=>10.0, 'V'=>10.0, 'W'=>10.0, 'X'=>15.0];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>8.0, 'Q'=>8.0, 'R'=>8.0, 'S'=>8.0, 'T'=>10.0, 'U'=>10.0, 'V'=>10.0, 'W'=>10.0, 'X'=>70.0];
         foreach ($widths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);
         }
@@ -382,67 +427,111 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $sheet->setCellValue('A'.$row, $idx++);
-                    $sheet->setCellValue('B'.$row, $k->nama);
-                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
-                    $sheet->setCellValue('C'.$row, $tgl_masuk);
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                        ->where('kategori', 'KHUSUS')
+                        ->whereHas('cuti', function($q) use ($k, $tahun) {
+                            $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                        })
+                        ->get();
                     
-                    $totalHari = 0;
-                    $totalBulan = 0;
-                    
-                    for($m=1; $m<=12; $m++) {
-                        $detailsBulan = \App\Models\CutiDetail::with('jenisKhusus')->where('kategori', 'KHUSUS')
-                            ->whereHas('cuti', function($q) use ($k, $tahun) {
-                                $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                            })
-                            ->whereHas('dates', function($q) use ($m) {
-                                $q->whereMonth('tanggal', $m);
-                            })
-                            ->get()
-                            ->filter(function($detail) use ($m) {
-                                $firstDate = $detail->dates()->orderBy('tanggal')->first();
-                                return $firstDate && (int)date('m', strtotime($firstDate->tanggal)) == $m;
-                            });
+                    $lines = [];
+                    foreach($detailsKet as $det) {
+                        if($det->dates->count() == 0) continue;
                         
-                        $hari = 0;
-                        $bulan = 0;
-                        foreach($detailsBulan as $det) {
-                            $satuan = $det->jenisKhusus ? $det->jenisKhusus->satuan : 'hari';
-                            if(strtolower($satuan) == 'bulan') {
-                                $bulan += $det->lama_hari;
-                            } else {
-                                $hari += $det->lama_hari;
-                            }
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                            $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
                         }
                         
-                        $colIdx = 3 + $m - 1; 
-                        $val = '';
-                        if($hari > 0 && $bulan > 0) $val = $hari.' Hari, '.$bulan.' Bln';
-                        elseif($hari > 0) $val = $hari.' Hari';
-                        elseif($bulan > 0) $val = $bulan.' Bln';
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
                         
-                        $sheet->setCellValue($arrkol[$colIdx].$row, $val);
-                        $totalHari += $hari;
-                        $totalBulan += $bulan;
+                        $dateStr = implode(', ', $dateStrings);
+                        $ket = $det->keterangan ?? $det->cuti->keperluan ?? 'Cuti Khusus';
+                        $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 
-                    $sheet->setCellValue('P'.$row, $totalHari != 0 ? $totalHari : '');
-                    $sheet->setCellValue('Q'.$row, $totalBulan != 0 ? $totalBulan : '');
-                    $sheet->setCellValue('R'.$row, ''); // KETERANGAN
+                    $maxRows = max(1, count($lines));
                     
-                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
-                    $sheet->getStyle('D'.$row.':R'.$row)->getAlignment()->setHorizontal('center');
-                    
-                    $row += 2;
+                    for ($i = 0; $i < $maxRows; $i++) {
+                        if ($i == 0) {
+                            $sheet->setCellValue('A'.$row, $idx++);
+                            $sheet->setCellValue('B'.$row, $k->nama);
+                            $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                            $sheet->setCellValue('C'.$row, $tgl_masuk);
+                            
+                            $totalHari = 0;
+                            $totalBulan = 0;
+                            
+                            for($m=1; $m<=12; $m++) {
+                                $detailsBulan = \App\Models\CutiDetail::with('jenisKhusus')->where('kategori', 'KHUSUS')
+                                    ->whereHas('cuti', function($q) use ($k, $tahun) {
+                                        $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                    })
+                                    ->whereHas('dates', function($q) use ($m) {
+                                        $q->whereMonth('tanggal', $m);
+                                    })
+                                    ->get()
+                                    ->filter(function($detail) use ($m) {
+                                        $firstDate = $detail->dates()->orderBy('tanggal')->first();
+                                        return $firstDate && (int)date('m', strtotime($firstDate->tanggal)) == $m;
+                                    });
+                                
+                                $hari = 0;
+                                $bulan = 0;
+                                foreach($detailsBulan as $det) {
+                                    $satuan = $det->jenisKhusus ? $det->jenisKhusus->satuan : 'hari';
+                                    if(strtolower($satuan) == 'bulan') {
+                                        $bulan += $det->lama_hari;
+                                    } else {
+                                        $hari += $det->lama_hari;
+                                    }
+                                }
+                                
+                                $colIdx = 3 + $m - 1; 
+                                $val = '';
+                                if($hari > 0 && $bulan > 0) $val = $hari.' Hari, '.$bulan.' Bln';
+                                elseif($hari > 0) $val = $hari.' Hari';
+                                elseif($bulan > 0) $val = $bulan.' Bln';
+                                
+                                $sheet->setCellValue($arrkol[$colIdx].$row, $val);
+                                $totalHari += $hari;
+                                $totalBulan += $bulan;
+                            }
+
+                            $sheet->setCellValue('P'.$row, $totalHari != 0 ? $totalHari : '');
+                            $sheet->setCellValue('Q'.$row, $totalBulan != 0 ? $totalBulan : '');
+                        }
+                        
+                        if (isset($lines[$i])) {
+                            $sheet->setCellValue('R'.$row, $lines[$i]);
+                        } else {
+                            $sheet->setCellValue('R'.$row, '');
+                        }
+                        
+                        $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                        $sheet->getStyle('D'.$row.':Q'.$row)->getAlignment()->setHorizontal('center');
+                        
+                        $row++;
+                    }
+                    $row++; // blank row
                 }
             }
         }
-        
         $sheet->getStyle('A5:R'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A5:R'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A5:R'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
         
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>15.0, 'Q'=>15.0, 'R'=>15.0];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>15.0, 'Q'=>15.0, 'R'=>70.0];
         foreach ($widths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);
         }
@@ -512,42 +601,85 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $sheet->setCellValue('A'.$row, $idx++);
-                    $sheet->setCellValue('B'.$row, $k->nama);
-                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
-                    $sheet->setCellValue('C'.$row, $tgl_masuk);
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                        ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
+                        ->whereHas('cuti', function($q) use ($k, $tahun) {
+                            $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                        })
+                        ->get();
                     
-                    $totalJumlah = 0;
-                    
-                    for($m=1; $m<=12; $m++) {
-                        $jml = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                            $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
-                              ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                                  $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                              });
-                        })->whereMonth('tanggal', $m)->count();
+                    $lines = [];
+                    foreach($detailsKet as $det) {
+                        if($det->dates->count() == 0) continue;
                         
-                        $totalJumlah += $jml;
-                        $colIdx = 3 + $m - 1; 
-                        $sheet->setCellValue($arrkol[$colIdx].$row, $jml != 0 ? $jml : '');
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                            $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
+                        }
+                        
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
+                        
+                        $dateStr = implode(', ', $dateStrings);
+                        $ket = $det->keterangan ?? $det->cuti->keperluan ?? 'Unpaid';
+                        $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 
-                    $sheet->setCellValue('P'.$row, $totalJumlah != 0 ? $totalJumlah : '');
-                    $sheet->setCellValue('Q'.$row, ''); // KETERANGAN
+                    $maxRows = max(1, count($lines));
                     
-                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
-                    $sheet->getStyle('D'.$row.':Q'.$row)->getAlignment()->setHorizontal('center');
-                    
-                    $row += 2;
+                    for ($i = 0; $i < $maxRows; $i++) {
+                        if ($i == 0) {
+                            $sheet->setCellValue('A'.$row, $idx++);
+                            $sheet->setCellValue('B'.$row, $k->nama);
+                            $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                            $sheet->setCellValue('C'.$row, $tgl_masuk);
+                            
+                            $totalJumlah = 0;
+                            for($m=1; $m<=12; $m++) {
+                                $jml = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                    $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
+                                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                      });
+                                })->whereMonth('tanggal', $m)->count();
+                                
+                                $totalJumlah += $jml;
+                                $colIdx = 3 + $m - 1; 
+                                $sheet->setCellValue($arrkol[$colIdx].$row, $jml != 0 ? $jml : '');
+                            }
+
+                            $sheet->setCellValue('P'.$row, $totalJumlah != 0 ? $totalJumlah : '');
+                        }
+                        
+                        if (isset($lines[$i])) {
+                            $sheet->setCellValue('Q'.$row, $lines[$i]);
+                        } else {
+                            $sheet->setCellValue('Q'.$row, '');
+                        }
+                        
+                        $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                        $sheet->getStyle('D'.$row.':P'.$row)->getAlignment()->setHorizontal('center');
+                        
+                        $row++;
+                    }
+                    $row++; // blank row
                 }
             }
         }
-        
         $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
         
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>10.0, 'Q'=>15.0];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>10.0, 'Q'=>70.0];
         foreach ($widths as $col => $width) {
             $sheet->getColumnDimension($col)->setWidth($width);
         }
