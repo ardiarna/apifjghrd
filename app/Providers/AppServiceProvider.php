@@ -53,5 +53,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\UangPhkRepository', 'App\Repositories\Elo\UangPhkImplement');
         $this->app->bind('App\Repositories\UpahRepository', 'App\Repositories\Elo\UpahImplement');
         $this->app->bind('App\Repositories\UserRepository', 'App\Repositories\Elo\UserImplement');
+        $this->app->bind('App\Repositories\JatahCutiTahunanRepository', 'App\Repositories\Elo\JatahCutiTahunanImplement');
+        $this->app->bind('App\Repositories\JenisCutiKhususRepository', 'App\Repositories\Elo\JenisCutiKhususImplement');
     }
 }

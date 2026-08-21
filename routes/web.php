@@ -133,6 +133,20 @@ $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () 
     $router->delete('{id}', 'MedicalController@delete');
 });
 
+$router->group(['prefix' => 'cuti', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'CutiController@findAll');
+    $router->get('info', 'CutiController@info');
+    $router->get('info-masal', 'CutiController@infoMasal');
+    $router->post('submit-masal', 'CutiController@submitMasal');
+    $router->post('submit', 'CutiController@submit');
+    $router->delete('{id}', 'CutiController@delete');
+    $router->get('excel/jadwal/{tahun}', 'CutiExcelController@jadwal');
+    $router->get('excel/list/{tahun}', 'CutiExcelController@listCuti');
+    $router->get('excel/form/{id}', 'CutiExcelController@form');
+    $router->get('excel/tanpa-potongan/{tahun}', 'CutiExcelController@tanpaPotongan');
+    $router->get('excel/unpaid/{tahun}', 'CutiExcelController@unpaid');
+});
+
 $router->group(['prefix' => 'oncall_customer', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'OncallCustomerController@findAll');
     $router->get('{id}', 'OncallCustomerController@findById');
@@ -262,4 +276,20 @@ $router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () us
     $router->get('payroll/{karyawan_id}/{tahun}', 'SpreadPphController@karyawan');
     $router->get('payroll-periode/{karyawan_id}/{tahun_awal}/{bulan_awal}/{tahun_akhir}/{bulan_akhir}', 'SpreadPphController@karyawanPeriode');
     $router->get('rekap-pph21/{jenis}/{tahun}/{area}', 'SpreadPphController@rekap');
+});
+
+$router->group(['prefix' => 'jatah-cuti', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('hitung-sisa', 'JatahCutiTahunanController@hitungSisa');
+
+    $router->get('/', 'JatahCutiTahunanController@findAll');
+    $router->post('/', 'JatahCutiTahunanController@create');
+    $router->put('{id}', 'JatahCutiTahunanController@update');
+    $router->delete('{id}', 'JatahCutiTahunanController@delete');
+});
+
+$router->group(['prefix' => 'jenis-cuti-khusus', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'JenisCutiKhususController@findAll');
+    $router->post('/', 'JenisCutiKhususController@create');
+    $router->put('{id}', 'JenisCutiKhususController@update');
+    $router->delete('{id}', 'JenisCutiKhususController@delete');
 });
