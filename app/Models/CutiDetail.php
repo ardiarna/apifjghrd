@@ -17,4 +17,9 @@ class CutiDetail extends Model
     {
         return $this->hasMany(CutiDate::class);
     }
+
+    public function jenisKhusus()
+    {
+        return $this->belongsTo(JenisCutiKhusus::class, 'jenis_cuti_khusus_id');
+    }
 }

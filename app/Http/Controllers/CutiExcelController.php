@@ -53,7 +53,7 @@ class CutiExcelController extends Controller
 
     public function jadwal($tahun)
     {
-        $karyawans = Karyawan::with('jabatan')->where('aktif', 'Y')->orderBy('nama')->get();
+        $karyawans = Karyawan::with('jabatan')->where('aktif', 'Y')->orderBy('id')->get();
         $spreadsheet = new Spreadsheet();
         $arrkol = $this->getKolom();
 
@@ -93,19 +93,20 @@ class CutiExcelController extends Controller
                 $sheet->setCellValue('C'.$row, $k->jabatan->nama ?? '');
                 
                 // Logic perhitungan cuti
-                $joinYear = date('Y', strtotime($k->tanggal_masuk));
-                $sisaCutiTahunLalu = 0; // Simplified computation
-                $totalHak = 12 + $sisaCutiTahunLalu;
+                $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
+                $sisaCutiTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
+                $totalHak = $jmlCuti + $sisaCutiTahunLalu;
                 
                 $diambil = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                     $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
                       ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun)->where('jenis_form', '!=', 'CUTI_MASAL');
                       });
                 })->count();
 
                 $sheet->setCellValue('D'.$row, $sisaCutiTahunLalu);
-                $sheet->setCellValue('E'.$row, 12);
+                $sheet->setCellValue('E'.$row, $jmlCuti);
                 $sheet->setCellValue('F'.$row, $totalHak);
                 $sheet->setCellValue('G'.$row, $diambil);
                 $sheet->setCellValue('H'.$row, $totalHak - $diambil);
@@ -143,8 +144,19 @@ class CutiExcelController extends Controller
 
     public function listCuti($tahun)
     {
-        $karyawans = Karyawan::with('jabatan')->where('aktif', 'Y')->orderBy('nama')->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        
+        $details = [];
+        foreach ($karyawans_raw as $d) {
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $details[$staf][$area][] = $d;
+        }
+        krsort($details);
+
         $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
+        
         $arrkol = $this->getKolom();
 
         $spreadsheet->setActiveSheetIndex(0);
@@ -152,69 +164,144 @@ class CutiExcelController extends Controller
         $sheet->setTitle('LIST CUTI ' . $tahun);
         $sheet->setShowGridlines(false);
 
+        // 1. judul report dan periode merge dari kolom A sampai X
         $sheet->setCellValue('A1', 'CUTI KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->mergeCells('A1:X1');
+        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
         $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A2:X2');
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(1)->setRowHeight(20);
+        $sheet->getRowDimension(2)->setRowHeight(18);
 
-        $headers = ['NO', 'NAMA KARYAWAN', 'MASA KERJA', 'JML CUTI', '+/- (THN LALU)', 'TOTAL CUTI', 'JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES', 'SISA CUTI TAHUNAN', 'JML CUTI BERSAMA', 'JML IJIN', 'SISA CUTI', 'KETERANGAN'];
-        foreach($headers as $i => $h) {
-            $sheet->setCellValue($arrkol[$i].'4', $h);
-        }
-        $this->setHeaderStyle($sheet, 'A4:'.$arrkol[count($headers)-1].'4');
-
-        $row = 5;
-        foreach($karyawans as $idx => $k) {
-            $sheet->setCellValue('A'.$row, $idx + 1);
-            $sheet->setCellValue('B'.$row, $k->nama);
-            
-            $masaKerja = date_diff(date_create($k->tanggal_masuk), date_create(date('Y-m-d')))->y . ' Thn';
-            $sheet->setCellValue('C'.$row, $masaKerja);
-            
-            $joinYear = date('Y', strtotime($k->tanggal_masuk));
-            $sisaCutiTahunLalu = 0; // Simplified computation
-            $totalHak = 12 + $sisaCutiTahunLalu;
-
-            $sheet->setCellValue('D'.$row, 12);
-            $sheet->setCellValue('E'.$row, $sisaCutiTahunLalu);
-            $sheet->setCellValue('F'.$row, $totalHak);
-
-            $totalDiambilTahunan = 0;
-            for($m=1; $m<=12; $m++) {
-                $diambilBulan = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                    $q->where('kategori', 'TAHUNAN')
-                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                      });
-                })->whereMonth('tanggal', $m)->count();
-                $totalDiambilTahunan += $diambilBulan;
-                $colIdx = 6 + $m - 1; 
-                $sheet->setCellValue($arrkol[$colIdx].$row, $diambilBulan > 0 ? $diambilBulan : '');
-            }
-
-            $sisaTahunan = $totalHak - $totalDiambilTahunan;
-            $sheet->setCellValue('S'.$row, $sisaTahunan);
-            
-            $cutiBersama = 5;
-            $sheet->setCellValue('T'.$row, $cutiBersama);
-            
-            $jmlIjin = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                $q->where('kategori', 'IJIN')
-                  ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                      $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                  });
-            })->count();
-            $sheet->setCellValue('U'.$row, $jmlIjin);
-            
-            $sheet->setCellValue('V'.$row, $sisaTahunan - $cutiBersama - $jmlIjin);
-            
-            $sheet->getStyle('A'.$row.':W'.$row)->applyFromArray([
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]]
-            ]);
-            $row++;
+        // 2. tabel header ada 2 baris semua di merge kecuali ...
+        $sheet->setCellValue('A4', 'NO'); $sheet->mergeCells('A4:A5');
+        $sheet->setCellValue('B4', 'NAMA KARYAWAN'); $sheet->mergeCells('B4:B5');
+        $sheet->setCellValue('C4', 'MASA KERJA'); $sheet->mergeCells('C4:C5');
+        $sheet->setCellValue('D4', 'JML CUTI'); $sheet->mergeCells('D4:D5');
+        
+        $sheet->setCellValue('E4', 'THN LALU'); $sheet->mergeCells('E4:F4');
+        $sheet->setCellValue('E5', '+');
+        $sheet->setCellValue('F5', '-');
+        
+        $sheet->setCellValue('G4', 'TOTAL CUTI'); $sheet->mergeCells('G4:G5');
+        
+        $sheet->setCellValue('H4', 'CUTI TAHUNAN'); $sheet->mergeCells('H4:S4');
+        $bulans = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES'];
+        foreach($bulans as $k => $b) {
+            $sheet->setCellValue($arrkol[7 + $k].'5', $b);
         }
         
-        foreach(range('A', 'W') as $colId) {
-            $sheet->getColumnDimension($colId)->setAutoSize(true);
+        $sheet->setCellValue('T4', 'SISA CUTI TAHUNAN'); $sheet->mergeCells('T4:T5');
+        $sheet->setCellValue('U4', 'JML CUTI BERSAMA'); $sheet->mergeCells('U4:U5');
+        $sheet->setCellValue('V4', 'JML IJIN'); $sheet->mergeCells('V4:V5');
+        $sheet->setCellValue('W4', 'SISA CUTI'); $sheet->mergeCells('W4:W5');
+        $sheet->setCellValue('X4', 'KETERANGAN'); $sheet->mergeCells('X4:X5');
+        
+        // Style Header
+        $sheet->getStyle('A4:X5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A4:X5')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A4:X5')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        
+        // Freeze Panes (same as data karyawan, freeze pane on C7)
+        $sheet->freezePane('C6');
+
+        $row = 6;
+        $idx = 1;
+        
+        // 3. Urutan karyawan harus sama persis seperti di excel data karyawan
+        foreach ($details as $staf => $areas) {
+            if($staf == 'N') {
+                $sheet->setCellValue('B'.$row, 'NON STAF :');
+                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                $row++;
+            }
+            foreach ($areas as $area => $karyawans) {
+                if($staf == 'Y') {
+                    $sheet->setCellValue('B'.$row, $area.' :');
+                    $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                    $row++;
+                }
+                
+                foreach ($karyawans as $k) {
+                    $sheet->setCellValue('A'.$row, $idx++);
+                    $sheet->setCellValue('B'.$row, $k->nama);
+                    
+                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                    $sheet->setCellValue('C'.$row, $tgl_masuk);
+                    
+                    $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                    
+                    $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
+                    $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
+                    $min = $jatah ? $jatah->min_tahun_lalu : 0;
+                    $totalHak = $jmlCuti + $plus - $min;
+
+                    // 4. jika tidak ada data atau 0 jangan tulis 0 tapi kosongkan
+                    $sheet->setCellValue('D'.$row, $jmlCuti != 0 ? $jmlCuti : '');
+                    $sheet->setCellValue('E'.$row, $plus != 0 ? $plus : '');
+                    $sheet->setCellValue('F'.$row, $min != 0 ? $min : '');
+                    $sheet->setCellValue('G'.$row, $totalHak != 0 ? $totalHak : '');
+
+                    $totalDiambilTahunan = 0;
+                    for($m=1; $m<=12; $m++) {
+                        $diambilBulan = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                            $q->where('kategori', 'TAHUNAN')
+                              ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                  $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                              });
+                        })->whereMonth('tanggal', $m)->count();
+                        $totalDiambilTahunan += $diambilBulan;
+                        $colIdx = 7 + $m - 1; 
+                        $sheet->setCellValue($arrkol[$colIdx].$row, $diambilBulan != 0 ? $diambilBulan : '');
+                    }
+
+                    $sisaTahunan = $totalHak - $totalDiambilTahunan;
+                    $sheet->setCellValue('T'.$row, $sisaTahunan != 0 ? $sisaTahunan : '');
+                    
+                    $cutiBersama = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                        $q->where('kategori', 'CUTI_MASAL')
+                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                          });
+                    })->count();
+                    $sheet->setCellValue('U'.$row, $cutiBersama != 0 ? $cutiBersama : '');
+                    
+                    $jmlIjin = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                        $q->where('kategori', 'IJIN')
+                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                          });
+                    })->count();
+                    $sheet->setCellValue('V'.$row, $jmlIjin != 0 ? $jmlIjin : '');
+                    
+                    $sisaCuti = $sisaTahunan - $cutiBersama - $jmlIjin;
+                    $sheet->setCellValue('W'.$row, $sisaCuti != 0 ? $sisaCuti : '');
+                    
+                    $sheet->setCellValue('X'.$row, ''); // Keterangan
+                    
+                    // Alignments
+                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center'); // NO
+                    $sheet->getStyle('D'.$row.':W'.$row)->getAlignment()->setHorizontal('center'); // numbers
+                    
+                    $row += 2;
+                }
+            }
+        }
+        
+        $sheet->getStyle('A6:X'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A6:X'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A6:X'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+        
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>8.0, 'Q'=>8.0, 'R'=>8.0, 'S'=>8.0, 'T'=>10.0, 'U'=>10.0, 'V'=>10.0, 'W'=>10.0, 'X'=>15.0];
+        foreach ($widths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
         }
 
         return $this->downloadExcel($spreadsheet, "LIST_CUTI_$tahun.xlsx");
@@ -235,18 +322,237 @@ class CutiExcelController extends Controller
 
     public function tanpaPotongan($tahun)
     {
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $details = [];
+        foreach ($karyawans_raw as $d) {
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $details[$staf][$area][] = $d;
+        }
+        krsort($details);
+
         $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
+        $arrkol = $this->getKolom();
+
+        $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A1', 'CUTI TANPA POTONGAN TAHUN ' . $tahun);
+        $sheet->setTitle('TANPA POTONGAN ' . $tahun);
+        $sheet->setShowGridlines(false);
+
+        $sheet->setCellValue('A1', 'CUTI TANPA POTONGAN PT.FRATEKINDO JAYA GEMILANG');
+        $sheet->mergeCells('A1:R1');
+        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A2:R2');
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(1)->setRowHeight(20);
+        $sheet->getRowDimension(2)->setRowHeight(18);
+
+        $headers = ['NO', 'NAMA KARYAWAN', 'MASA KERJA', 'JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES', 'JUMLAH (HARI)', 'JUMLAH (BULAN)', 'KETERANGAN'];
+        foreach($headers as $i => $h) {
+            $sheet->setCellValue($arrkol[$i].'4', $h);
+        }
+        
+        $sheet->getStyle('A4:R4')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A4:R4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A4:R4')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        
+        $sheet->freezePane('C5');
+
+        $row = 5;
+        $idx = 1;
+        foreach ($details as $staf => $areas) {
+            if($staf == 'N') {
+                $sheet->setCellValue('B'.$row, 'NON STAF :');
+                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                $row++;
+            }
+            foreach ($areas as $area => $karyawans) {
+                if($staf == 'Y') {
+                    $sheet->setCellValue('B'.$row, $area.' :');
+                    $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                    $row++;
+                }
+                
+                foreach ($karyawans as $k) {
+                    $sheet->setCellValue('A'.$row, $idx++);
+                    $sheet->setCellValue('B'.$row, $k->nama);
+                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                    $sheet->setCellValue('C'.$row, $tgl_masuk);
+                    
+                    $totalHari = 0;
+                    $totalBulan = 0;
+                    
+                    for($m=1; $m<=12; $m++) {
+                        $detailsBulan = \App\Models\CutiDetail::with('jenisKhusus')->where('kategori', 'KHUSUS')
+                            ->whereHas('cuti', function($q) use ($k, $tahun) {
+                                $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                            })
+                            ->whereHas('dates', function($q) use ($m) {
+                                $q->whereMonth('tanggal', $m);
+                            })
+                            ->get()
+                            ->filter(function($detail) use ($m) {
+                                $firstDate = $detail->dates()->orderBy('tanggal')->first();
+                                return $firstDate && (int)date('m', strtotime($firstDate->tanggal)) == $m;
+                            });
+                        
+                        $hari = 0;
+                        $bulan = 0;
+                        foreach($detailsBulan as $det) {
+                            $satuan = $det->jenisKhusus ? $det->jenisKhusus->satuan : 'hari';
+                            if(strtolower($satuan) == 'bulan') {
+                                $bulan += $det->lama_hari;
+                            } else {
+                                $hari += $det->lama_hari;
+                            }
+                        }
+                        
+                        $colIdx = 3 + $m - 1; 
+                        $val = '';
+                        if($hari > 0 && $bulan > 0) $val = $hari.' Hari, '.$bulan.' Bln';
+                        elseif($hari > 0) $val = $hari.' Hari';
+                        elseif($bulan > 0) $val = $bulan.' Bln';
+                        
+                        $sheet->setCellValue($arrkol[$colIdx].$row, $val);
+                        $totalHari += $hari;
+                        $totalBulan += $bulan;
+                    }
+
+                    $sheet->setCellValue('P'.$row, $totalHari != 0 ? $totalHari : '');
+                    $sheet->setCellValue('Q'.$row, $totalBulan != 0 ? $totalBulan : '');
+                    $sheet->setCellValue('R'.$row, ''); // KETERANGAN
+                    
+                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('D'.$row.':R'.$row)->getAlignment()->setHorizontal('center');
+                    
+                    $row += 2;
+                }
+            }
+        }
+        
+        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+        
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>15.0, 'Q'=>15.0, 'R'=>15.0];
+        foreach ($widths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
         return $this->downloadExcel($spreadsheet, "CUTI_TANPA_POTONGAN_$tahun.xlsx");
     }
 
     public function unpaid($tahun)
     {
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $details = [];
+        foreach ($karyawans_raw as $d) {
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $details[$staf][$area][] = $d;
+        }
+        krsort($details);
+
         $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
+        $arrkol = $this->getKolom();
+
+        $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A1', 'UNPAID LEAVE & GANTI HARI LIBUR TAHUN ' . $tahun);
-        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_$tahun.xlsx");
+        $sheet->setTitle('UNPAID LEAVE ' . $tahun);
+        $sheet->setShowGridlines(false);
+
+        $sheet->setCellValue('A1', 'UNPAID LEAVE & GANTI HARI LIBUR PT.FRATEKINDO JAYA GEMILANG');
+        $sheet->mergeCells('A1:Q1');
+        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A2:Q2');
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(1)->setRowHeight(20);
+        $sheet->getRowDimension(2)->setRowHeight(18);
+
+        $headers = ['NO', 'NAMA KARYAWAN', 'MASA KERJA', 'JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES', 'JUMLAH', 'KETERANGAN'];
+        foreach($headers as $i => $h) {
+            $sheet->setCellValue($arrkol[$i].'4', $h);
+        }
+        
+        $sheet->getStyle('A4:Q4')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A4:Q4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A4:Q4')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        
+        $sheet->freezePane('C5');
+
+        $row = 5;
+        $idx = 1;
+        foreach ($details as $staf => $areas) {
+            if($staf == 'N') {
+                $sheet->setCellValue('B'.$row, 'NON STAF :');
+                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                $row++;
+            }
+            foreach ($areas as $area => $karyawans) {
+                if($staf == 'Y') {
+                    $sheet->setCellValue('B'.$row, $area.' :');
+                    $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                    $row++;
+                }
+                
+                foreach ($karyawans as $k) {
+                    $sheet->setCellValue('A'.$row, $idx++);
+                    $sheet->setCellValue('B'.$row, $k->nama);
+                    $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
+                    $sheet->setCellValue('C'.$row, $tgl_masuk);
+                    
+                    $totalJumlah = 0;
+                    
+                    for($m=1; $m<=12; $m++) {
+                        $jml = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                            $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
+                              ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                                  $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                              });
+                        })->whereMonth('tanggal', $m)->count();
+                        
+                        $totalJumlah += $jml;
+                        $colIdx = 3 + $m - 1; 
+                        $sheet->setCellValue($arrkol[$colIdx].$row, $jml != 0 ? $jml : '');
+                    }
+
+                    $sheet->setCellValue('P'.$row, $totalJumlah != 0 ? $totalJumlah : '');
+                    $sheet->setCellValue('Q'.$row, ''); // KETERANGAN
+                    
+                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('D'.$row.':Q'.$row)->getAlignment()->setHorizontal('center');
+                    
+                    $row += 2;
+                }
+            }
+        }
+        
+        $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:Q'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+        
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>10.0, 'Q'=>15.0];
+        foreach ($widths as $col => $width) {
+            $sheet->getColumnDimension($col)->setWidth($width);
+        }
+
+        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_GANTI_LIBUR_$tahun.xlsx");
     }
 
     private function downloadExcel($spreadsheet, $filename)
