@@ -44,14 +44,15 @@ class CutiController extends Controller
         $sudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
             $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
               ->whereHas('cuti', function($q2) use ($karyawanId, $tahun) {
-                  $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun)->where('jenis_form', '!=', 'CUTI_MASAL');
+                  $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun);
               });
         })->count();
 
         $cutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
-            $q->whereHas('cuti', function($q2) use ($karyawanId, $tahun) {
-                $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun)->where('jenis_form', 'CUTI_MASAL');
-            });
+            $q->where('kategori', 'CUTI_MASAL')
+              ->whereHas('cuti', function($q2) use ($karyawanId, $tahun) {
+                  $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun);
+              });
         })->count();
 
         $belumDiambil = $totalHakCuti - $sudahDiambil - $cutiMasal;
@@ -98,14 +99,12 @@ class CutiController extends Controller
             $cuti = $cd->cutiDetail->cuti;
             $kId = $cuti->karyawan_id;
             
-            if ($cuti->jenis_form == 'CUTI_MASAL') {
+            if ($cd->cutiDetail->kategori == 'CUTI_MASAL') {
                 if (!isset($cutiMasalMap[$kId])) $cutiMasalMap[$kId] = 0;
                 $cutiMasalMap[$kId]++;
-            } else {
-                if (in_array($cd->cutiDetail->kategori, ['TAHUNAN', 'IJIN'])) {
-                    if (!isset($sudahDiambilMap[$kId])) $sudahDiambilMap[$kId] = 0;
-                    $sudahDiambilMap[$kId]++;
-                }
+            } elseif (in_array($cd->cutiDetail->kategori, ['TAHUNAN', 'IJIN'])) {
+                if (!isset($sudahDiambilMap[$kId])) $sudahDiambilMap[$kId] = 0;
+                $sudahDiambilMap[$kId]++;
             }
         }
 
