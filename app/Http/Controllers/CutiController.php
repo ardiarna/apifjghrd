@@ -135,7 +135,7 @@ class CutiController extends Controller
     {
         $this->validate($request, [
             'karyawan_id' => 'required|exists:karyawans,id',
-            'jenis_form' => 'required|in:CUTI,IJIN,UNPAID_LEAVE,CUTI_MASAL',
+            'jenis_form' => 'required|in:CUTI,IJIN,CUTI_MASAL',
             'keperluan' => 'required|string',
             'tanggal_kembali' => 'nullable|date',
             'tahun' => 'required|integer',
