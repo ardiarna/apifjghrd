@@ -259,7 +259,7 @@ class CutiExcelController extends Controller
                         }
                         
                         $dateStr = implode(', ', $dateStrings);
-                        $ket = $det->kategori == 'CUTI_MASAL' ? ($det->cuti->keperluan ?? 'Cutber') : ($det->keterangan ?? $det->cuti->keperluan ?? 'Ijin');
+                        $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : 'Ijin');
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
                     
@@ -360,7 +360,7 @@ class CutiExcelController extends Controller
         $sheet->setCellValue('A1', 'FORM CUTI');
         if($cuti) {
             $sheet->setCellValue('A2', 'NAMA: ' . $cuti->karyawan->nama);
-            $sheet->setCellValue('A3', 'KEPERLUAN: ' . $cuti->keperluan);
+            // Keperluan moved to cuti details
         }
         return $this->downloadExcel($spreadsheet, "FORM_CUTI_$id.xlsx");
     }
@@ -456,7 +456,7 @@ class CutiExcelController extends Controller
                         }
                         
                         $dateStr = implode(', ', $dateStrings);
-                        $ket = $det->keterangan ?? $det->cuti->keperluan ?? 'Cuti Khusus';
+                        $ket = $det->keterangan ?? 'Cuti Khusus';
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 
@@ -630,7 +630,7 @@ class CutiExcelController extends Controller
                         }
                         
                         $dateStr = implode(', ', $dateStrings);
-                        $ket = $det->keterangan ?? $det->cuti->keperluan ?? 'Unpaid';
+                        $ket = $det->keterangan ?? 'Unpaid';
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 

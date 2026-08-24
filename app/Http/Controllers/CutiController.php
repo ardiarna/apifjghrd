@@ -136,7 +136,7 @@ class CutiController extends Controller
         $this->validate($request, [
             'karyawan_id' => 'required|exists:karyawans,id',
             'jenis_form' => 'required|in:CUTI,IJIN,CUTI_MASAL',
-            'keperluan' => 'required|string',
+            
             'tanggal_kembali' => 'nullable|date',
             'tahun' => 'required|integer',
             'details' => 'required|array',
@@ -150,7 +150,7 @@ class CutiController extends Controller
                 $cuti->update([
                     'karyawan_id' => $request->karyawan_id,
                     'jenis_form' => $request->jenis_form,
-                    'keperluan' => $request->keperluan,
+                    
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'tahun' => $request->tahun,
                 ]);
@@ -159,7 +159,7 @@ class CutiController extends Controller
                 $cuti = Cuti::create([
                     'karyawan_id' => $request->karyawan_id,
                     'jenis_form' => $request->jenis_form,
-                    'keperluan' => $request->keperluan,
+                    
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'tahun' => $request->tahun,
                 ]);
@@ -197,7 +197,7 @@ class CutiController extends Controller
     {
         $this->validate($request, [
             'tahun' => 'required',
-            'keperluan' => 'required',
+            'keterangan' => 'required',
             'karyawans' => 'required|array'
         ]);
 
@@ -207,7 +207,7 @@ class CutiController extends Controller
                 $cuti = Cuti::create([
                     'karyawan_id' => $k['karyawan_id'],
                     'jenis_form' => 'CUTI_MASAL',
-                    'keperluan' => $request->keperluan,
+                    
                     'tanggal_kembali' => $request->tanggal_kembali ?? null,
                     'tahun' => $request->tahun,
                 ]);
@@ -216,6 +216,7 @@ class CutiController extends Controller
                         'cuti_id' => $cuti->id,
                         'kategori' => $detail['kategori'],
                         'lama_hari' => $detail['lama_hari'],
+                        'keterangan' => $request->keterangan,
                     ]);
                     if(!empty($detail['dates'])) {
                         foreach($detail['dates'] as $dt) {
