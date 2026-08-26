@@ -620,7 +620,15 @@ class CutiExcelController extends Controller
 
     public function unpaid($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')
+            ->where('aktif', 'Y')
+            ->whereHas('cutis', function($q) use ($tahun) {
+                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
+                    $q2->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR']);
+                });
+            })
+            ->orderBy('id')->get();
+            
         $details = [];
         foreach ($karyawans_raw as $d) {
             $staf = $d->staf;
@@ -635,34 +643,56 @@ class CutiExcelController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('UNPAID LEAVE ' . $tahun);
+        $sheet->setTitle('UNPAID LEAVE & GANTI HR LIBUR');
         $sheet->setShowGridlines(false);
 
-        $sheet->setCellValue('A1', 'UNPAID LEAVE & GANTI HARI LIBUR PT.FRATEKINDO JAYA GEMILANG');
-        $sheet->mergeCells('A1:Q1');
-        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        // Row 1 is blank
         
-        $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->setCellValue('A2', 'UNPAID LEAVE (CUTI TIDAK DIBAYAR) & GANTI HARI LIBUR');
         $sheet->mergeCells('A2:Q2');
-        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
         
-        $sheet->getRowDimension(1)->setRowHeight(20);
-        $sheet->getRowDimension(2)->setRowHeight(18);
+        $sheet->setCellValue('A3', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A3:Q3');
+        $sheet->getStyle('A3')->getFont()->setName('Malgun Gothic')->setSize(11)->getColor()->setARGB('0000FF');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(2)->setRowHeight(20);
+        $sheet->getRowDimension(3)->setRowHeight(18);
 
-        $headers = ['NO', 'NAMA KARYAWAN', 'MASA KERJA', 'JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES', 'JUMLAH', 'KETERANGAN'];
-        foreach($headers as $i => $h) {
-            $sheet->setCellValue($arrkol[$i].'4', $h);
+        // Row 4 is blank
+        
+        $sheet->mergeCells('D5:O5');
+        $sheet->setCellValue('D5', 'B U L A N');
+        
+        $sheet->mergeCells('A5:A6');
+        $sheet->setCellValue('A5', 'NO');
+        
+        $sheet->mergeCells('B5:B6');
+        $sheet->setCellValue('B5', 'NAMA KARYAWAN');
+        
+        $sheet->mergeCells('C5:C6');
+        $sheet->setCellValue('C5', 'MASA KERJA');
+        
+        $sheet->mergeCells('P5:P6');
+        $sheet->setCellValue('P5', 'JML IJIN');
+        
+        $sheet->mergeCells('Q5:Q6');
+        $sheet->setCellValue('Q5', 'KETERANGAN');
+        
+        $months = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES'];
+        foreach($months as $i => $m) {
+            $sheet->setCellValue($arrkol[$i+3].'6', $m);
         }
         
-        $sheet->getStyle('A4:Q4')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $sheet->getStyle('A4:Q4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
-        $sheet->getStyle('A4:Q4')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:Q6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A5:Q6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A5:Q6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
-        $sheet->freezePane('C5');
+        $sheet->freezePane('C7');
 
-        $row = 5;
+        $row = 7;
         $idx = 1;
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
@@ -731,7 +761,8 @@ class CutiExcelController extends Controller
                             $dateStr = implode(', ', $dateStrings);
                         }
                         $ket = $det->keterangan ?? 'Unpaid';
-                        $lines[] = "Tgl " . $dateStr . " = " . $ket;
+                        $prefix = ($det->kategori == "UNPAID") ? "UNPAID LEAVE " : "GANTI HARI LIBUR ";
+                        $lines[] = $prefix . "Tgl " . $dateStr . " = " . $ket;
                     }
 
                     $maxRows = max(1, count($lines));
@@ -784,7 +815,7 @@ class CutiExcelController extends Controller
             $sheet->getColumnDimension($col)->setWidth($width);
         }
 
-        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_GANTI_LIBUR_$tahun.xlsx");
+        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_&_GANTI_HARI_LIBUR_$tahun.xlsx");
     }
 
     private function downloadExcel($spreadsheet, $filename)
