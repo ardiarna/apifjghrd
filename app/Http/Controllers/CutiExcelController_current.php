@@ -15,18 +15,6 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class CutiExcelController extends Controller
 {
-    public function listCutiSingle($tahun) {
-        return $this->listCuti($tahun, $tahun);
-    }
-    
-    public function tanpaPotonganSingle($tahun) {
-        return $this->tanpaPotongan($tahun, $tahun);
-    }
-    
-    public function unpaidSingle($tahun) {
-        return $this->unpaid($tahun, $tahun);
-    }
-
     private $arrBulan = [
         1 => 'JAN', 2 => 'PEB', 3 => 'MAR', 4 => 'APR', 5 => 'MEI', 6 => 'JUN',
         7 => 'JUL', 8 => 'AGS', 9 => 'SEP', 10 => 'OKT', 11 => 'NOP', 12 => 'DES'
@@ -535,11 +523,12 @@ class CutiExcelController extends Controller
             $sheet->getColumnDimension($col)->setWidth($width);
         }
 
-        
+
             $sheetIndex++;
         }
         $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "LIST_CUTI_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
+        $filename = "LIST_CUTI_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "_" . $tahunAkhir) . ".xlsx";
+        return $this->downloadExcel($spreadsheet, $filename);
     }
 
     public function form($id)
@@ -557,7 +546,7 @@ class CutiExcelController extends Controller
 
     public function tanpaPotongan($tahunAwal, $tahunAkhir)
     {
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
         $arrkol = $this->getKolom();
         
@@ -567,268 +556,26 @@ class CutiExcelController extends Controller
                 $spreadsheet->createSheet();
             }
             $spreadsheet->setActiveSheetIndex($sheetIndex);
-
-        $karyawans_raw = Karyawan::with('jabatan', 'area')
-            ->where('aktif', 'Y')
-            ->whereHas('cutis', function($q) use ($tahun) {
-                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
-                    $q2->where('kategori', 'KHUSUS');
-                });
-            })
-            ->orderBy('id')
-            ->get();
-        $details = [];
-        foreach ($karyawans_raw as $d) {
-            $staf = $d->staf;
-            $area = $d->area ? $d->area->nama : 'Lainnya';
-            $details[$staf][$area][] = $d;
-        }
-        krsort($details);
-
-
-
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('CUTI TANPA POTONGAN ' . $tahun);
-        $sheet->setShowGridlines(false);
-
-        // Row 1 is blank
-        
-        $sheet->setCellValue('A2', 'CUTI/IJIN TANPA MENGURANGI HAK KARYAWAN');
-        $sheet->mergeCells('A2:R2');
-        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
-        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
-        
-        $sheet->setCellValue('A3', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
-        $sheet->mergeCells('A3:R3');
-        $sheet->getStyle('A3')->getFont()->setName('Malgun Gothic')->setSize(11)->getColor()->setARGB('0000FF');
-        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center')->setVertical('center');
-        
-        $sheet->getRowDimension(2)->setRowHeight(20);
-        $sheet->getRowDimension(3)->setRowHeight(18);
-
-        // Row 4 is blank
-
-        $sheet->mergeCells('D5:O5');
-        $sheet->setCellValue('D5', 'BULAN');
-        
-        $sheet->mergeCells('A5:A6');
-        $sheet->setCellValue('A5', 'NO');
-        
-        $sheet->mergeCells('B5:B6');
-        $sheet->setCellValue('B5', 'NAMA KARYAWAN');
-        
-        $sheet->mergeCells('C5:C6');
-        $sheet->setCellValue('C5', 'MASA KERJA');
-        
-        $sheet->mergeCells('P5:P6');
-        $sheet->setCellValue('P5', 'JUMLAH (HARI)');
-        
-        $sheet->mergeCells('Q5:Q6');
-        $sheet->setCellValue('Q5', 'JUMLAH (BULAN)');
-        
-        $sheet->mergeCells('R5:R6');
-        $sheet->setCellValue('R5', 'KETERANGAN');
-        
-        $months = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES'];
-        foreach($months as $i => $m) {
-            $sheet->setCellValue($arrkol[$i+3].'6', $m);
-        }
-        
-        $sheet->getStyle('A5:R6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $sheet->getStyle('A5:R6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
-        $sheet->getStyle('A5:R6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        
-        $sheet->freezePane('C7');
-
-        $row = 7;
-        $idx = 1;
-        foreach ($details as $staf => $areas) {
-            if($staf == 'N') {
-                $sheet->setCellValue('B'.$row, 'NON STAF :');
-                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
-                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
-                $row++;
-            }
-            foreach ($areas as $area => $karyawans) {
-                if($staf == 'Y') {
-                    $sheet->setCellValue('B'.$row, $area.' :');
-                    $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
-                    $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
-                    $row++;
-                }
-                
-                foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
-                        ->where('kategori', 'KHUSUS')
-                        ->whereHas('cuti', function($q) use ($k, $tahun) {
-                            $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                        })
-                        ->get();
-                    
-                    $lines = [];
-                    foreach($detailsKet as $det) {
-                        if($det->dates->count() == 0) continue;
-                        
-                        $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
-                        $lama = (int) $det->lama_hari;
-                        
-                        if ($lama > 5 || $satuan == 'bulan') {
-                            $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $formatDate = function($tanggal) use ($months) {
-                                $engMon = date('M', strtotime($tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
-                            };
-                            
-                            $dates = $det->dates()->orderBy('tanggal')->get();
-                            if($dates->count() == 1) {
-                                $dateStr = $formatDate($dates->first()->tanggal);
-                            } else {
-                                $first = $dates->first()->tanggal;
-                                $last = $dates->last()->tanggal;
-                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
-                            }
-                        } else {
-                            $groupedDates = [];
-                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
-                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                                $engMon = date('M', strtotime($d->tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
-                                
-                                $day = date('d', strtotime($d->tanggal));
-                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                                $groupedDates[$my][] = ltrim($day, '0');
-                            }
-                            
-                            $dateStrings = [];
-                            foreach($groupedDates as $my => $days) {
-                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                            }
-                            
-                            $dateStr = implode(', ', $dateStrings);
-                        }
-                        $ket = $det->keterangan ?? 'Cuti Khusus';
-                        $lines[] = "Tgl " . $dateStr . " = " . $ket;
-                    }
-
-                    $maxRows = max(1, count($lines));
-                    
-                    for ($i = 0; $i < $maxRows; $i++) {
-                        if ($i == 0) {
-                            $sheet->setCellValue('A'.$row, $idx++);
-                            $sheet->setCellValue('B'.$row, $k->nama);
-                            $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
-                            $sheet->setCellValue('C'.$row, $tgl_masuk);
-                            
-                            $totalHari = 0;
-                            $totalBulan = 0;
-                            foreach ($detailsKet as $det) {
-                                $sat = strtolower($det->jenisKhusus->satuan ?? 'hari');
-                                if ($sat == 'bulan') $totalBulan += $det->lama_hari;
-                                else $totalHari += $det->lama_hari;
-                            }
-                            
-                            for($m=1; $m<=12; $m++) {
-                                $hariInMonth = 0;
-                                $isBulan = false;
-                                
-                                foreach ($detailsKet as $det) {
-                                    $sat = strtolower($det->jenisKhusus->satuan ?? 'hari');
-                                    $datesInMonth = $det->dates->filter(function($d) use ($m) {
-                                        return (int)date('m', strtotime($d->tanggal)) == $m;
-                                    });
-                                    
-                                    if ($datesInMonth->count() > 0) {
-                                        if ($sat == 'bulan') {
-                                            $isBulan = true;
-                                        } else {
-                                            $hariInMonth += $datesInMonth->count();
-                                        }
-                                    }
-                                }
-                                
-                                $colIdx = 3 + $m - 1; 
-                                $cell = $arrkol[$colIdx].$row;
-                                
-                                if ($isBulan) {
-                                    $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FF99CC00');
-                                }
-                                
-                                if ($hariInMonth > 0) {
-                                    $sheet->setCellValue($cell, $hariInMonth);
-                                }
-                            }
-
-                            $sheet->setCellValue('P'.$row, $totalHari != 0 ? $totalHari : '');
-                            $sheet->setCellValue('Q'.$row, $totalBulan != 0 ? $totalBulan : '');
-                        }
-                        
-                        if (isset($lines[$i])) {
-                            $sheet->setCellValue('R'.$row, $lines[$i]);
-                        } else {
-                            $sheet->setCellValue('R'.$row, '');
-                        }
-                        
-                        $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
-                        $sheet->getStyle('D'.$row.':Q'.$row)->getAlignment()->setHorizontal('center');
-                        
-                        $row++;
-                    }
-                    $row++; // blank row
-                }
-            }
-        }
-        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-        $sheet->getStyle('A5:R'.($row-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
-        
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>8.0, 'E'=>8.0, 'F'=>8.0, 'G'=>8.0, 'H'=>8.0, 'I'=>8.0, 'J'=>8.0, 'K'=>8.0, 'L'=>8.0, 'M'=>8.0, 'N'=>8.0, 'O'=>8.0, 'P'=>15.0, 'Q'=>15.0, 'R'=>70.0];
-        foreach ($widths as $col => $width) {
-            $sheet->getColumnDimension($col)->setWidth($width);
-        }
-
-        
-            $sheetIndex++;
-        }
-        $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "CUTI_TANPA_POTONGAN_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
-    }
-
-    public function unpaid($tahunAwal, $tahunAkhir)
-    {
-        $spreadsheet = new Spreadsheet();
-        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
-        $arrkol = $this->getKolom();
-        
-        $sheetIndex = 0;
-        for($tahun = $tahunAwal; $tahun <= $tahunAkhir; $tahun++) {
-            if($sheetIndex > 0) {
-                $spreadsheet->createSheet();
-            }
-            $spreadsheet->setActiveSheetIndex($sheetIndex);
-
-        $karyawans_raw = Karyawan::with('jabatan', 'area')
-            ->where('aktif', 'Y')
-            ->whereHas('cutis', function($q) use ($tahun) {
-                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
-                    $q2->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR']);
-                });
-            })
-            ->orderBy('id')->get();
             
-        $details = [];
-        foreach ($karyawans_raw as $d) {
-            $staf = $d->staf;
-            $area = $d->area ? $d->area->nama : 'Lainnya';
-            $details[$staf][$area][] = $d;
-        }
-        krsort($details);
-
-
-
+            $karyawans_raw = \App\Models\Karyawan::with('jabatan', 'area')
+                ->where('aktif', 'Y')
+                ->whereHas('cutis', function($q) use ($tahun) {
+                    $q->where('tahun', $tahun)->whereHas('details', function($q2) {
+                        $q2->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR']);
+                    });
+                })
+                ->orderBy('id')->get();
+                
+            $details = [];
+            foreach ($karyawans_raw as $d) {
+                $staf = $d->staf;
+                $area = $d->area ? $d->area->nama : 'Lainnya';
+                $details[$staf][$area][] = $d;
+            }
+            krsort($details);
+            
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('UNPAID & GANTI HR LIBUR ' . $tahun);
+        $sheet->setTitle('UNPAID LEAVE & GANTI HR LIBUR');
         $sheet->setShowGridlines(false);
 
         // Row 1 is blank
@@ -1000,11 +747,12 @@ class CutiExcelController extends Controller
             $sheet->getColumnDimension($col)->setWidth($width);
         }
 
-        
+
             $sheetIndex++;
         }
         $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_&_GANTI_HARI_LIBUR_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
+        $filename = "UNPAID_LEAVE_&_GANTI_HARI_LIBUR_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "_" . $tahunAkhir) . ".xlsx";
+        return $this->downloadExcel($spreadsheet, $filename);
     }
 
     private function downloadExcel($spreadsheet, $filename)

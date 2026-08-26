@@ -141,10 +141,13 @@ $router->group(['prefix' => 'cuti', 'middleware' => 'auth:api'], function () use
     $router->post('submit', 'CutiController@submit');
     $router->delete('{id}', 'CutiController@delete');
     $router->get('excel/jadwal/{tahun}', 'CutiExcelController@jadwal');
-    $router->get('excel/list/{tahun}', 'CutiExcelController@listCuti');
+    $router->get('excel/list/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@listCuti');
+    $router->get('excel/list/{tahun}', 'CutiExcelController@listCutiSingle');
     $router->get('excel/form/{id}', 'CutiExcelController@form');
-    $router->get('excel/tanpa-potongan/{tahun}', 'CutiExcelController@tanpaPotongan');
-    $router->get('excel/unpaid/{tahun}', 'CutiExcelController@unpaid');
+    $router->get('excel/tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@tanpaPotongan');
+    $router->get('excel/tanpa-potongan/{tahun}', 'CutiExcelController@tanpaPotonganSingle');
+    $router->get('excel/unpaid/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@unpaid');
+    $router->get('excel/unpaid/{tahun}', 'CutiExcelController@unpaidSingle');
 });
 
 $router->group(['prefix' => 'oncall_customer', 'middleware' => 'auth:api'], function () use ($router) {
