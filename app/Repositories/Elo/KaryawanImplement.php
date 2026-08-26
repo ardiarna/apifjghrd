@@ -131,6 +131,9 @@ class KaryawanImplement implements KaryawanRepository {
         if(isset($inputs['aktif'])) {
             $model->aktif = $inputs['aktif'];
         }
+        if(isset($inputs['manajemen'])) {
+            $model->manajemen = $inputs['manajemen'];
+        }
         if(isset($inputs['staf'])) {
             $model->staf = $inputs['staf'];
         }

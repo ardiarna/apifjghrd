@@ -51,10 +51,11 @@ class KaryawanController extends Controller
             'aktif' => 'required|in:Y,N,P',
             'kelamin' => 'required|in:L,P',
             'staf' => 'required|in:Y,N',
+            'manajemen' => 'in:Y,N',
         ]);
         $inputs = $req->only([
             'nama', 'nomor_ktp', 'tanggal_masuk', 'area_id', 'jabatan_id',
-            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon', 'aktif', 'kelamin', 'staf'
+            'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'telepon', 'aktif', 'kelamin', 'staf', 'manajemen'
         ]);
         $inputs['nik'] = $req->input('nik');
         $inputs['agama_id'] = $req->input('agama_id');
@@ -85,6 +86,7 @@ class KaryawanController extends Controller
             'aktif' => 'in:Y,N,P',
             'kelamin' => 'in:L,P',
             'staf' => 'in:Y,N',
+            'manajemen' => 'in:Y,N',
         ]);
         $inputs['nama'] = $req->input('nama');
         $inputs['nik'] = $req->input('nik');
@@ -110,6 +112,7 @@ class KaryawanController extends Controller
         $inputs['pendidikan_jurusan'] = $req->input('pendidikan_jurusan');
         $inputs['aktif'] = $req->input('aktif');
         $inputs['staf'] = $req->input('staf');
+        $inputs['manajemen'] = $req->input('manajemen');
         $inputs['nomor_kk'] = $req->input('nomor_kk');
         $inputs['nomor_paspor'] = $req->input('nomor_paspor');
         $inputs['nomor_pwp'] = $req->input('nomor_pwp');
