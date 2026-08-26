@@ -144,15 +144,7 @@ class CutiExcelController extends Controller
 
     public function listCuti($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')
-            ->where('aktif', 'Y')
-            ->whereHas('cutis', function($q) use ($tahun) {
-                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
-                    $q2->where('kategori', 'KHUSUS');
-                });
-            })
-            ->orderBy('id')
-            ->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
         
         $details = [];
         foreach ($karyawans_raw as $d) {
@@ -169,56 +161,60 @@ class CutiExcelController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('LIST CUTI ' . $tahun);
+        $sheet->setTitle('CUTI TH ' . $tahun);
         $sheet->setShowGridlines(false);
 
-        // 1. judul report dan periode merge dari kolom A sampai X
-        $sheet->setCellValue('A1', 'CUTI KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $sheet->mergeCells('A1:X1');
-        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        // Row 1 blank
         
-        $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        // 1. judul report dan periode merge dari kolom A sampai X
+        $sheet->setCellValue('A2', 'CUTI KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
         $sheet->mergeCells('A2:X2');
-        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
         
-        $sheet->getRowDimension(1)->setRowHeight(20);
-        $sheet->getRowDimension(2)->setRowHeight(18);
+        $sheet->setCellValue('A3', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A3:X3');
+        $sheet->getStyle('A3')->getFont()->setName('Malgun Gothic')->setSize(11)->getColor()->setARGB('0000FF');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(2)->setRowHeight(20);
+        $sheet->getRowDimension(3)->setRowHeight(18);
+
+        // Row 4 blank
 
         // 2. tabel header ada 2 baris semua di merge kecuali ...
-        $sheet->setCellValue('A4', 'NO'); $sheet->mergeCells('A4:A5');
-        $sheet->setCellValue('B4', 'NAMA KARYAWAN'); $sheet->mergeCells('B4:B5');
-        $sheet->setCellValue('C4', 'MASA KERJA'); $sheet->mergeCells('C4:C5');
-        $sheet->setCellValue('D4', 'JML CUTI'); $sheet->mergeCells('D4:D5');
+        $sheet->setCellValue('A5', 'NO'); $sheet->mergeCells('A5:A6');
+        $sheet->setCellValue('B5', 'NAMA KARYAWAN'); $sheet->mergeCells('B5:B6');
+        $sheet->setCellValue('C5', 'MASA KERJA'); $sheet->mergeCells('C5:C6');
+        $sheet->setCellValue('D5', 'JML CUTI'); $sheet->mergeCells('D5:D6');
         
-        $sheet->setCellValue('E4', 'THN LALU'); $sheet->mergeCells('E4:F4');
-        $sheet->setCellValue('E5', '+');
-        $sheet->setCellValue('F5', '-');
+        $sheet->setCellValue('E5', 'THN LALU'); $sheet->mergeCells('E5:F5');
+        $sheet->setCellValue('E6', '+');
+        $sheet->setCellValue('F6', '-');
         
-        $sheet->setCellValue('G4', 'TOTAL CUTI'); $sheet->mergeCells('G4:G5');
+        $sheet->setCellValue('G5', 'TOTAL CUTI'); $sheet->mergeCells('G5:G6');
         
-        $sheet->setCellValue('H4', 'CUTI TAHUNAN'); $sheet->mergeCells('H4:S4');
+        $sheet->setCellValue('H5', 'CUTI TAHUNAN'); $sheet->mergeCells('H5:S5');
         $bulans = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUN', 'JUL', 'AGS', 'SEP', 'OKT', 'NOP', 'DES'];
         foreach($bulans as $k => $b) {
-            $sheet->setCellValue($arrkol[7 + $k].'5', $b);
+            $sheet->setCellValue($arrkol[7 + $k].'6', $b);
         }
         
-        $sheet->setCellValue('T4', 'SISA CUTI TAHUNAN'); $sheet->mergeCells('T4:T5');
-        $sheet->setCellValue('U4', 'JML CUTI BERSAMA'); $sheet->mergeCells('U4:U5');
-        $sheet->setCellValue('V4', 'JML IJIN'); $sheet->mergeCells('V4:V5');
-        $sheet->setCellValue('W4', 'SISA CUTI'); $sheet->mergeCells('W4:W5');
-        $sheet->setCellValue('X4', 'KETERANGAN'); $sheet->mergeCells('X4:X5');
+        $sheet->setCellValue('T5', 'SISA CUTI TAHUNAN'); $sheet->mergeCells('T5:T6');
+        $sheet->setCellValue('U5', 'JML CUTI BERSAMA'); $sheet->mergeCells('U5:U6');
+        $sheet->setCellValue('V5', 'JML IJIN'); $sheet->mergeCells('V5:V6');
+        $sheet->setCellValue('W5', 'SISA CUTI'); $sheet->mergeCells('W5:W6');
+        $sheet->setCellValue('X5', 'KETERANGAN'); $sheet->mergeCells('X5:X6');
         
         // Style Header
-        $sheet->getStyle('A4:X5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $sheet->getStyle('A4:X5')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
-        $sheet->getStyle('A4:X5')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:X6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A5:X6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A5:X6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
         // Freeze Panes (same as data karyawan, freeze pane on C7)
-        $sheet->freezePane('C6');
+        $sheet->freezePane('C7');
 
-        $row = 6;
+        $row = 7;
         $idx = 1;
         
         // 3. Urutan karyawan harus sama persis seperti di excel data karyawan
@@ -624,15 +620,7 @@ class CutiExcelController extends Controller
 
     public function unpaid($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')
-            ->where('aktif', 'Y')
-            ->whereHas('cutis', function($q) use ($tahun) {
-                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
-                    $q2->where('kategori', 'KHUSUS');
-                });
-            })
-            ->orderBy('id')
-            ->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
         $details = [];
         foreach ($karyawans_raw as $d) {
             $staf = $d->staf;
