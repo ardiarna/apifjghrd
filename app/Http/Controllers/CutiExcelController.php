@@ -53,9 +53,20 @@ class CutiExcelController extends Controller
 
     public function jadwal($tahun)
     {
-        $karyawans = Karyawan::with('jabatan')->where('aktif', 'Y')->orderBy('id')->get();
-        $spreadsheet = new Spreadsheet();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $details = [];
+        foreach ($karyawans_raw as $d) {
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $details[$staf][$area][] = $d;
+        }
+        krsort($details);
+        
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
         $arrkol = $this->getKolom();
+
+        $bulanIndo = ['', 'JANUARI', 'PEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOPEMBER', 'DESEMBER'];
 
         for($m = 1; $m <= 12; $m++) {
             if($m > 1) {
@@ -63,80 +74,211 @@ class CutiExcelController extends Controller
             }
             $spreadsheet->setActiveSheetIndex($m - 1);
             $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setTitle($this->arrBulan[$m] . substr($tahun, 2));
+            
+            $sheetName = $this->arrBulan[$m] ?? $bulanIndo[$m];
+            $sheet->setTitle($sheetName . ' ' . substr($tahun, 2));
             $sheet->setShowGridlines(false);
-
-            $sheet->setCellValue('A1', 'JADWAL CUTI KARYAWAN TAHUN ' . $tahun);
-            $sheet->mergeCells('A1:AK1');
-            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-            $sheet->setCellValue('A2', 'PERIODE: ' . $this->arrBulan[$m]);
             
-            $headers = ['NO', 'NAMA KARYAWAN', 'JABATAN', 'SISA CUTI TAHUN LALU', 'HAK CUTI TAHUNAN', 'TOTAL HAK CUTI', 'CUTI DIAMBIL', 'SISA CUTI'];
-            foreach($headers as $i => $h) {
-                $sheet->setCellValue($arrkol[$i].'4', $h);
-                $sheet->mergeCells($arrkol[$i].'4:'.$arrkol[$i].'5');
-            }
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $m, $tahun);
-            $colStart = count($headers);
-            $sheet->setCellValue($arrkol[$colStart].'4', 'TANGGAL');
-            $sheet->mergeCells($arrkol[$colStart].'4:'.$arrkol[$colStart + $daysInMonth - 1].'4');
+
+            $row = 2;
             
-            for($d = 1; $d <= $daysInMonth; $d++) {
-                $sheet->setCellValue($arrkol[$colStart + $d - 1].'5', $d);
-            }
-            $this->setHeaderStyle($sheet, 'A4:'.$arrkol[$colStart + $daysInMonth - 1].'5');
-
-            $row = 6;
-            foreach($karyawans as $idx => $k) {
-                $sheet->setCellValue('A'.$row, $idx + 1);
-                $sheet->setCellValue('B'.$row, $k->nama);
-                $sheet->setCellValue('C'.$row, $k->jabatan->nama ?? '');
+            $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo) {
+                $sheet->setCellValue('A'.$row, 'LIST CUTI ' . $bulanIndo[$m] . ' ' . $tahun);
+                $sheet->mergeCells('A'.$row.':AK'.$row);
+                $sheet->getStyle('A'.$row)->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
+                $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+                $sheet->getRowDimension($row)->setRowHeight(20);
                 
-                // Logic perhitungan cuti
-                $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
-                $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
-                $sisaCutiTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
-                $totalHak = $jmlCuti + $sisaCutiTahunLalu;
+                $row++;
                 
-                $diambil = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
-                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun)->where('jenis_form', '!=', 'CUTI_MASAL');
-                      });
-                })->count();
-
-                $sheet->setCellValue('D'.$row, $sisaCutiTahunLalu);
-                $sheet->setCellValue('E'.$row, $jmlCuti);
-                $sheet->setCellValue('F'.$row, $totalHak);
-                $sheet->setCellValue('G'.$row, $diambil);
-                $sheet->setCellValue('H'.$row, $totalHak - $diambil);
+                $sheet->setCellValue('A'.$row, 'DIVISI : ' . $title);
+                $sheet->mergeCells('A'.$row.':AK'.$row);
+                $sheet->getStyle('A'.$row)->getFont()->setName('Malgun Gothic')->setSize(11)->getColor()->setARGB('0000FF');
+                $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+                $sheet->getRowDimension($row)->setRowHeight(18);
                 
-                // Mapping dates
-                $cutiDates = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                    $q->whereHas('cuti', function($q2) use ($k, $tahun) {
-                        $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                    });
-                })->whereMonth('tanggal', $m)->pluck('tanggal')->toArray();
+                $row += 2;
+                $headerStartRow = $row;
                 
-                $tglMap = array_map(function($d) { return (int)date('d', strtotime($d)); }, $cutiDates);
-
-                for($d = 1; $d <= $daysInMonth; $d++) {
-                    if(in_array($d, $tglMap)) {
-                        $sheet->setCellValue($arrkol[$colStart + $d - 1].$row, 'C');
-                        $sheet->getStyle($arrkol[$colStart + $d - 1].$row)->getFill()
-                            ->setFillType(Fill::FILL_SOLID)
-                            ->getStartColor()->setARGB('FFFFFF00'); // Yellow
+                // Headers
+                $sheet->setCellValue('A'.$row, 'NO'); $sheet->mergeCells('A'.$row.':A'.($row+1));
+                $sheet->setCellValue('B'.$row, 'NAMA KARYAWAN'); $sheet->mergeCells('B'.$row.':B'.($row+1));
+                
+                $sheet->setCellValue('C'.$row, 'TANGGAL'); $sheet->mergeCells('C'.$row.':AG'.$row);
+                
+                $sheet->setCellValue('AH'.$row, 'SISA CUTI'); $sheet->mergeCells('AH'.$row.':AH'.($row+1));
+                $sheet->setCellValue('AI'.$row, 'UNPAID LEAVE'); $sheet->mergeCells('AI'.$row.':AI'.($row+1));
+                $sheet->setCellValue('AJ'.$row, 'GANTI HARI LIBUR'); $sheet->mergeCells('AJ'.$row.':AJ'.($row+1));
+                $sheet->setCellValue('AK'.$row, 'CUTI KHUSUS'); $sheet->mergeCells('AK'.$row.':AK'.($row+1));
+                
+                $row++; // Row for 1-31
+                
+                $weekendCols = [];
+                for($d = 1; $d <= 31; $d++) {
+                    $col = $arrkol[$d + 1]; // C is index 2
+                    if($d <= $daysInMonth) {
+                        $sheet->setCellValue($col.$row, $d);
+                        
+                        $dateStr = sprintf('%04d-%02d-%02d', $tahun, $m, $d);
+                        $dayOfWeek = date('N', strtotime($dateStr));
+                        if($dayOfWeek == 6 || $dayOfWeek == 7) { 
+                            $weekendCols[] = $col;
+                            $sheet->getStyle($col.$row)->getFont()->getColor()->setARGB('FFFF0000'); 
+                        }
+                    } else {
+                        $sheet->setCellValue($col.$row, '');
                     }
                 }
-
-                $sheet->getStyle('A'.$row.':'.$arrkol[$colStart + $daysInMonth - 1].$row)->applyFromArray([
-                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]]
-                ]);
+                
+                // Style Headers
+                $sheet->getStyle('A'.$headerStartRow.':AK'.$row)->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+                $sheet->getStyle('A'.$headerStartRow.':AK'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+                $sheet->getStyle('A'.$headerStartRow.':AK'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                
                 $row++;
-            }
-            foreach(range('A', 'H') as $colId) {
+                $dataStartRow = $row;
+                $idx = 1;
+                
+                foreach ($details as $staf => $areas) {
+                    $hasPrintedStafLabel = false;
+                    
+                    foreach ($areas as $area => $karyawansGrp) {
+                        $hasPrintedAreaLabel = false;
+                        
+                        foreach ($karyawansGrp as $k) {
+                            $man = $k->manajemen ?? 'N';
+                            
+                            if ($isManajemen && $man != 'Y') continue;
+                            if (!$isManajemen && $man == 'Y') continue;
+                            
+                            $cutiDatesMonth = \App\Models\CutiDate::with('cutiDetail')
+                                ->whereMonth('tanggal', $m)
+                                ->whereHas('cutiDetail.cuti', function($q) use ($k, $tahun) {
+                                    $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                                })->get();
+                                
+                            if (!$isManajemen && $cutiDatesMonth->count() == 0) continue;
+                            
+                            if ($staf == 'N' && !$hasPrintedStafLabel) {
+                                $sheet->setCellValue('B'.$row, 'NON STAF :');
+                                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                                $sheet->getStyle('A'.$row.':AK'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                                $row++;
+                                $hasPrintedStafLabel = true;
+                            }
+                            
+                            if ($staf == 'Y' && !$hasPrintedAreaLabel) {
+                                $sheet->setCellValue('B'.$row, $area.' :');
+                                $sheet->getStyle('B'.$row)->getAlignment()->setHorizontal('center');
+                                $sheet->getStyle('B'.$row)->getFont()->getColor()->setARGB('0000FF');
+                                $sheet->getStyle('A'.$row.':AK'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                                $row++;
+                                $hasPrintedAreaLabel = true;
+                            }
+                            
+                            $sheet->setCellValue('A'.$row, $idx++);
+                            $sheet->setCellValue('B'.$row, $k->nama);
+                    
+                    $tglMap = [];
+                    $cntUnpaid = 0;
+                    $cntGanti = 0;
+                    $ketKhususArr = [];
+                    
+                    foreach($cutiDatesMonth as $cd) {
+                        $d = (int)date('d', strtotime($cd->tanggal));
+                        $tglMap[$d] = true;
+                        
+                        $kat = $cd->cutiDetail->kategori ?? '';
+                        if($kat == 'UNPAID') {
+                            $cntUnpaid++;
+                        }
+                        elseif($kat == 'GANTI_HARI_LIBUR') {
+                            $cntGanti++;
+                            $ket = trim($cd->cutiDetail->keterangan ?? '');
+                            if($ket && !in_array($ket, $ketKhususArr)) {
+                                $ketKhususArr[] = $ket;
+                            }
+                        }
+                        elseif($kat == 'KHUSUS') {
+                            $ket = trim($cd->cutiDetail->keterangan ?? '');
+                            if($ket && !in_array($ket, $ketKhususArr)) {
+                                $ketKhususArr[] = $ket;
+                            }
+                        }
+                    }
+                    $ketKhususStr = implode(', ', $ketKhususArr);
+                    
+                    for($d = 1; $d <= 31; $d++) {
+                        $col = $arrkol[$d + 1];
+                        if($d <= $daysInMonth) {
+                            if(isset($tglMap[$d])) {
+                                $sheet->setCellValue($col.$row, 'X');
+                            }
+                        }
+                    }
+                    
+                    $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                    $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
+                    $sisaCutiTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
+                    $totalHak = $jmlCuti + $sisaCutiTahunLalu;
+                    
+                    $diambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                        $q->whereIn('kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
+                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
+                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
+                          });
+                    })->whereMonth('tanggal', '<=', $m)->count();
+                    
+                    $sheet->setCellValue('AH'.$row, $totalHak - $diambil);
+                    $sheet->setCellValue('AI'.$row, $cntUnpaid > 0 ? $cntUnpaid : '');
+                    $sheet->setCellValue('AJ'.$row, $cntGanti > 0 ? $cntGanti : '');
+                    $sheet->setCellValue('AK'.$row, $ketKhususStr);
+                    
+                    $sheet->getStyle('A'.$row.':AK'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                    $sheet->getStyle('C'.$row.':AK'.$row)->getAlignment()->setHorizontal('center');
+                    
+                    $row++;
+                        }
+                    }
+                }
+                
+                if ($row == $dataStartRow) {
+                    $sheet->setCellValue('A'.$row, 'Tidak ada data');
+                    $sheet->mergeCells('A'.$row.':AK'.$row);
+                    $sheet->getStyle('A'.$row.':AK'.$row)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    $sheet->getStyle('A'.$row)->getAlignment()->setHorizontal('center');
+                    $row++;
+                }
+                
+                foreach($weekendCols as $col) {
+                    $startR = $headerStartRow + 1;
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFont()->getColor()->setARGB('FFFFFFFF');
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                }
+            };
+            
+            $drawTable('STAF', false);
+            
+            $row += 3;
+            
+            $drawTable('MANAJEMEN', true);
+            
+            foreach(range('A', 'B') as $colId) {
                 $sheet->getColumnDimension($colId)->setAutoSize(true);
             }
+            $sheet->getColumnDimension('AH')->setWidth(12);
+            $sheet->getColumnDimension('AI')->setWidth(15);
+            $sheet->getColumnDimension('AJ')->setWidth(18);
+            $sheet->getColumnDimension('AK')->setAutoSize(true);
+            for($d = 1; $d <= 31; $d++) {
+                $sheet->getColumnDimension($arrkol[$d + 1])->setWidth(4);
+            }
+            
+            $sheet->freezePane('C8');
         }
         $spreadsheet->setActiveSheetIndex(0);
         return $this->downloadExcel($spreadsheet, "JADWAL_CUTI_$tahun.xlsx");
