@@ -144,7 +144,15 @@ class CutiExcelController extends Controller
 
     public function listCuti($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')
+            ->where('aktif', 'Y')
+            ->whereHas('cutis', function($q) use ($tahun) {
+                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
+                    $q2->where('kategori', 'KHUSUS');
+                });
+            })
+            ->orderBy('id')
+            ->get();
         
         $details = [];
         foreach ($karyawans_raw as $d) {
@@ -230,7 +238,7 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -241,24 +249,45 @@ class CutiExcelController extends Controller
                     foreach($detailsKet as $det) {
                         if($det->dates->count() == 0) continue;
                         
-                        $groupedDates = [];
-                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                        $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
+                        $lama = (int) $det->lama_hari;
+                        
+                        if ($lama > 5 || $satuan == 'bulan') {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $engMon = date('M', strtotime($d->tanggal));
-                            $indMon = $months[$engMon] ?? $engMon;
-                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            $formatDate = function($tanggal) use ($months) {
+                                $engMon = date('M', strtotime($tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
+                            };
                             
-                            $day = date('d', strtotime($d->tanggal));
-                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                            $groupedDates[$my][] = ltrim($day, '0');
+                            $dates = $det->dates()->orderBy('tanggal')->get();
+                            if($dates->count() == 1) {
+                                $dateStr = $formatDate($dates->first()->tanggal);
+                            } else {
+                                $first = $dates->first()->tanggal;
+                                $last = $dates->last()->tanggal;
+                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
+                            }
+                        } else {
+                            $groupedDates = [];
+                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                                $engMon = date('M', strtotime($d->tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                                
+                                $day = date('d', strtotime($d->tanggal));
+                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                                $groupedDates[$my][] = ltrim($day, '0');
+                            }
+                            
+                            $dateStrings = [];
+                            foreach($groupedDates as $my => $days) {
+                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                            }
+                            
+                            $dateStr = implode(', ', $dateStrings);
                         }
-                        
-                        $dateStrings = [];
-                        foreach($groupedDates as $my => $days) {
-                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                        }
-                        
-                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : 'Ijin');
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
@@ -367,7 +396,15 @@ class CutiExcelController extends Controller
 
     public function tanpaPotongan($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')
+            ->where('aktif', 'Y')
+            ->whereHas('cutis', function($q) use ($tahun) {
+                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
+                    $q2->where('kategori', 'KHUSUS');
+                });
+            })
+            ->orderBy('id')
+            ->get();
         $details = [];
         foreach ($karyawans_raw as $d) {
             $staf = $d->staf;
@@ -382,34 +419,59 @@ class CutiExcelController extends Controller
 
         $spreadsheet->setActiveSheetIndex(0);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('TANPA POTONGAN ' . $tahun);
+        $sheet->setTitle('CUTI TANPA POTONGAN ' . $tahun);
         $sheet->setShowGridlines(false);
 
-        $sheet->setCellValue('A1', 'CUTI TANPA POTONGAN PT.FRATEKINDO JAYA GEMILANG');
-        $sheet->mergeCells('A1:R1');
-        $sheet->getStyle('A1')->getFont()->setName('Malgun Gothic')->setSize(13);
-        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center')->setVertical('center');
+        // Row 1 is blank
         
-        $sheet->setCellValue('A2', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->setCellValue('A2', 'CUTI/IJIN TANPA MENGURANGI HAK KARYAWAN');
         $sheet->mergeCells('A2:R2');
-        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(11);
+        $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
         
-        $sheet->getRowDimension(1)->setRowHeight(20);
-        $sheet->getRowDimension(2)->setRowHeight(18);
+        $sheet->setCellValue('A3', 'PERIODE : JANUARI S/D DESEMBER ' . $tahun);
+        $sheet->mergeCells('A3:R3');
+        $sheet->getStyle('A3')->getFont()->setName('Malgun Gothic')->setSize(11)->getColor()->setARGB('0000FF');
+        $sheet->getStyle('A3')->getAlignment()->setHorizontal('center')->setVertical('center');
+        
+        $sheet->getRowDimension(2)->setRowHeight(20);
+        $sheet->getRowDimension(3)->setRowHeight(18);
 
-        $headers = ['NO', 'NAMA KARYAWAN', 'MASA KERJA', 'JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES', 'JUMLAH (HARI)', 'JUMLAH (BULAN)', 'KETERANGAN'];
-        foreach($headers as $i => $h) {
-            $sheet->setCellValue($arrkol[$i].'4', $h);
+        // Row 4 is blank
+
+        $sheet->mergeCells('D5:O5');
+        $sheet->setCellValue('D5', 'BULAN');
+        
+        $sheet->mergeCells('A5:A6');
+        $sheet->setCellValue('A5', 'NO');
+        
+        $sheet->mergeCells('B5:B6');
+        $sheet->setCellValue('B5', 'NAMA KARYAWAN');
+        
+        $sheet->mergeCells('C5:C6');
+        $sheet->setCellValue('C5', 'MASA KERJA');
+        
+        $sheet->mergeCells('P5:P6');
+        $sheet->setCellValue('P5', 'JUMLAH (HARI)');
+        
+        $sheet->mergeCells('Q5:Q6');
+        $sheet->setCellValue('Q5', 'JUMLAH (BULAN)');
+        
+        $sheet->mergeCells('R5:R6');
+        $sheet->setCellValue('R5', 'KETERANGAN');
+        
+        $months = ['JAN', 'PEB', 'MAR', 'APR', 'MEI', 'JUNI', 'JULI', 'AUG', 'SEPT', 'OKT', 'NOP', 'DES'];
+        foreach($months as $i => $m) {
+            $sheet->setCellValue($arrkol[$i+3].'6', $m);
         }
         
-        $sheet->getStyle('A4:R4')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $sheet->getStyle('A4:R4')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
-        $sheet->getStyle('A4:R4')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $sheet->getStyle('A5:R6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $sheet->getStyle('A5:R6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $sheet->getStyle('A5:R6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
-        $sheet->freezePane('C5');
+        $sheet->freezePane('C7');
 
-        $row = 5;
+        $row = 7;
         $idx = 1;
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
@@ -427,7 +489,7 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->where('kategori', 'KHUSUS')
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -438,24 +500,45 @@ class CutiExcelController extends Controller
                     foreach($detailsKet as $det) {
                         if($det->dates->count() == 0) continue;
                         
-                        $groupedDates = [];
-                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                        $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
+                        $lama = (int) $det->lama_hari;
+                        
+                        if ($lama > 5 || $satuan == 'bulan') {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $engMon = date('M', strtotime($d->tanggal));
-                            $indMon = $months[$engMon] ?? $engMon;
-                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            $formatDate = function($tanggal) use ($months) {
+                                $engMon = date('M', strtotime($tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
+                            };
                             
-                            $day = date('d', strtotime($d->tanggal));
-                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                            $groupedDates[$my][] = ltrim($day, '0');
+                            $dates = $det->dates()->orderBy('tanggal')->get();
+                            if($dates->count() == 1) {
+                                $dateStr = $formatDate($dates->first()->tanggal);
+                            } else {
+                                $first = $dates->first()->tanggal;
+                                $last = $dates->last()->tanggal;
+                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
+                            }
+                        } else {
+                            $groupedDates = [];
+                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                                $engMon = date('M', strtotime($d->tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                                
+                                $day = date('d', strtotime($d->tanggal));
+                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                                $groupedDates[$my][] = ltrim($day, '0');
+                            }
+                            
+                            $dateStrings = [];
+                            foreach($groupedDates as $my => $days) {
+                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                            }
+                            
+                            $dateStr = implode(', ', $dateStrings);
                         }
-                        
-                        $dateStrings = [];
-                        foreach($groupedDates as $my => $days) {
-                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                        }
-                        
-                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? 'Cuti Khusus';
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
@@ -471,41 +554,41 @@ class CutiExcelController extends Controller
                             
                             $totalHari = 0;
                             $totalBulan = 0;
+                            foreach ($detailsKet as $det) {
+                                $sat = strtolower($det->jenisKhusus->satuan ?? 'hari');
+                                if ($sat == 'bulan') $totalBulan += $det->lama_hari;
+                                else $totalHari += $det->lama_hari;
+                            }
                             
                             for($m=1; $m<=12; $m++) {
-                                $detailsBulan = \App\Models\CutiDetail::with('jenisKhusus')->where('kategori', 'KHUSUS')
-                                    ->whereHas('cuti', function($q) use ($k, $tahun) {
-                                        $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                    })
-                                    ->whereHas('dates', function($q) use ($m) {
-                                        $q->whereMonth('tanggal', $m);
-                                    })
-                                    ->get()
-                                    ->filter(function($detail) use ($m) {
-                                        $firstDate = $detail->dates()->orderBy('tanggal')->first();
-                                        return $firstDate && (int)date('m', strtotime($firstDate->tanggal)) == $m;
-                                    });
+                                $hariInMonth = 0;
+                                $isBulan = false;
                                 
-                                $hari = 0;
-                                $bulan = 0;
-                                foreach($detailsBulan as $det) {
-                                    $satuan = $det->jenisKhusus ? $det->jenisKhusus->satuan : 'hari';
-                                    if(strtolower($satuan) == 'bulan') {
-                                        $bulan += $det->lama_hari;
-                                    } else {
-                                        $hari += $det->lama_hari;
+                                foreach ($detailsKet as $det) {
+                                    $sat = strtolower($det->jenisKhusus->satuan ?? 'hari');
+                                    $datesInMonth = $det->dates->filter(function($d) use ($m) {
+                                        return (int)date('m', strtotime($d->tanggal)) == $m;
+                                    });
+                                    
+                                    if ($datesInMonth->count() > 0) {
+                                        if ($sat == 'bulan') {
+                                            $isBulan = true;
+                                        } else {
+                                            $hariInMonth += $datesInMonth->count();
+                                        }
                                     }
                                 }
                                 
                                 $colIdx = 3 + $m - 1; 
-                                $val = '';
-                                if($hari > 0 && $bulan > 0) $val = $hari.' Hari, '.$bulan.' Bln';
-                                elseif($hari > 0) $val = $hari.' Hari';
-                                elseif($bulan > 0) $val = $bulan.' Bln';
+                                $cell = $arrkol[$colIdx].$row;
                                 
-                                $sheet->setCellValue($arrkol[$colIdx].$row, $val);
-                                $totalHari += $hari;
-                                $totalBulan += $bulan;
+                                if ($isBulan) {
+                                    $sheet->getStyle($cell)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FF99CC00');
+                                }
+                                
+                                if ($hariInMonth > 0) {
+                                    $sheet->setCellValue($cell, $hariInMonth);
+                                }
                             }
 
                             $sheet->setCellValue('P'.$row, $totalHari != 0 ? $totalHari : '');
@@ -541,7 +624,15 @@ class CutiExcelController extends Controller
 
     public function unpaid($tahun)
     {
-        $karyawans_raw = Karyawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
+        $karyawans_raw = Karyawan::with('jabatan', 'area')
+            ->where('aktif', 'Y')
+            ->whereHas('cutis', function($q) use ($tahun) {
+                $q->where('tahun', $tahun)->whereHas('details', function($q2) {
+                    $q2->where('kategori', 'KHUSUS');
+                });
+            })
+            ->orderBy('id')
+            ->get();
         $details = [];
         foreach ($karyawans_raw as $d) {
             $staf = $d->staf;
@@ -601,7 +692,7 @@ class CutiExcelController extends Controller
                 }
                 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti'])
+                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -612,24 +703,45 @@ class CutiExcelController extends Controller
                     foreach($detailsKet as $det) {
                         if($det->dates->count() == 0) continue;
                         
-                        $groupedDates = [];
-                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                        $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
+                        $lama = (int) $det->lama_hari;
+                        
+                        if ($lama > 5 || $satuan == 'bulan') {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $engMon = date('M', strtotime($d->tanggal));
-                            $indMon = $months[$engMon] ?? $engMon;
-                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                            $formatDate = function($tanggal) use ($months) {
+                                $engMon = date('M', strtotime($tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
+                            };
                             
-                            $day = date('d', strtotime($d->tanggal));
-                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                            $groupedDates[$my][] = ltrim($day, '0');
+                            $dates = $det->dates()->orderBy('tanggal')->get();
+                            if($dates->count() == 1) {
+                                $dateStr = $formatDate($dates->first()->tanggal);
+                            } else {
+                                $first = $dates->first()->tanggal;
+                                $last = $dates->last()->tanggal;
+                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
+                            }
+                        } else {
+                            $groupedDates = [];
+                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
+                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                                $engMon = date('M', strtotime($d->tanggal));
+                                $indMon = $months[$engMon] ?? $engMon;
+                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
+                                
+                                $day = date('d', strtotime($d->tanggal));
+                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                                $groupedDates[$my][] = ltrim($day, '0');
+                            }
+                            
+                            $dateStrings = [];
+                            foreach($groupedDates as $my => $days) {
+                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                            }
+                            
+                            $dateStr = implode(', ', $dateStrings);
                         }
-                        
-                        $dateStrings = [];
-                        foreach($groupedDates as $my => $days) {
-                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                        }
-                        
-                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? 'Unpaid';
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }

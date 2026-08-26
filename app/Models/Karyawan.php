@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Karyawan extends Model
 {
+    public function cutis() {
+        return $this->hasMany(Cuti::class);
+    }
+
 
     protected $fillable = [
         'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'kelamin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'staf', 'nomor_kk', 'nomor_paspor', 'nomor_pwp', 'phk_id', 'uang_phk_id', 'ptkp_id'
