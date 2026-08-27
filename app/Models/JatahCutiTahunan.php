@@ -15,6 +15,7 @@ class JatahCutiTahunan extends Model
         'plus_tahun_lalu',
         'min_tahun_lalu',
         'total_cuti',
+        'boleh_minus',
     ];
 
     public function karyawan()

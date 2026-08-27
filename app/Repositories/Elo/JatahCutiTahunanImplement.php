@@ -59,6 +59,9 @@ class JatahCutiTahunanImplement implements JatahCutiTahunanRepository
         if (isset($inputs['total_cuti']) && $inputs['total_cuti'] !== null) {
             $model->total_cuti = $inputs['total_cuti'];
         }
+        if (isset($inputs['boleh_minus']) && $inputs['boleh_minus'] !== null) {
+            $model->boleh_minus = $inputs['boleh_minus'];
+        }
 
         $model->save();
         return $model;
