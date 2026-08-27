@@ -193,14 +193,33 @@ class CutiController extends Controller
                     }
                 }
             } else {
+                $karyawanId = $request->karyawan_id;
+                $tahun = $request->tahun;
+
+                // Calculate snapshot values once for TAHUNAN/IJIN categories
+                $jatahSnap = \App\Models\JatahCutiTahunan::where('karyawan_id', $karyawanId)
+                    ->where('tahun', $tahun)->first();
+                $snapTotalHakCuti = $jatahSnap
+                    ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
+                    : 0;
+                $snapSudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+                $snapCutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->where('kategori', 'CUTI_MASAL')
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+
                 $cuti = Cuti::create([
-                    'karyawan_id' => $request->karyawan_id,
+                    'karyawan_id' => $karyawanId,
                     'jenis_form' => $request->jenis_form,
                     'tanggal_kembali' => $request->tanggal_kembali,
-                    'tahun' => $request->tahun,
+                    'tahun' => $tahun,
                 ]);
 
                 foreach ($request->details as $detail) {
+                    $isSnapshotKategori = in_array($detail['kategori'], ['TAHUNAN', 'IJIN']);
                     $cd = CutiDetail::create([
                         'cuti_id' => $cuti->id,
                         'kategori' => $detail['kategori'],
@@ -208,6 +227,9 @@ class CutiController extends Controller
                         'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
                         'keterangan' => $detail['keterangan'] ?? null,
                         'lama_hari' => $detail['lama_hari'] ?? null,
+                        'snap_total_hak_cuti' => $isSnapshotKategori ? $snapTotalHakCuti : null,
+                        'snap_sudah_diambil'  => $isSnapshotKategori ? $snapSudahDiambil  : null,
+                        'snap_cuti_masal'     => $isSnapshotKategori ? $snapCutiMasal     : null,
                     ]);
 
                     if (!empty($detail['dates'])) {
