@@ -35,10 +35,12 @@ class CutiController extends Controller
         $totalHakCuti = 0;
         $sisaCutiTahunLalu = 0;
         $hakCuti = 0;
+        $bolehMinus = 'N';
         if ($jatah) {
             $totalHakCuti = $jatah->jumlah_cuti + $jatah->plus_tahun_lalu - $jatah->min_tahun_lalu;
             $sisaCutiTahunLalu = $jatah->plus_tahun_lalu - $jatah->min_tahun_lalu;
             $hakCuti = $jatah->jumlah_cuti;
+            $bolehMinus = $jatah->boleh_minus;
         }
 
         $sudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
@@ -69,6 +71,7 @@ class CutiController extends Controller
                     'sudah_diambil' => $sudahDiambil,
                     'cuti_masal' => $cutiMasal,
                     'belum_diambil' => $belumDiambil,
+                    'boleh_minus' => $bolehMinus,
                 ]
             ]
         ], 200);
@@ -125,6 +128,7 @@ class CutiController extends Controller
                 'sudah_diambil' => $sudahDiambil,
                 'cuti_masal' => $cutiMasal,
                 'belum_diambil' => $belumDiambil,
+                'boleh_minus' => $jatah ? $jatah->boleh_minus : 'N',
             ];
         }
         
@@ -219,7 +223,7 @@ class CutiController extends Controller
                 ]);
 
                 foreach ($request->details as $detail) {
-                    $isSnapshotKategori = in_array($detail['kategori'], ['TAHUNAN', 'IJIN']);
+                    $isSnapshotKategori = in_array($detail['kategori'], ['TAHUNAN', 'IJIN', 'CUTI_MASAL']);
                     $cd = CutiDetail::create([
                         'cuti_id' => $cuti->id,
                         'kategori' => $detail['kategori'],
@@ -262,20 +266,41 @@ class CutiController extends Controller
         DB::beginTransaction();
         try {
             foreach($request->karyawans as $k) {
+                $karyawanId = $k['karyawan_id'];
+                $tahun = $request->tahun;
+
+                $jatahSnap = \App\Models\JatahCutiTahunan::where('karyawan_id', $karyawanId)
+                    ->where('tahun', $tahun)->first();
+                $snapTotalHakCuti = $jatahSnap
+                    ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
+                    : 0;
+                $snapSudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+                $snapCutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->where('kategori', 'CUTI_MASAL')
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+
                 $cuti = Cuti::create([
-                    'karyawan_id' => $k['karyawan_id'],
+                    'karyawan_id' => $karyawanId,
                     'jenis_form' => 'CUTI_MASAL',
                     
                     'tanggal_kembali' => $request->tanggal_kembali ?? null,
-                    'tahun' => $request->tahun,
+                    'tahun' => $tahun,
                 ]);
                 foreach($k['details'] as $detail) {
+                    $isSnapshotKategori = ($detail['kategori'] == 'CUTI_MASAL');
                     $cd = CutiDetail::create([
                         'cuti_id' => $cuti->id,
                         'kategori' => $detail['kategori'],
                         'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
                         'lama_hari' => $detail['lama_hari'],
                         'keterangan' => $request->keterangan,
+                        'snap_total_hak_cuti' => $isSnapshotKategori ? $snapTotalHakCuti : null,
+                        'snap_sudah_diambil'  => $isSnapshotKategori ? $snapSudahDiambil  : null,
+                        'snap_cuti_masal'     => $isSnapshotKategori ? $snapCutiMasal     : null,
                     ]);
                     if(!empty($detail['dates'])) {
                         foreach($detail['dates'] as $dt) {
