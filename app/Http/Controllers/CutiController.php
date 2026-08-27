@@ -251,6 +251,7 @@ class CutiController extends Controller
                     $cd = CutiDetail::create([
                         'cuti_id' => $cuti->id,
                         'kategori' => $detail['kategori'],
+                        'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
                         'lama_hari' => $detail['lama_hari'],
                         'keterangan' => $request->keterangan,
                     ]);

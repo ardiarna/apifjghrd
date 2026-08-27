@@ -81,7 +81,7 @@ class JatahCutiTahunanController extends Controller
 
         $karyawanId  = $req->input('karyawan_id');
         $tahun       = $req->input('tahun');
-        $jumlahCuti  = $req->input('jumlah_cuti', 12);
+        $jumlahCuti  = $req->input('jumlah_cuti', 0);
         $plusTahunLalu = $req->input('plus_tahun_lalu', 0);
         $minTahunLalu  = $req->input('min_tahun_lalu', 0);
 

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->foreignId('karyawan_id')->constrained()->cascadeOnUpdate()->restrictOnDelete();
             $table->string('tahun', 4);
-            $table->integer('jumlah_cuti')->default(12);
+            $table->integer('jumlah_cuti')->default(0);
             $table->integer('plus_tahun_lalu')->default(0);
             $table->integer('min_tahun_lalu')->default(0);
             $table->integer('total_cuti')->default(0);
