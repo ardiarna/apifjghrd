@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('cuti_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->enum('kategori', ['TAHUNAN', 'KHUSUS', 'UNPAID', 'GANTI_HARI_LIBUR', 'IJIN']);
             $table->string('jenis_khusus')->nullable();
-            $table->string('jenis_unpaid')->nullable();
+            $table->enum('jenis_unpaid', ['SUDAH_HABIS', 'SEBELUM_TIMBUL'])->nullable();
             $table->string('keterangan')->nullable();
             $table->integer('lama_hari')->nullable();
             

@@ -150,37 +150,73 @@ class CutiController extends Controller
                 $cuti->update([
                     'karyawan_id' => $request->karyawan_id,
                     'jenis_form' => $request->jenis_form,
-                    
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'tahun' => $request->tahun,
                 ]);
-                CutiDetail::where('cuti_id', $cuti->id)->delete();
+                
+                $submittedDetailIds = array_filter(array_column($request->details, 'id'));
+                if (!empty($submittedDetailIds)) {
+                    CutiDetail::where('cuti_id', $cuti->id)->whereNotIn('id', $submittedDetailIds)->delete();
+                } else {
+                    CutiDetail::where('cuti_id', $cuti->id)->delete();
+                }
+
+                foreach ($request->details as $detail) {
+                    if (!empty($detail['id'])) {
+                        $cd = CutiDetail::find($detail['id']);
+                        if ($cd) {
+                            $cd->update([
+                                'kategori' => $detail['kategori'],
+                                'jenis_cuti_khusus_id' => $detail['jenis_cuti_khusus_id'] ?? null,
+                                'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
+                                'keterangan' => $detail['keterangan'] ?? null,
+                            ]);
+                        }
+                    } else {
+                        $cd = CutiDetail::create([
+                            'cuti_id' => $cuti->id,
+                            'kategori' => $detail['kategori'],
+                            'jenis_cuti_khusus_id' => $detail['jenis_cuti_khusus_id'] ?? null,
+                            'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
+                            'keterangan' => $detail['keterangan'] ?? null,
+                            'lama_hari' => $detail['lama_hari'] ?? null,
+                        ]);
+        
+                        if (!empty($detail['dates'])) {
+                            foreach ($detail['dates'] as $date) {
+                                CutiDate::create([
+                                    'cuti_detail_id' => $cd->id,
+                                    'tanggal' => $date,
+                                ]);
+                            }
+                        }
+                    }
+                }
             } else {
                 $cuti = Cuti::create([
                     'karyawan_id' => $request->karyawan_id,
                     'jenis_form' => $request->jenis_form,
-                    
                     'tanggal_kembali' => $request->tanggal_kembali,
                     'tahun' => $request->tahun,
                 ]);
-            }
 
-            foreach ($request->details as $detail) {
-                $cd = CutiDetail::create([
-                    'cuti_id' => $cuti->id,
-                    'kategori' => $detail['kategori'],
-                    'jenis_cuti_khusus_id' => $detail['jenis_cuti_khusus_id'] ?? null,
-                    'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
-                    'keterangan' => $detail['keterangan'] ?? null,
-                    'lama_hari' => $detail['lama_hari'] ?? null,
-                ]);
+                foreach ($request->details as $detail) {
+                    $cd = CutiDetail::create([
+                        'cuti_id' => $cuti->id,
+                        'kategori' => $detail['kategori'],
+                        'jenis_cuti_khusus_id' => $detail['jenis_cuti_khusus_id'] ?? null,
+                        'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
+                        'keterangan' => $detail['keterangan'] ?? null,
+                        'lama_hari' => $detail['lama_hari'] ?? null,
+                    ]);
 
-                if (!empty($detail['dates'])) {
-                    foreach ($detail['dates'] as $date) {
-                        CutiDate::create([
-                            'cuti_detail_id' => $cd->id,
-                            'tanggal' => $date,
-                        ]);
+                    if (!empty($detail['dates'])) {
+                        foreach ($detail['dates'] as $date) {
+                            CutiDate::create([
+                                'cuti_detail_id' => $cd->id,
+                                'tanggal' => $date,
+                            ]);
+                        }
                     }
                 }
             }
