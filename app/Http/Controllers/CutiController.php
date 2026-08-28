@@ -80,14 +80,17 @@ class CutiController extends Controller
     public function infoMasal(Request $request)
     {
         $tahun = $request->tahun ?? date('Y');
-        $karyawans = \App\Models\Karyawan::with(['jabatan'])
+        $query = \App\Models\Karyawan::with(['jabatan'])
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->select('karyawans.*')
             ->where('karyawans.aktif', 'Y')
             ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan')
-            ->orderBy('karyawans.id')
-            ->get();
+            ->orderBy('karyawans.id');
+        if ($request->has('karyawan_id')) {
+            $query->where('karyawans.id', $request->karyawan_id);
+        }
+        $karyawans = $query->get();
         
         $jatahs = \App\Models\JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
         
