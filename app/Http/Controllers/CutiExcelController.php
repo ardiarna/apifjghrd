@@ -544,16 +544,276 @@ class CutiExcelController extends Controller
 
     public function form($id)
     {
-        $cuti = Cuti::with('karyawan', 'details.dates')->find($id);
+        $bulanInd = ['January'=>'Januari','February'=>'Februari','March'=>'Maret',
+            'April'=>'April','May'=>'Mei','June'=>'Juni','July'=>'Juli',
+            'August'=>'Agustus','September'=>'September','October'=>'Oktober',
+            'November'=>'November','December'=>'Desember'];
+        $fmtTgl = function($val) use ($bulanInd) {
+            if (!$val) return '-';
+            $dt = \Carbon\Carbon::parse($val);
+            return $dt->format('j') . ' ' . $bulanInd[$dt->format('F')] . ' ' . $dt->format('Y');
+        };
+
+        $cuti = Cuti::with([
+            'karyawan.jabatan',
+            'karyawan.divisi',
+            'karyawan.statusKerja',
+            'details.dates',
+            'details.jenisKhusus',
+        ])->find($id);
+
+        if (!$cuti) {
+            return response()->json(['message' => 'Data tidak ditemukan'], 404);
+        }
+
+        $k     = $cuti->karyawan;
+        $tahun = $cuti->tahun;
+
+        $tanggalKembali = $fmtTgl($cuti->tanggal_kembali);
+        $tanggalMasuk   = $fmtTgl($k->tanggal_masuk);
+
+        $snapTotal = null; $snapDiambil = null; $snapMasal = null;
+        $lamaKhusus = 0; $lamaUnpaid1 = 0; $lamaUnpaid2 = 0; $lamaGantiLibur = 0;
+        $akanDiambil = 0;
+        $lamaKhususSatuan = 'Hari';
+        $allDates = []; $keperluanList = [];
+
+        foreach ($cuti->details as $det) {
+            if ($det->keterangan) $keperluanList[] = $det->keterangan;
+            if ($det->snap_total_hak_cuti !== null && $snapTotal === null) {
+                $snapTotal   = (int) $det->snap_total_hak_cuti;
+                $snapDiambil = (int) $det->snap_sudah_diambil;
+                $snapMasal   = (int) $det->snap_cuti_masal;
+            }
+            $lama = (int) ($det->lama_hari ?? 0);
+            if ($det->kategori === 'KHUSUS') {
+                $lamaKhusus += $lama;
+                if ($det->jenisKhusus && strtolower($det->jenisKhusus->satuan) === 'bulan') {
+                    $lamaKhususSatuan = 'Bulan';
+                }
+            }
+            if ($det->kategori === 'UNPAID') {
+                if ($det->jenis_unpaid === 'BELUM_TIMBUL') $lamaUnpaid1 += $lama;
+                else $lamaUnpaid2 += $lama;
+            }
+            if ($det->kategori === 'GANTI_LIBUR') $lamaGantiLibur += $lama;
+            if (in_array($det->kategori, ['TAHUNAN', 'IJIN'])) $akanDiambil += $lama;
+            foreach ($det->dates as $d) $allDates[] = $d->tanggal;
+        }
+
+        // Tanggal pengambilan cuti (format panjang, deduplikasi)
+        $tanggalInput = '-';
+        if (count($allDates) > 0) {
+            sort($allDates);
+            $unique = array_values(array_unique($allDates));
+            if (count($unique) === 1) {
+                $tanggalInput = $fmtTgl($unique[0]);
+            } else {
+                $tanggalInput = $fmtTgl($unique[0]) . ' s/d ' . $fmtTgl($unique[count($unique)-1]);
+            }
+        }
+
+        // Keperluan: deduplikasi, hanya tulis 1x jika sama
+        $keperluan = implode('; ', array_unique(array_filter($keperluanList)));
+
+        $totalHak     = $snapTotal   ?? 0;
+        $sudahDiambil = $snapDiambil ?? 0;
+        $cutiMasal    = $snapMasal   ?? 0;
+        $belumDiambil = $totalHak - $sudahDiambil - $cutiMasal;
+        $sisaHak      = $belumDiambil - $akanDiambil;
+
+        // ---- spreadsheet ----
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A1', 'FORM CUTI');
-        if($cuti) {
-            $sheet->setCellValue('A2', 'NAMA: ' . $cuti->karyawan->nama);
-            // Keperluan moved to cuti details
+        $sheet->setShowGridlines(false);
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11)->setBold(true);
+
+        $sheet->getColumnDimension('A')->setWidth(3);
+        $sheet->getColumnDimension('B')->setWidth(34);
+        $sheet->getColumnDimension('C')->setWidth(3);
+        $sheet->getColumnDimension('D')->setWidth(14);
+        $sheet->getColumnDimension('E')->setWidth(12);
+        $sheet->getColumnDimension('F')->setWidth(6);
+        $sheet->getColumnDimension('G')->setWidth(10);
+        $sheet->getColumnDimension('H')->setWidth(6);
+        $sheet->getColumnDimension('I')->setWidth(3);
+
+        // Blank rows: normal height
+        foreach ([1, 2, 13, 14, 23, 27, 31, 33] as $r) {
+            $sheet->getRowDimension($r)->setRowHeight(18);
         }
-        return $this->downloadExcel($spreadsheet, "FORM_CUTI_$id.xlsx");
+
+        // Row 3 title
+        $sheet->mergeCells('B3:H3');
+        $sheet->setCellValue('B3', 'PERMOHONAN PENGAMBILAN CUTI');
+        $sheet->getStyle('B3')->getFont()->setSize(14)->setBold(true);
+        $sheet->getStyle('B3')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getRowDimension(3)->setRowHeight(24);
+
+        // Rows 4-12 info
+        $infoRows = [
+            4  => ['N a m a',                  $k->nama],
+            5  => ['Bagian',                    $k->divisi ? $k->divisi->nama : '-'],
+            6  => ['Jabatan',                   $k->jabatan ? $k->jabatan->nama : '-'],
+            7  => ['NIK',                       $k->nik ?? '-'],
+            8  => ['Status Karyawan',           $k->statusKerja ? $k->statusKerja->nama : '-'],
+            9  => ['Tanggal Mulai Masuk Kerja', $tanggalMasuk],
+            10 => ['Pengambilan Cuti',          $tanggalInput],
+            11 => ['Tanggal Masuk Kembali',     $tanggalKembali],
+            12 => ['Keperluan Cuti',            $keperluan],
+        ];
+        foreach ($infoRows as $row => $data) {
+            $sheet->setCellValue('B'.$row, $data[0]);
+            $sheet->setCellValue('C'.$row, ':');
+            $sheet->mergeCells('D'.$row.':H'.$row);
+            $sheet->setCellValue('D'.$row, $data[1]);
+            $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle('B'.$row.':H'.$row)->getAlignment()->setVertical('center');
+            $sheet->getRowDimension($row)->setRowHeight(18);
+        }
+
+        // Row 15: no merge, all border, center, grey background
+        $sheet->setCellValue('B15', 'Diisi Oleh HR Dept :');
+        $sheet->getStyle('B15')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('B15')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD8D8D8');
+        $sheet->getStyle('B15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getRowDimension(15)->setRowHeight(18);
+
+        // Helper: category row (underline, no background)
+        $setCategoryRow = function($range, $value) use ($sheet) {
+            $sheet->mergeCells($range);
+            [$startCell] = explode(':', $range);
+            $sheet->setCellValue($startCell, $value);
+            $sheet->getStyle($startCell)->getFont()->setUnderline(true)->setBold(true);
+            $sheet->getStyle($startCell)->getAlignment()->setVertical('center');
+        };
+
+        // Row 16 section 1
+        $setCategoryRow('B16:H16', '1. Cuti Tahunan');
+        $sheet->getRowDimension(16)->setRowHeight(18);
+
+        // Row 17-22 tahunan
+        $tahunanRows = [
+            17 => ['Hak Cuti Tahunan Periode',                   'G', $totalHak,    'Hari'],
+            18 => ['Cuti Yang Sudah Diambil',                    'E', $sudahDiambil, 'Hari', 'F'],
+            19 => ['Cuti Masal ; Idul Fitri/Natal/Cuti Bersama', 'E', $cutiMasal,   'Hari', 'F'],
+            20 => ['Cuti Yang Belum Diambil',                    'G', $belumDiambil, 'Hari'],
+            21 => ['Cuti Yang Akan Diambil',                     'G', $akanDiambil,  'Hari'],
+            22 => ['Sisa Hak Cuti Tahunan',                      'G', $sisaHak,      'Hari'],
+        ];
+        foreach ($tahunanRows as $row => $r) {
+            $sheet->setCellValue('B'.$row, $r[0]);
+            $sheet->setCellValue('C'.$row, ':');
+            $sheet->setCellValue('D'.$row, $tahun);
+            $valCol  = $r[1];
+            $unitCol = isset($r[4]) ? $r[4] : chr(ord($valCol)+1);
+            $sheet->setCellValue($valCol.$row, $r[2]);
+            $sheet->setCellValue($unitCol.$row, $r[3]);
+            $sheet->getStyle($valCol.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle($unitCol.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle('D'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $sheet->getStyle('B'.$row.':H'.$row)->getAlignment()->setVertical('center');
+            $sheet->getRowDimension($row)->setRowHeight(18);
+        }
+
+        // Row 24 section 2
+        $setCategoryRow('B24:H24', '2. Cuti Tanggungan Perusahaan');
+        $sheet->getRowDimension(24)->setRowHeight(18);
+
+        // Row 25
+        $sheet->mergeCells('B25:E25');
+        $sheet->setCellValue('B25', 'Melahirkan / Menikah / Baptis / Khitanan / Anak Menikah');
+        $sheet->setCellValue('G25', $lamaKhusus);
+        $sheet->setCellValue('H25', $lamaKhususSatuan);
+        $sheet->getStyle('G25')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('F25')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('H25')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('B25:H25')->getAlignment()->setVertical('center');
+        $sheet->getRowDimension(25)->setRowHeight(18);
+
+        // Row 26
+        $sheet->mergeCells('B26:E26');
+        $sheet->setCellValue('B26', 'Ibadah Haji / Ibadah Umroh / Sakit Lama');
+        $sheet->getStyle('B26:H26')->getAlignment()->setVertical('center');
+        $sheet->getRowDimension(26)->setRowHeight(18);
+
+        // Row 28 section 3
+        $setCategoryRow('B28:H28', '3. Cuti Diluar Tanggungan Perusahaan / Unpaid Leave');
+        $sheet->getRowDimension(28)->setRowHeight(18);
+
+        // Row 29 – rich text: "Unpaid Leave (Potong Upah)" merah
+        $sheet->mergeCells('B29:E29');
+        $rt29 = new \PhpOffice\PhpSpreadsheet\RichText\RichText();
+        $r29a = $rt29->createTextRun('- Hak Cuti Sebelum Timbul / ');
+        $r29a->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+        $r29b = $rt29->createTextRun('Unpaid Leave (Potong Upah)');
+        $r29b->getFont()->setBold(true)->setName('Calibri')->setSize(11)->getColor()->setARGB('FFFF0000');
+        $sheet->getCell('B29')->setValue($rt29);
+        $sheet->setCellValue('G29', $lamaUnpaid1);
+        $sheet->setCellValue('H29', 'Hari');
+        $sheet->getStyle('G29')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('H29')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('B29:H29')->getAlignment()->setVertical('center');
+        $sheet->getRowDimension(29)->setRowHeight(18);
+
+        // Row 30 – rich text: "Unpaid Leave (Potong Upah)" merah
+        $sheet->mergeCells('B30:E30');
+        $rt30 = new \PhpOffice\PhpSpreadsheet\RichText\RichText();
+        $r30a = $rt30->createTextRun('- Hak Cuti Sudah Habis / ');
+        $r30a->getFont()->setBold(true)->setName('Calibri')->setSize(11);
+        $r30b = $rt30->createTextRun('Unpaid Leave (Potong Upah)');
+        $r30b->getFont()->setBold(true)->setName('Calibri')->setSize(11)->getColor()->setARGB('FFFF0000');
+        $sheet->getCell('B30')->setValue($rt30);
+        $sheet->setCellValue('G30', $lamaUnpaid2);
+        $sheet->setCellValue('H30', 'Hari');
+        $sheet->getStyle('G30')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('H30')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('B30:H30')->getAlignment()->setVertical('center');
+        $sheet->getRowDimension(30)->setRowHeight(18);
+
+        // Row 32 section 4
+        $sheet->mergeCells('B32:E32');
+        $sheet->setCellValue('B32', '4. Penggantian Hari Libur');
+        $sheet->getStyle('B32')->getFont()->setUnderline(true)->setBold(true);
+        $sheet->getStyle('B32:H32')->getAlignment()->setVertical('center');
+        $sheet->setCellValue('G32', $lamaGantiLibur);
+        $sheet->setCellValue('H32', 'Hari');
+        $sheet->getStyle('G32')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('H32')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getRowDimension(32)->setRowHeight(18);
+
+        // Row 34: B only, all border, center, grey
+        $sheet->setCellValue('B34', 'Keputusan :');
+        $sheet->getStyle('B34')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $sheet->getStyle('B34')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD8D8D8');
+        $sheet->getStyle('B34')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getRowDimension(34)->setRowHeight(18);
+
+        // ---- BORDERS ----
+        // Outer border A2:I34
+        $sheet->getStyle('A2:I34')->getBorders()->getOutline()->setBorderStyle(Border::BORDER_MEDIUM);
+
+        // Bottom border row 3 B:H
+        $sheet->getStyle('B3:H3')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+        // Bottom borders on specific value cells
+        $bottomCells = ['G17', 'E18', 'E19', 'G20', 'G25', 'G29', 'G30', 'G32'];
+        foreach ($bottomCells as $cell) {
+            $sheet->getStyle($cell)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        }
+
+        // G22: all border
+        $sheet->getStyle('G22')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        // G21 bottom border (for "akan diambil" – acts as input line)
+        $sheet->getStyle('G21')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+
+        return $this->downloadExcel($spreadsheet, 'FORM_CUTI_' . preg_replace('/\s+/', '_', $k->nama) . '_' . $tahun . '.xlsx');
     }
+
+
+
 
     public function tanpaPotongan($tahunAwal, $tahunAkhir)
     {

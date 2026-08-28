@@ -14,7 +14,7 @@ class CutiController extends Controller
     public function findAll(Request $request)
     {
         $tahun = $request->tahun ?? date('Y');
-        $data = Cuti::with(['karyawan', 'details.dates', 'details.jenisKhusus'])->where('tahun', $tahun)->orderBy('created_at', 'desc')->get();
+        $data = Cuti::with(['karyawan.jabatan', 'karyawan.divisi', 'karyawan.statusKerja', 'karyawan.area', 'details.dates', 'details.jenisKhusus'])->where('tahun', $tahun)->orderBy('created_at', 'desc')->get();
         return response()->json(['status' => 'success', 'message' => 'success', 'data' => $data], 200);
     }
 
