@@ -95,7 +95,9 @@ class CicCutiExcelController extends Controller
 
             $row = 2;
 
-            $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo) {
+                        $hariLiburs = \App\Models\HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
+            $holidayDates = $hariLiburs->pluck('tanggal')->toArray();
+            $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDates) {
                 $sheet->setCellValue('A'.$row, 'LIST CUTI ' . $bulanIndo[$m] . ' ' . $tahun);
                 $sheet->mergeCells('A'.$row.':AK'.$row);
                 $sheet->getStyle('A'.$row)->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
@@ -134,7 +136,7 @@ class CicCutiExcelController extends Controller
 
                         $dateStr = sprintf('%04d-%02d-%02d', $tahun, $m, $d);
                         $dayOfWeek = date('N', strtotime($dateStr));
-                        if($dayOfWeek == 6 || $dayOfWeek == 7) {
+                                                if($dayOfWeek == 6 || $dayOfWeek == 7 || in_array($dateStr, $holidayDates)) {
                             $weekendCols[] = $col;
                             $sheet->getStyle($col.$row)->getFont()->getColor()->setARGB('FFFF0000');
                         }
@@ -273,9 +275,27 @@ class CicCutiExcelController extends Controller
                 }
             };
 
-            $drawTable('STAF', false);
+                        $drawTable('STAF', false);
 
-            $row += 3;
+            $row += 2;
+            foreach($hariLiburs as $hl) {
+                $dt = \Carbon\Carbon::parse($hl->tanggal);
+                $sheet->getStyle('A'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
+                
+                $tglStr = "TGL " . $dt->format('d') . " " . strtoupper($bulanIndo[$dt->format('n')]) . " '" . $dt->format('y');
+                $sheet->setCellValue('B'.$row, $tglStr);
+                $sheet->getStyle('B'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                
+                $sheet->setCellValue('C'.$row, '=');
+                $sheet->getStyle('C'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center');
+                
+                $sheet->mergeCells('D'.$row.':AK'.$row);
+                $sheet->setCellValue('D'.$row, strtoupper($hl->nama));
+                $sheet->getStyle('D'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                $row++;
+            }
+
 
             
 
