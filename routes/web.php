@@ -296,3 +296,51 @@ $router->group(['prefix' => 'jenis-cuti-khusus', 'middleware' => 'auth:api'], fu
     $router->put('{id}', 'JenisCutiKhususController@update');
     $router->delete('{id}', 'JenisCutiKhususController@delete');
 });
+
+$router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use ($router) {
+    // Karyawan
+    $router->group(['prefix' => 'karyawan'], function () use ($router) {
+        $router->get('/', 'CicKaryawanController@findAll');
+        $router->get('{id}', 'CicKaryawanController@findById');
+        $router->post('/', 'CicKaryawanController@create');
+        $router->put('{id}', 'CicKaryawanController@update');
+        $router->delete('{id}', 'CicKaryawanController@delete');
+    });
+
+    // Cuti
+    $router->group(['prefix' => 'cuti'], function () use ($router) {
+        $router->get('/', 'CicCutiController@findAll');
+        $router->get('info', 'CicCutiController@info');
+        $router->get('info-masal', 'CicCutiController@infoMasal');
+        $router->post('submit-masal', 'CicCutiController@submitMasal');
+        $router->post('submit', 'CicCutiController@submit');
+        $router->delete('{id}', 'CicCutiController@delete');
+
+        $router->group(['prefix' => 'excel'], function () use ($router) {
+            $router->get('list/{tahun}', 'CicCutiExcelController@listCuti');
+            $router->get('jadwal/{tahun}', 'CicCutiExcelController@listCutiSingle');
+            $router->get('tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@tanpaPotongan');
+            $router->get('tanpa-potongan/{tahun}', 'CicCutiExcelController@tanpaPotonganSingle');
+            $router->get('unpaid/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@unpaid');
+            $router->get('unpaid/{tahun}', 'CicCutiExcelController@unpaidSingle');
+            $router->get('form/{id}', 'CicCutiExcelController@form');
+        });
+    });
+
+    // Jatah
+    $router->group(['prefix' => 'jatah-cuti-tahunan'], function () use ($router) {
+        $router->get('hitung-sisa', 'CicJatahCutiTahunanController@hitungSisa');
+        $router->get('/', 'CicJatahCutiTahunanController@findAll');
+        $router->post('/', 'CicJatahCutiTahunanController@create');
+        $router->put('{id}', 'CicJatahCutiTahunanController@update');
+        $router->delete('{id}', 'CicJatahCutiTahunanController@delete');
+    });
+
+    // Jenis Khusus
+    $router->group(['prefix' => 'jenis-cuti-khusus'], function () use ($router) {
+        $router->get('/', 'CicJenisCutiKhususController@findAll');
+        $router->post('/', 'CicJenisCutiKhususController@create');
+        $router->put('{id}', 'CicJenisCutiKhususController@update');
+        $router->delete('{id}', 'CicJenisCutiKhususController@delete');
+    });
+});
