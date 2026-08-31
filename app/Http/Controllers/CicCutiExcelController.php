@@ -342,13 +342,13 @@ class CicCutiExcelController extends Controller
             }
             $spreadsheet->setActiveSheetIndex($sheetIndex);
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('CUTI TH ' . $tahun);
+        $sheet->setTitle('CUTI TH ' . $tahun . ' CIC');
         $sheet->setShowGridlines(false);
 
         // Row 1 blank
 
         // 1. judul report dan periode merge dari kolom A sampai X
-        $sheet->setCellValue('A2', 'CUTI KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
+        $sheet->setCellValue('A2', 'CUTI KARYAWAN CIC');
         $sheet->mergeCells('A2:X2');
         $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
@@ -559,7 +559,7 @@ class CicCutiExcelController extends Controller
             $sheetIndex++;
         }
         $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "LIST_CUTI_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
+        return $this->downloadExcel($spreadsheet, "LIST_CUTI_CIC_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
     }
 
     public function form($id)
