@@ -630,19 +630,26 @@ class CutiExcelController extends Controller
         $sheet->setTitle('FORM');
         $spreadsheet->getDefaultStyle()->getFont()->setName('Century Gothic')->setSize(10)->setBold(true);
 
-        $sheet->getColumnDimension('A')->setWidth(3);
-        $sheet->getColumnDimension('B')->setWidth(34);
-        $sheet->getColumnDimension('C')->setWidth(3);
-        $sheet->getColumnDimension('D')->setWidth(14);
-        $sheet->getColumnDimension('E')->setWidth(12);
-        $sheet->getColumnDimension('F')->setWidth(6);
-        $sheet->getColumnDimension('G')->setWidth(10);
-        $sheet->getColumnDimension('H')->setWidth(6);
-        $sheet->getColumnDimension('I')->setWidth(3);
+        $isJkt = $k->area && strtoupper($k->area->kode) === 'JKT';
+
+        $sheet->getColumnDimension('A')->setWidth(4.83); // 29px
+        if ($isJkt) {
+            $sheet->getColumnDimension('B')->setWidth(37.17); // 223px
+            $sheet->getColumnDimension('C')->setWidth(2.50); // 15px
+        } else {
+            $sheet->getColumnDimension('B')->setWidth(43.00); // 258px
+            $sheet->getColumnDimension('C')->setWidth(3.17); // 19px
+        }
+        $sheet->getColumnDimension('D')->setWidth(12.67); // 76px
+        $sheet->getColumnDimension('E')->setWidth(8.83); // 53px
+        $sheet->getColumnDimension('F')->setWidth(7.00); // 42px
+        $sheet->getColumnDimension('G')->setWidth(8.83); // 53px
+        $sheet->getColumnDimension('H')->setWidth(5.83); // 35px
+        $sheet->getColumnDimension('I')->setWidth(4.83); // 29px
 
         // Blank rows: normal height
         foreach ([1, 2, 13, 14, 23, 27, 31, 33, 35, 36, 37, 40, 41] as $r) {
-            $sheet->getRowDimension($r)->setRowHeight(18);
+            $sheet->getRowDimension($r)->setRowHeight(17);
         }
 
         // Row 3 title
@@ -650,7 +657,7 @@ class CutiExcelController extends Controller
         $sheet->setCellValue('B3', 'PERMOHONAN PENGAMBILAN CUTI');
         $sheet->getStyle('B3')->getFont()->setSize(14)->setBold(true);
         $sheet->getStyle('B3')->getAlignment()->setHorizontal('center')->setVertical('center');
-        $sheet->getRowDimension(3)->setRowHeight(24);
+        $sheet->getRowDimension(3)->setRowHeight(17);
 
         // Rows 4-12 info
         $infoRows = [
@@ -671,7 +678,7 @@ class CutiExcelController extends Controller
             $sheet->setCellValue('D'.$row, $data[1]);
             $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
             $sheet->getStyle('B'.$row.':H'.$row)->getAlignment()->setVertical('center');
-            $sheet->getRowDimension($row)->setRowHeight(18);
+            $sheet->getRowDimension($row)->setRowHeight(17);
         }
 
         // Row 15: no merge, all border, center, grey background
@@ -680,20 +687,24 @@ class CutiExcelController extends Controller
         $sheet->getStyle('B15')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('B15')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD8D8D8');
         $sheet->getStyle('B15')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getRowDimension(15)->setRowHeight(18);
+        $sheet->getRowDimension(15)->setRowHeight(17);
 
-        // Helper: category row (underline, no background)
-        $setCategoryRow = function($range, $value) use ($sheet) {
+        // Helper: category row (underline only for text, not numbering)
+        $setCategoryRow = function($range, $prefix, $text) use ($sheet) {
             $sheet->mergeCells($range);
             [$startCell] = explode(':', $range);
-            $sheet->setCellValue($startCell, $value);
-            $sheet->getStyle($startCell)->getFont()->setUnderline(true)->setBold(true);
+            $rt = new \PhpOffice\PhpSpreadsheet\RichText\RichText();
+            $r1 = $rt->createTextRun($prefix);
+            $r1->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(false);
+            $r2 = $rt->createTextRun($text);
+            $r2->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(true);
+            $sheet->setCellValue($startCell, $rt);
             $sheet->getStyle($startCell)->getAlignment()->setVertical('center');
         };
 
         // Row 16 section 1
-        $setCategoryRow('B16:H16', '1. Cuti Tahunan');
-        $sheet->getRowDimension(16)->setRowHeight(18);
+        $setCategoryRow('B16:H16', '1. ', 'Cuti Tahunan');
+        $sheet->getRowDimension(16)->setRowHeight(17);
 
         // Row 17-22 tahunan
         $tahunanRows = [
@@ -717,12 +728,12 @@ class CutiExcelController extends Controller
             $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
             $sheet->getStyle('D'.$row)->getAlignment()->setHorizontal('center')->setVertical('center');
             $sheet->getStyle('B'.$row.':H'.$row)->getAlignment()->setVertical('center');
-            $sheet->getRowDimension($row)->setRowHeight(18);
+            $sheet->getRowDimension($row)->setRowHeight(17);
         }
 
         // Row 24 section 2
-        $setCategoryRow('B24:H24', '2. Cuti Tanggungan Perusahaan');
-        $sheet->getRowDimension(24)->setRowHeight(18);
+        $setCategoryRow('B24:H24', '2. ', 'Cuti Tanggungan Perusahaan');
+        $sheet->getRowDimension(24)->setRowHeight(17);
 
         // Row 25
         $sheet->mergeCells('B25:E25');
@@ -733,17 +744,17 @@ class CutiExcelController extends Controller
         $sheet->getStyle('F25')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('H25')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('B25:H25')->getAlignment()->setVertical('center');
-        $sheet->getRowDimension(25)->setRowHeight(18);
+        $sheet->getRowDimension(25)->setRowHeight(17);
 
         // Row 26
         $sheet->mergeCells('B26:E26');
         $sheet->setCellValue('B26', 'Ibadah Haji / Ibadah Umroh / Sakit Lama');
         $sheet->getStyle('B26:H26')->getAlignment()->setVertical('center');
-        $sheet->getRowDimension(26)->setRowHeight(18);
+        $sheet->getRowDimension(26)->setRowHeight(17);
 
         // Row 28 section 3
-        $setCategoryRow('B28:H28', '3. Cuti Diluar Tanggungan Perusahaan / Unpaid Leave');
-        $sheet->getRowDimension(28)->setRowHeight(18);
+        $setCategoryRow('B28:H28', '3. ', 'Cuti Diluar Tanggungan Perusahaan / Unpaid Leave');
+        $sheet->getRowDimension(28)->setRowHeight(17);
 
         // Row 29 – rich text: "Unpaid Leave (Potong Upah)" merah
         $sheet->mergeCells('B29:E29');
@@ -758,7 +769,7 @@ class CutiExcelController extends Controller
         $sheet->getStyle('G29')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('H29')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('B29:H29')->getAlignment()->setVertical('center');
-        $sheet->getRowDimension(29)->setRowHeight(18);
+        $sheet->getRowDimension(29)->setRowHeight(17);
 
         // Row 30 – rich text: "Unpaid Leave (Potong Upah)" merah
         $sheet->mergeCells('B30:E30');
@@ -773,25 +784,29 @@ class CutiExcelController extends Controller
         $sheet->getStyle('G30')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('H30')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('B30:H30')->getAlignment()->setVertical('center');
-        $sheet->getRowDimension(30)->setRowHeight(18);
+        $sheet->getRowDimension(30)->setRowHeight(17);
 
         // Row 32 section 4
         $sheet->mergeCells('B32:E32');
-        $sheet->setCellValue('B32', '4. Penggantian Hari Libur');
-        $sheet->getStyle('B32')->getFont()->setUnderline(true)->setBold(true);
+        $rt4 = new \PhpOffice\PhpSpreadsheet\RichText\RichText();
+        $r4_1 = $rt4->createTextRun('4. ');
+        $r4_1->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(false);
+        $r4_2 = $rt4->createTextRun('Penggantian Hari Libur');
+        $r4_2->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(true);
+        $sheet->setCellValue('B32', $rt4);
         $sheet->getStyle('B32:H32')->getAlignment()->setVertical('center');
         $sheet->setCellValue('G32', $lamaGantiLibur);
         $sheet->setCellValue('H32', 'Hari');
         $sheet->getStyle('G32')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('H32')->getAlignment()->setHorizontal('center')->setVertical('center');
-        $sheet->getRowDimension(32)->setRowHeight(18);
+        $sheet->getRowDimension(32)->setRowHeight(17);
 
         // Row 34: B only, all border, center, grey
         $sheet->setCellValue('B34', 'Keputusan :');
         $sheet->getStyle('B34')->getAlignment()->setHorizontal('center')->setVertical('center');
         $sheet->getStyle('B34')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFD8D8D8');
         $sheet->getStyle('B34')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        $sheet->getRowDimension(34)->setRowHeight(18);
+        $sheet->getRowDimension(34)->setRowHeight(17);
 
         // ---- SIGNATURE ROWS ----
         // Helper: RichText with optional leading spaces (no underline) then underlined text
@@ -805,8 +820,6 @@ class CutiExcelController extends Controller
             $tx->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(true);
             return $rt;
         };
-
-        $isJkt = $k->area && strtoupper($k->area->kode) === 'JKT';
 
         if ($isJkt) {
             // Row 38 - JKT signatures
@@ -823,9 +836,8 @@ class CutiExcelController extends Controller
             $sheet->getStyle('F38')->getFont()->setUnderline(true)->setBold(true);
             $sheet->getStyle('F38')->getAlignment()->setHorizontal('center')->setVertical('center');
 
-            $sheet->getRowDimension(38)->setRowHeight(20);
+            $sheet->getRowDimension(38)->setRowHeight(17);
 
-            // Row 39 - JKT Tgl.
             $sheet->setCellValue('B39', '         Tgl.');
             $sheet->getStyle('B39')->getAlignment()->setVertical('center');
 
@@ -837,36 +849,45 @@ class CutiExcelController extends Controller
             $sheet->setCellValue('F39', '        Tgl.');
             $sheet->getStyle('F39')->getAlignment()->setHorizontal('left')->setVertical('center');
 
-            $sheet->getRowDimension(39)->setRowHeight(18);
+            $sheet->getRowDimension(39)->setRowHeight(17);
         } else {
             // Row 38 - non-JKT signatures
-            $sheet->getCell('B38')->setValue($rtSig('      ', 'HR Dept            Engin SPV/Team Leader/Koord.'));
+            $rtNonJkt = new \PhpOffice\PhpSpreadsheet\RichText\RichText();
+            $s1 = $rtNonJkt->createTextRun('      ');
+            $s1->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(false);
+            $t1 = $rtNonJkt->createTextRun('HR Dept');
+            $t1->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(true);
+            $s2 = $rtNonJkt->createTextRun('                ');
+            $s2->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(false);
+            $t2 = $rtNonJkt->createTextRun('Engin SPV/Team Leader/Koord.');
+            $t2->getFont()->setBold(true)->setName('Century Gothic')->setSize(10)->setUnderline(true);
+
+            $sheet->getCell('B38')->setValue($rtNonJkt);
             $sheet->getStyle('B38')->getAlignment()->setVertical('center');
 
             $sheet->mergeCells('D38:E38');
             $sheet->getCell('D38')->setValue($rtSig('     ', 'Adm Manager'));
-            $sheet->getStyle('D38')->getAlignment()->setHorizontal('left')->setVertical('center');
+            $sheet->getStyle('D38')->getAlignment()->setHorizontal('center')->setVertical('center');
 
             $sheet->mergeCells('F38:H38');
             $sheet->setCellValue('F38', 'Presiden Direktur');
             $sheet->getStyle('F38')->getFont()->setUnderline(true)->setBold(true);
             $sheet->getStyle('F38')->getAlignment()->setHorizontal('center')->setVertical('center');
 
-            $sheet->getRowDimension(38)->setRowHeight(20);
+            $sheet->getRowDimension(38)->setRowHeight(17);
 
-            // Row 39 - non-JKT Tgl.
-            $sheet->setCellValue('B39', 'Tgl.                                Tgl.');
+            $sheet->setCellValue('B39', '      Tgl.                        Tgl.');
             $sheet->getStyle('B39')->getAlignment()->setVertical('center');
 
             $sheet->mergeCells('D39:E39');
-            $sheet->setCellValue('D39', 'Tgl.');
+            $sheet->setCellValue('D39', '           Tgl.');
             $sheet->getStyle('D39')->getAlignment()->setHorizontal('left')->setVertical('center');
 
             $sheet->mergeCells('F39:H39');
-            $sheet->setCellValue('F39', 'Tgl.');
+            $sheet->setCellValue('F39', '        Tgl.');
             $sheet->getStyle('F39')->getAlignment()->setHorizontal('left')->setVertical('center');
 
-            $sheet->getRowDimension(39)->setRowHeight(18);
+            $sheet->getRowDimension(39)->setRowHeight(17);
         }
 
         // ---- BORDERS ----
