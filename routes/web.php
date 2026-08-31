@@ -317,8 +317,9 @@ $router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use 
         $router->delete('{id}', 'CicCutiController@delete');
 
         $router->group(['prefix' => 'excel'], function () use ($router) {
-            $router->get('list/{tahun}', 'CicCutiExcelController@listCuti');
-            $router->get('jadwal/{tahun}', 'CicCutiExcelController@listCutiSingle');
+            $router->get('jadwal/{tahun}', 'CicCutiExcelController@jadwal');
+            $router->get('list/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@listCuti');
+            $router->get('list/{tahun}', 'CicCutiExcelController@listCutiSingle');
             $router->get('tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@tanpaPotongan');
             $router->get('tanpa-potongan/{tahun}', 'CicCutiExcelController@tanpaPotonganSingle');
             $router->get('unpaid/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@unpaid');

@@ -11,4 +11,6 @@ class CicKaryawan extends Model {
     public function divisi() { return $this->belongsTo(Divisi::class); }
     public function statusKerja() { return $this->belongsTo(StatusKerja::class); }
     public function pendidikan() { return $this->belongsTo(Pendidikan::class); }
+    public function cicCutis() { return $this->hasMany(CicCuti::class, 'cic_karyawan_id'); }
+
 }
