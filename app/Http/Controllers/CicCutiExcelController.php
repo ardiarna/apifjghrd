@@ -891,7 +891,7 @@ class CicCutiExcelController extends Controller
 
 
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('CUTI TANPA POTONGAN ' . $tahun);
+        $sheet->setTitle('CUTI TANPA POTONGAN ' . $tahun . ' CIC');
         $sheet->setShowGridlines(false);
 
         // Row 1 is blank
@@ -1095,7 +1095,7 @@ class CicCutiExcelController extends Controller
             $sheetIndex++;
         }
         $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "CUTI_TANPA_POTONGAN_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
+        return $this->downloadExcel($spreadsheet, "CUTI_TANPA_POTONGAN_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . "_CIC.xlsx");
     }
 
     public function unpaid($tahunAwal, $tahunAkhir)
@@ -1307,7 +1307,7 @@ class CicCutiExcelController extends Controller
             $sheetIndex++;
         }
         $spreadsheet->setActiveSheetIndex(0);
-        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_&_GANTI_HARI_LIBUR_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . ".xlsx");
+        return $this->downloadExcel($spreadsheet, "UNPAID_LEAVE_&_GANTI_HARI_LIBUR_" . ($tahunAwal == $tahunAkhir ? $tahunAwal : $tahunAwal . "-" . $tahunAkhir) . "_CIC.xlsx");
     }
 
     private function downloadExcel($spreadsheet, $filename)
