@@ -188,6 +188,23 @@ $router->group(['prefix' => 'payroll_phk', 'middleware' => 'auth:api'], function
     $router->delete('{id}', 'PayrollPhkController@delete');
 });
 
+
+$router->group(['prefix' => 'training', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'TrainingController@findAll');
+    $router->get('{id}', 'TrainingController@findById');
+    $router->post('/', 'TrainingController@create');
+    $router->put('{id}', 'TrainingController@update');
+    $router->delete('{id}', 'TrainingController@delete');
+});
+
+$router->group(['prefix' => 'training-karyawan', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'TrainingKaryawanController@findAll');
+    $router->get('{id}', 'TrainingKaryawanController@findById');
+    $router->post('/', 'TrainingKaryawanController@create');
+    $router->put('{id}', 'TrainingKaryawanController@update');
+    $router->delete('{id}', 'TrainingKaryawanController@delete');
+});
+
 $router->group(['prefix' => 'pendidikan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'PendidikanController@findAll');
     $router->get('{id}', 'PendidikanController@findById');

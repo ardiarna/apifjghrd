@@ -42,6 +42,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\PayrollRepository', 'App\Repositories\Elo\PayrollImplement');
         $this->app->bind('App\Repositories\PayrollPhkRepository', 'App\Repositories\Elo\PayrollPhkImplement');
         $this->app->bind('App\Repositories\PendidikanRepository', 'App\Repositories\Elo\PendidikanImplement');
+        $this->app->bind('App\Repositories\TrainingRepository', 'App\Repositories\Elo\TrainingImplement');
+        $this->app->bind('App\Repositories\TrainingKaryawanRepository', 'App\Repositories\Elo\TrainingKaryawanImplement');
+
         $this->app->bind('App\Repositories\PenghasilanRepository', 'App\Repositories\Elo\PenghasilanImplement');
         $this->app->bind('App\Repositories\PerjanjianKerjaRepository', 'App\Repositories\Elo\PerjanjianKerjaImplement');
         $this->app->bind('App\Repositories\PhkRepository', 'App\Repositories\Elo\PhkImplement');
