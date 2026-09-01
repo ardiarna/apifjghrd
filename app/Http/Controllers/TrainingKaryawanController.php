@@ -38,7 +38,11 @@ class TrainingKaryawanController extends Controller
             'keterangan' => 'nullable|string'
         ]);
 
-        $data = $this->repo->create($request->all());
+        $inputs = $request->all();
+        if (isset($inputs['tanggal']) && $inputs['tanggal'] === '') {
+            $inputs['tanggal'] = null;
+        }
+        $data = $this->repo->create($inputs);
         $data = $this->repo->findById($data->id);
         $data->load('training');
         return $this->createdResponse($data, 'Data berhasil ditambah');
@@ -52,7 +56,11 @@ class TrainingKaryawanController extends Controller
             'keterangan' => 'nullable|string'
         ]);
 
-        $data = $this->repo->update($id, $request->all());
+        $inputs = $request->all();
+        if (isset($inputs['tanggal']) && $inputs['tanggal'] === '') {
+            $inputs['tanggal'] = null;
+        }
+        $data = $this->repo->update($id, $inputs);
         $data = $this->repo->findById($data->id);
         $data->load('training');
         return $this->successResponse($data, 'Data berhasil diubah');
