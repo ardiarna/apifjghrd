@@ -7,6 +7,7 @@ use App\Repositories\PayrollRepository;
 use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PotonganRepository;
 use Mpdf\Mpdf;
+use App\Repositories\AreaRepository;
 
 class PdfSlipGajiController extends Controller
 {
@@ -30,7 +31,7 @@ class PdfSlipGajiController extends Controller
         $arrBulan = ['Desember','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
         $bulanInt = (int)$bulan;
 
-        $rpArea = app(\App\Repositories\AreaRepository::class);
+        $rpArea = app(AreaRepository::class);
         if($area == 'all') {
             $namaArea = '';
         } else {

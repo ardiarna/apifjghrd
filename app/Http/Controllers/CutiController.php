@@ -8,6 +8,7 @@ use App\Models\CutiDate;
 use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\JatahCutiTahunan;
 
 class CutiController extends Controller
 {
@@ -23,12 +24,12 @@ class CutiController extends Controller
         $karyawanId = $request->karyawan_id;
         $tahun = $request->tahun ?? date('Y');
         
-        $karyawan = \App\Models\Karyawan::with(['jabatan', 'divisi'])->find($karyawanId);
+        $karyawan = Karyawan::with(['jabatan', 'divisi'])->find($karyawanId);
         if (!$karyawan) {
             return response()->json(['message' => 'Karyawan not found'], 404);
         }
 
-        $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $karyawanId)
+        $jatah = JatahCutiTahunan::where('karyawan_id', $karyawanId)
             ->where('tahun', $tahun)
             ->first();
 
@@ -43,14 +44,14 @@ class CutiController extends Controller
             $bolehMinus = $jatah->boleh_minus;
         }
 
-        $sudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+        $sudahDiambil = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
             $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
               ->whereHas('cuti', function($q2) use ($karyawanId, $tahun) {
                   $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun);
               });
         })->count();
 
-        $cutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+        $cutiMasal = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
             $q->where('kategori', 'CUTI_MASAL')
               ->whereHas('cuti', function($q2) use ($karyawanId, $tahun) {
                   $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun);
@@ -80,7 +81,7 @@ class CutiController extends Controller
     public function infoMasal(Request $request)
     {
         $tahun = $request->tahun ?? date('Y');
-        $query = \App\Models\Karyawan::with(['jabatan'])
+        $query = Karyawan::with(['jabatan'])
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->select('karyawans.*')
             ->where('karyawans.aktif', 'Y')
@@ -92,9 +93,9 @@ class CutiController extends Controller
         }
         $karyawans = $query->get();
         
-        $jatahs = \App\Models\JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
+        $jatahs = JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
         
-        $cutiDates = \App\Models\CutiDate::whereHas('cutiDetail.cuti', function($q) use ($tahun) {
+        $cutiDates = CutiDate::whereHas('cutiDetail.cuti', function($q) use ($tahun) {
             $q->where('tahun', $tahun);
         })->with('cutiDetail.cuti')->get();
 
@@ -204,16 +205,16 @@ class CutiController extends Controller
                 $tahun = $request->tahun;
 
                 // Calculate snapshot values once for TAHUNAN/IJIN categories
-                $jatahSnap = \App\Models\JatahCutiTahunan::where('karyawan_id', $karyawanId)
+                $jatahSnap = JatahCutiTahunan::where('karyawan_id', $karyawanId)
                     ->where('tahun', $tahun)->first();
                 $snapTotalHakCuti = $jatahSnap
                     ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
                     : 0;
-                $snapSudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                $snapSudahDiambil = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
                     $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
                       ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
                 })->count();
-                $snapCutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                $snapCutiMasal = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
                     $q->where('kategori', 'CUTI_MASAL')
                       ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
                 })->count();
@@ -272,16 +273,16 @@ class CutiController extends Controller
                 $karyawanId = $k['karyawan_id'];
                 $tahun = $request->tahun;
 
-                $jatahSnap = \App\Models\JatahCutiTahunan::where('karyawan_id', $karyawanId)
+                $jatahSnap = JatahCutiTahunan::where('karyawan_id', $karyawanId)
                     ->where('tahun', $tahun)->first();
                 $snapTotalHakCuti = $jatahSnap
                     ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
                     : 0;
-                $snapSudahDiambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                $snapSudahDiambil = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
                     $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
                       ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
                 })->count();
-                $snapCutiMasal = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                $snapCutiMasal = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
                     $q->where('kategori', 'CUTI_MASAL')
                       ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
                 })->count();

@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Models\HariLibur;
+use App\Models\JatahCutiTahunan;
 
 class CutiExcelController extends Controller
 {
@@ -95,7 +97,7 @@ class CutiExcelController extends Controller
 
             $row = 2;
 
-                        $hariLiburs = \App\Models\HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
+                        $hariLiburs = HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
             $holidayDates = $hariLiburs->pluck('tanggal')->toArray();
             $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDates) {
                 $sheet->setCellValue('A'.$row, 'LIST CUTI ' . $bulanIndo[$m] . ' ' . $tahun);
@@ -166,7 +168,7 @@ class CutiExcelController extends Controller
                             if ($isManajemen && $man != 'Y') continue;
                             if (!$isManajemen && $man == 'Y') continue;
 
-                            $cutiDatesMonth = \App\Models\CutiDate::with('cutiDetail')
+                            $cutiDatesMonth = CutiDate::with('cutiDetail')
                                 ->whereMonth('tanggal', $m)
                                 ->whereHas('cutiDetail.cuti', function($q) use ($k, $tahun) {
                                     $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -233,12 +235,12 @@ class CutiExcelController extends Controller
                         }
                     }
 
-                    $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                    $jatah = JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
                     $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                     $sisaCutiTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
                     $totalHak = $jmlCuti + $sisaCutiTahunLalu;
 
-                    $diambil = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                    $diambil = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                         $q->whereIn('kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
                           ->whereHas('cuti', function($q2) use ($k, $tahun) {
                               $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -417,7 +419,7 @@ class CutiExcelController extends Controller
                 }
 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
+                    $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -481,7 +483,7 @@ class CutiExcelController extends Controller
                             $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
                             $sheet->setCellValue('C'.$row, $tgl_masuk);
 
-                            $jatah = \App\Models\JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                            $jatah = JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
                             $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                             $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
                             $min = $jatah ? $jatah->min_tahun_lalu : 0;
@@ -494,7 +496,7 @@ class CutiExcelController extends Controller
 
                             $totalDiambilTahunan = 0;
                             for($m=1; $m<=12; $m++) {
-                                $diambilBulan = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                $diambilBulan = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                                     $q->where('kategori', 'TAHUNAN')
                                       ->whereHas('cuti', function($q2) use ($k, $tahun) {
                                           $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -508,7 +510,7 @@ class CutiExcelController extends Controller
                             $sisaTahunan = $totalHak - $totalDiambilTahunan;
                             $sheet->setCellValue('T'.$row, $jatah ? $sisaTahunan : ($sisaTahunan != 0 ? $sisaTahunan : ''));
 
-                            $cutiBersama = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                            $cutiBersama = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                                 $q->where('kategori', 'CUTI_MASAL')
                                   ->whereHas('cuti', function($q2) use ($k, $tahun) {
                                       $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -516,7 +518,7 @@ class CutiExcelController extends Controller
                             })->count();
                             $sheet->setCellValue('U'.$row, $cutiBersama != 0 ? $cutiBersama : '');
 
-                            $jmlIjin = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                            $jmlIjin = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                                 $q->where('kategori', 'IJIN')
                                   ->whereHas('cuti', function($q2) use ($k, $tahun) {
                                       $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -1040,7 +1042,7 @@ class CutiExcelController extends Controller
                 }
 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
+                    $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->where('kategori', 'KHUSUS')
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -1277,7 +1279,7 @@ class CutiExcelController extends Controller
                 }
 
                 foreach ($karyawans as $k) {
-                    $detailsKet = \App\Models\CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
+                    $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
                         ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
@@ -1343,7 +1345,7 @@ class CutiExcelController extends Controller
 
                             $totalJumlah = 0;
                             for($m=1; $m<=12; $m++) {
-                                $jml = \App\Models\CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
+                                $jml = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
                                     $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
                                       ->whereHas('cuti', function($q2) use ($k, $tahun) {
                                           $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);

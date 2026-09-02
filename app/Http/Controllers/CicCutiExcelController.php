@@ -12,6 +12,8 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use App\Models\CicJatahCutiTahunan;
+use App\Models\HariLibur;
 
 class CicCutiExcelController extends Controller
 {
@@ -95,7 +97,7 @@ class CicCutiExcelController extends Controller
 
             $row = 2;
 
-                        $hariLiburs = \App\Models\HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
+                        $hariLiburs = HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
             $holidayDates = $hariLiburs->pluck('tanggal')->toArray();
             $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDates) {
                 $sheet->setCellValue('A'.$row, 'LIST CUTI ' . $bulanIndo[$m] . ' ' . $tahun);
@@ -166,7 +168,7 @@ class CicCutiExcelController extends Controller
                             if ($isManajemen && $man != 'Y') continue;
                             if (!$isManajemen && $man == 'Y') continue;
 
-                            $cutiDatesMonth = \App\Models\CicCutiDate::with('cicCutiDetail')
+                            $cutiDatesMonth = CicCutiDate::with('cicCutiDetail')
                                 ->whereMonth('tanggal', $m)
                                 ->whereHas('cicCutiDetail.cicCuti', function($q) use ($k, $tahun) {
                                     $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -233,12 +235,12 @@ class CicCutiExcelController extends Controller
                         }
                     }
 
-                    $jatah = \App\Models\CicJatahCutiTahunan::where('cic_karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                    $jatah = CicJatahCutiTahunan::where('cic_karyawan_id', $k->id)->where('tahun', $tahun)->first();
                     $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                     $sisaCutiTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
                     $totalHak = $jmlCuti + $sisaCutiTahunLalu;
 
-                    $diambil = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
+                    $diambil = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
                         $q->whereIn('kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
                           ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
                               $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -415,7 +417,7 @@ class CicCutiExcelController extends Controller
                 }
 
                 foreach ($cic_karyawans as $k) {
-                    $detailsKet = \App\Models\CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
+                    $detailsKet = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
                         ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
                         ->whereHas('cicCuti', function($q) use ($k, $tahun) {
                             $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -479,7 +481,7 @@ class CicCutiExcelController extends Controller
                             $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
                             $sheet->setCellValue('C'.$row, $tgl_masuk);
 
-                            $jatah = \App\Models\CicJatahCutiTahunan::where('cic_karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                            $jatah = CicJatahCutiTahunan::where('cic_karyawan_id', $k->id)->where('tahun', $tahun)->first();
                             $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                             $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
                             $min = $jatah ? $jatah->min_tahun_lalu : 0;
@@ -492,7 +494,7 @@ class CicCutiExcelController extends Controller
 
                             $totalDiambilTahunan = 0;
                             for($m=1; $m<=12; $m++) {
-                                $diambilBulan = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
+                                $diambilBulan = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
                                     $q->where('kategori', 'TAHUNAN')
                                       ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
                                           $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -506,7 +508,7 @@ class CicCutiExcelController extends Controller
                             $sisaTahunan = $totalHak - $totalDiambilTahunan;
                             $sheet->setCellValue('T'.$row, $jatah ? $sisaTahunan : ($sisaTahunan != 0 ? $sisaTahunan : ''));
 
-                            $cutiBersama = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
+                            $cutiBersama = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
                                 $q->where('kategori', 'CUTI_MASAL')
                                   ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
                                       $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -514,7 +516,7 @@ class CicCutiExcelController extends Controller
                             })->count();
                             $sheet->setCellValue('U'.$row, $cutiBersama != 0 ? $cutiBersama : '');
 
-                            $jmlIjin = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
+                            $jmlIjin = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
                                 $q->where('kategori', 'IJIN')
                                   ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
                                       $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -961,7 +963,7 @@ class CicCutiExcelController extends Controller
                 }
 
                 foreach ($cic_karyawans as $k) {
-                    $detailsKet = \App\Models\CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
+                    $detailsKet = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
                         ->where('kategori', 'KHUSUS')
                         ->whereHas('cicCuti', function($q) use ($k, $tahun) {
                             $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -1198,7 +1200,7 @@ class CicCutiExcelController extends Controller
                 }
 
                 foreach ($cic_karyawans as $k) {
-                    $detailsKet = \App\Models\CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
+                    $detailsKet = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
                         ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
                         ->whereHas('cicCuti', function($q) use ($k, $tahun) {
                             $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
@@ -1264,7 +1266,7 @@ class CicCutiExcelController extends Controller
 
                             $totalJumlah = 0;
                             for($m=1; $m<=12; $m++) {
-                                $jml = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
+                                $jml = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
                                     $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
                                       ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
                                           $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);

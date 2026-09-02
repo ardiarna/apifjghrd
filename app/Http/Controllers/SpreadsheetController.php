@@ -14,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Helper\Dimension;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use PhpOffice\PhpSpreadsheet\Style\Border;
+use App\Models\Area;
+use App\Models\Phk;
 
 class SpreadsheetController extends Controller
 {
@@ -1242,7 +1244,7 @@ class SpreadsheetController extends Controller
         }
         
         $bar += 2;
-        $dbAreas = \App\Models\Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
+        $dbAreas = Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {
@@ -1310,7 +1312,7 @@ class SpreadsheetController extends Controller
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
         
-        $dataPhks = \App\Models\Phk::with(['karyawan', 'statusKerja', 'statusPhk'])
+        $dataPhks = Phk::with(['karyawan', 'statusKerja', 'statusPhk'])
             ->whereYear('tanggal_akhir', '>=', $tahun_awal)
             ->whereYear('tanggal_akhir', '<=', $tahun_akhir)
             ->orderBy('tanggal_akhir', 'asc')
@@ -1326,7 +1328,7 @@ class SpreadsheetController extends Controller
             }
         }
         
-        $areasLookup = \App\Models\Area::pluck('urutan', 'nama')->toArray();
+        $areasLookup = Area::pluck('urutan', 'nama')->toArray();
         foreach ($detailsByYear as &$stafs) {
             foreach ($stafs as &$areas) {
                 uksort($areas, function($a, $b) use ($areasLookup) {
