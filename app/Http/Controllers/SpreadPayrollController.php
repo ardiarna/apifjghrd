@@ -185,7 +185,7 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('H'.$bar, $d->uang_makan_jumlah > 0 ? $d->uang_makan_jumlah : ' ');
                         $si->setCellValue('I'.$bar, $d->overtime_fjg > 0 ? $d->overtime_fjg : ' ');
                         $si->setCellValue('J'.$bar, $d->overtime_cus > 0 ? $d->overtime_cus : ' ');
-                        $si->setCellValue('K'.$bar, $d->medical > 0 ? $d->medical : ' ');
+                        $si->setCellValue('K'.$bar, $d->medical != 0 ? $d->medical : ' ');
                         $si->setCellValue('L'.$bar, $d->thr > 0 ? $d->thr : ' ');
                         $si->setCellValue('M'.$bar, $d->bonus > 0 ? $d->bonus : ' ');
                         $si->setCellValue('N'.$bar, $d->insentif > 0 ? $d->insentif : ' ');
@@ -211,7 +211,7 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('H'.$bar, $dp->uang_makan_jumlah > 0 ? $dp->uang_makan_jumlah : ' ');
                         $si->setCellValue('I'.$bar, $dp->overtime_fjg > 0 ? $dp->overtime_fjg : ' ');
                         $si->setCellValue('J'.$bar, $dp->overtime_cus > 0 ? $dp->overtime_cus : ' ');
-                        $si->setCellValue('K'.$bar, $dp->medical > 0 ? $dp->medical : ' ');
+                        $si->setCellValue('K'.$bar, $dp->medical != 0 ? $dp->medical : ' ');
                         $si->setCellValue('L'.$bar, $dp->thr > 0 ? $dp->thr : ' ');
                         $si->setCellValue('M'.$bar, $dp->bonus > 0 ? $dp->bonus : ' ');
                         $si->setCellValue('N'.$bar, $dp->insentif > 0 ? $dp->insentif : ' ');

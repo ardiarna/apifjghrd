@@ -238,7 +238,7 @@ class SpreadSlipGajiController extends Controller
             $bar++;
             $si->setCellValue('A'.$bar, 'Reimbursement Medical');
             $si->setCellValue('G'.$bar, '=');
-            $si->setCellValue('H'.$bar, $d->medical > 0 ? $d->medical : '');
+            $si->setCellValue('H'.$bar, $d->medical != 0 ? $d->medical : '');
             $si->setCellValue('J'.$bar, 'Pemakaian Bensin');
             if(isset($potongans[$d->karyawan->id]['BN'])) {
                 $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->karyawan->id]['BN']).')');
@@ -590,7 +590,7 @@ class SpreadSlipGajiController extends Controller
                 $bar++;
                 $si->setCellValue('A'.$bar, 'Reimbursement Medical');
                 $si->setCellValue('G'.$bar, '=');
-                $si->setCellValue('H'.$bar, $d->medical > 0 ? $d->medical : '');
+                $si->setCellValue('H'.$bar, $d->medical != 0 ? $d->medical : '');
                 $si->setCellValue('J'.$bar, 'Pemakaian Bensin');
                 if(isset($potongans[$d->bulan]['BN'])) {
                     $si->setCellValue('K'.$bar, '('.implode(', ', $potongans[$d->bulan]['BN']).')');

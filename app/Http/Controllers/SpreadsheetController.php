@@ -320,7 +320,7 @@ class SpreadsheetController extends Controller
                         $kolom++; // 9.J
                         $si->setCellValue($arrkol[$kolom].$bar, $d->overtime_cus > 0 ? $d->overtime_cus : ' ');
                         $kolom++; // 10.K
-                        $si->setCellValue($arrkol[$kolom].$bar, $d->medical > 0 ? $d->medical : ' ');
+                        $si->setCellValue($arrkol[$kolom].$bar, $d->medical != 0 ? $d->medical : ' ');
                         $kolom++; // 11.L
                         if($adaThr) {
                             $si->setCellValue($arrkol[$kolom].$bar, $d->thr > 0 ? $d->thr : ' ');

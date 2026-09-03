@@ -297,7 +297,7 @@ class SpreadMedicalController extends Controller
                     $si->setCellValue('H'.$bar, $tunjangan2 > 0 ? $tunjangan2 : ' ');
                     for ($k=1; $k <= 12; $k++) {
                         $m = $k+7; // kol I s/d T
-                        $si->setCellValue($kol[$m].$bar, isset($rawatJalans[$karyawan_id]) ? ($rawatJalans[$karyawan_id]->{'bln_'.$k} > 0 ? $rawatJalans[$karyawan_id]->{'bln_'.$k} : ' ') : ' ');
+                        $si->setCellValue($kol[$m].$bar, isset($rawatJalans[$karyawan_id]) ? ($rawatJalans[$karyawan_id]->{'bln_'.$k} != 0 ? $rawatJalans[$karyawan_id]->{'bln_'.$k} : ' ') : ' ');
                     }
                     $si->setCellValue('U'.$bar, '='.($dkaryawan->kelamin == 'P' ? 'G' : 'H').$bar.'-V'.$bar);
                     $si->setCellValue('V'.$bar, '=SUM('.'I'.$bar.':T'.$bar.')');

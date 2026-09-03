@@ -292,7 +292,7 @@ class PdfSlipGajiController extends Controller
                 <tr class="r17">
                 <td colspan="6">Reimbursement Medical</td>
                 <td class="ac">=</td>
-                <td class="ar">'.($d->medical > 0 ? $this->n($d->medical) : '').'</td>
+                <td class="ar">'.($d->medical != 0 ? $this->n($d->medical) : '').'</td>
                 <td></td>
                 <td>Pemakaian Bensin</td>
                 <td colspan="4" class="ar">'.$ketBN.'</td>
@@ -672,7 +672,7 @@ class PdfSlipGajiController extends Controller
                 <tr class="r17">
                 <td colspan="6">Reimbursement Medical</td>
                 <td class="ac">=</td>
-                <td class="ar">'.($d->medical > 0 ? $this->n($d->medical) : '').'</td>
+                <td class="ar">'.($d->medical != 0 ? $this->n($d->medical) : '').'</td>
                 <td></td>
                 <td>Pemakaian Bensin</td>
                 <td colspan="4" class="ar">'.$ketBN.'</td>
