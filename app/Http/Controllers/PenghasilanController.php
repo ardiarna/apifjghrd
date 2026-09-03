@@ -61,6 +61,8 @@ class PenghasilanController extends Controller
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
         $inputs['hari'] = $req->input('hari');
+        $inputs['tgl_awal'] = $req->input('tgl_awal') ?: null;
+        $inputs['tgl_akhir'] = $req->input('tgl_akhir') ?: null;
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Penghasilan berhasil dibuat');
@@ -78,6 +80,8 @@ class PenghasilanController extends Controller
         ]);
         $inputs = $req->only(['karyawan_id', 'jenis', 'tanggal', 'tahun', 'bulan', 'jumlah']);
         $inputs['hari'] = $req->input('hari');
+        $inputs['tgl_awal'] = $req->input('tgl_awal') ?: null;
+        $inputs['tgl_akhir'] = $req->input('tgl_akhir') ?: null;
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Penghasilan berhasil diubah');

@@ -125,6 +125,8 @@ class PayrollController extends Controller
         ]);
         $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan']);
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['makan_tgl_awal'] = $req->input('makan_tgl_awal') ?: null;
+        $inputs['makan_tgl_akhir'] = $req->input('makan_tgl_akhir') ?: null;
         $header = $this->repoHeader->create($inputs);
         $listInputPayroll = $req->input('payrolls');
         $detail = $this->repo->create($header->id, $listInputPayroll);
@@ -144,6 +146,8 @@ class PayrollController extends Controller
         ]);
         $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan']);
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['makan_tgl_awal'] = $req->input('makan_tgl_awal') ?: null;
+        $inputs['makan_tgl_akhir'] = $req->input('makan_tgl_akhir') ?: null;
         $data = $this->repoHeader->update($id, $inputs);
         return $this->createdResponse($data, 'Payroll berhasil diubah');
     }
@@ -223,6 +227,8 @@ class PayrollController extends Controller
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['total_diterima'] = $req->input('total_diterima');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['makan_tgl_awal'] = $req->input('makan_tgl_awal') ?: null;
+        $inputs['makan_tgl_akhir'] = $req->input('makan_tgl_akhir') ?: null;
         $data = $this->repo->update($id, $inputs);
         if($data) {
             $this->repoHeader->updateSummary($header_id);

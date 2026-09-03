@@ -118,6 +118,8 @@ class PayrollImplement implements PayrollRepository {
             $listHasil = [];
             foreach ($listInputs as $inputs) {
                 $inputs['payroll_header_id'] = $header_id;
+                if(empty($inputs['makan_tgl_awal'])) $inputs['makan_tgl_awal'] = null;
+                if(empty($inputs['makan_tgl_akhir'])) $inputs['makan_tgl_akhir'] = null;
                 $model = $this->model->create($inputs);
                 if($model) {
                     $listHasil[] = [

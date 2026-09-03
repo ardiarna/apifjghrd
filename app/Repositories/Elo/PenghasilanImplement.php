@@ -83,6 +83,12 @@ class PenghasilanImplement implements PenghasilanRepository {
         if(isset($inputs['keterangan'])) {
             $model->keterangan = $inputs['keterangan'];
         }
+        if(array_key_exists('tgl_awal', $inputs)) {
+            $model->tgl_awal = $inputs['tgl_awal'];
+        }
+        if(array_key_exists('tgl_akhir', $inputs)) {
+            $model->tgl_akhir = $inputs['tgl_akhir'];
+        }
         $model->save();
         return $model;
     }

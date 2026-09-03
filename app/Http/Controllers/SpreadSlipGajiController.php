@@ -211,8 +211,8 @@ class SpreadSlipGajiController extends Controller
             $si->getRowDimension($bar)->setRowHeight(17);
             $bar++;
             if ($d->makan_harian == 'Y') {
-                $ttgl = explode('-', $d->tanggal_awal);
-                $ttgm = explode('-', $d->tanggal_akhir);
+                $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
+                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                 $si->setCellValue('A'.$bar, '(Per: '.$ttgl[2]." ".$arrBulan[intval($ttgl[1])]."'".substr($ttgl[0], -2)." s/d ".$ttgm[2]." ".$arrBulan[intval($ttgm[1])]."'".substr($ttgm[0], -2).')');
             } else {
                 $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[$bulan].' '.$tahun);
@@ -563,8 +563,8 @@ class SpreadSlipGajiController extends Controller
                 $si->getRowDimension($bar)->setRowHeight(17);
                 $bar++;
                 if ($d->makan_harian == 'Y') {
-                    $ttgl = explode('-', $d->tanggal_awal);
-                    $ttgm = explode('-', $d->tanggal_akhir);
+                    $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
+                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $si->setCellValue('A'.$bar, '(Per: '.$ttgl[2]." ".$arrBulan[intval($ttgl[1])]."'".substr($ttgl[0], -2)." s/d ".$ttgm[2]." ".$arrBulan[intval($ttgm[1])]."'".substr($ttgm[0], -2).')');
                 } else {
                     $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[$d->bulan].' '.$tahun);

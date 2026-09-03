@@ -143,8 +143,8 @@ class PdfSlipGajiController extends Controller
 
                 if ($d->makan_harian == 'Y') {
                     $uMakanLabel = 'U/makan &amp; Transport';
-                    $ttgl = explode('-', $d->tanggal_awal);
-                    $ttgm = explode('-', $d->tanggal_akhir);
+                    $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
+                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $uMakanSub = '(Per: '.$ttgl[2].' '.$arrBulan[(int)$ttgl[1]]."'".substr($ttgl[0],-2)
                                .' s/d '.$ttgm[2].' '.$arrBulan[(int)$ttgm[1]]."'".substr($ttgm[0],-2).')';
                     $makanC = $this->n($d->uang_makan_harian);
@@ -500,8 +500,8 @@ class PdfSlipGajiController extends Controller
                 /* ── Uang makan ───────────────────────────────── */
                 if ($d->makan_harian == 'Y') {
                     $uMakanLabel = 'U/makan &amp; Transport';
-                    $ttgl = explode('-', $d->tanggal_awal);
-                    $ttgm = explode('-', $d->tanggal_akhir);
+                    $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
+                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $uMakanSub = '(Per: '.$ttgl[2].' '.$arrBulan[(int)$ttgl[1]]."'".substr($ttgl[0],-2)
                                .' s/d '.$ttgm[2].' '.$arrBulan[(int)$ttgm[1]]."'".substr($ttgm[0],-2).')';
                     $makanC = $this->n($d->uang_makan_harian);
