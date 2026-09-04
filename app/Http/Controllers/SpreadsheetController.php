@@ -598,13 +598,27 @@ class SpreadsheetController extends Controller
             $si->setCellValue('L'.$barOM, number_format(abs($persenCus),2,',','.').'%');
             $si->getStyle('L'.$barOM)->getAlignment()->setHorizontal('right');
             $barOM++;
-            if($barOT < $barOM) {
-                for ($k = $barOT; $k < $barOM; $k++) {
+            $countPot = 0;
+            foreach ($dataDetails as $dt) {
+                if ($dt->pot_cuti_jumlah > 0) $countPot++;
+            }
+            $maxBar = max($barOT, $barOM, $barOTAwal + $countPot);
+
+            if($barOT < $maxBar) {
+                for ($k = $barOT; $k < $maxBar; $k++) {
                     $si->setCellValue('F'.$k, '');
                     $si->mergeCells('F'.$k.':H'.$k);
                     $si->setCellValue('I'.$k, '');
                 }
-                $barOT = $k;
+                $barOT = $maxBar;
+            }
+            if($barOM <= $maxBar) {
+                for ($k = $barOM; $k <= $maxBar; $k++) {
+                    $si->setCellValue('J'.$k, '');
+                    $si->setCellValue('K'.$k, '');
+                    $si->setCellValue('L'.$k, '');
+                }
+                $barOM = $maxBar;
             }
             $si->setCellValue('F'.$barOT, 'JUMLAH');
             $si->mergeCells('F'.$barOT.':H'.$barOT);
@@ -627,9 +641,24 @@ class SpreadsheetController extends Controller
             $si->getStyle('B'.$barPot.':E'.$barPot)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('B'.$barPot.':E'.$barPot)->getAlignment()->setHorizontal('center')->setVertical('center');
             $barPotAwal = $barPot + 1;
-            for ($k = $barPotAwal; $k <= $barOT; $k++) {
-                $si->setCellValue('C'.$k, '');
-                $si->mergeCells('C'.$k.':D'.$k);
+            $k = $barPotAwal;
+            foreach ($dataDetails as $dt) {
+                if ($dt->pot_cuti_jumlah > 0) {
+                    $namaDepan = explode(' ', $dt->karyawan->nama)[0];
+                    $si->setCellValue('B'.$k, $namaDepan . " (" . $dt->karyawan->area->kode . ")");
+                    $si->setCellValue('C'.$k, $dt->pot_cuti_keterangan);
+                    $si->mergeCells('C'.$k.':D'.$k);
+                    $si->setCellValue('E'.$k, "'= " . $dt->pot_cuti_hari . " HR");
+                    $k++;
+                }
+            }
+            if ($k <= $barOT) {
+                for (; $k <= $barOT; $k++) {
+                    $si->setCellValue('C'.$k, '');
+                    $si->mergeCells('C'.$k.':D'.$k);
+                }
+            } else {
+                $barOT = $k - 1;
             }
             $si->getStyle('B'.$barPotAwal.':'.'E'.$barOT)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('B'.$barPotAwal.':'.'E'.$barOT)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);

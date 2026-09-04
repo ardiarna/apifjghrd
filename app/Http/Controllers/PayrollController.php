@@ -118,6 +118,7 @@ class PayrollController extends Controller
             'payrolls.*.pot_bpjs' => 'required|numeric',
             'payrolls.*.pot_cuti_hari' => 'required|numeric',
             'payrolls.*.pot_cuti_jumlah' => 'required|numeric',
+            'payrolls.*.pot_cuti_keterangan' => 'nullable|string',
             'payrolls.*.pot_kompensasi_jam' => 'required|numeric',
             'payrolls.*.pot_kompensasi_jumlah' => 'required|numeric',
             'payrolls.*.pot_lain' => 'required|numeric',
@@ -192,6 +193,7 @@ class PayrollController extends Controller
             'pot_bpjs' => 'numeric',
             'pot_cuti_hari' => 'numeric',
             'pot_cuti_jumlah' => 'numeric',
+            'pot_cuti_keterangan' => 'nullable|string',
             'pot_kompensasi_jam' => 'numeric',
             'pot_kompensasi_jumlah' => 'numeric',
             'pot_lain' => 'numeric',
@@ -222,6 +224,7 @@ class PayrollController extends Controller
         $inputs['pot_bpjs'] = $req->input('pot_bpjs');
         $inputs['pot_cuti_hari'] = $req->input('pot_cuti_hari');
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
+        $inputs['pot_cuti_keterangan'] = $req->input('pot_cuti_keterangan');
         $inputs['pot_kompensasi_jam'] = $req->input('pot_kompensasi_jam');
         $inputs['pot_kompensasi_jumlah'] = $req->input('pot_kompensasi_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
