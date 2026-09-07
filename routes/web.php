@@ -285,6 +285,7 @@ $router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () us
     $router->get('list-phk/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listPHK');
     $router->get('list-ex-karyawan/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listExKaryawan');
     $router->get('list-karyawan', 'SpreadsheetController@listKaryawan');
+    $router->get('list-salary', 'SpreadsheetController@listSalary');
     $router->get('rekap-gaji/{tahun}', 'SpreadsheetController@rekapGaji');
     $router->get('rekap-payroll-perkaryawan/{jenis}/{tahun}/{area}', 'SpreadPayrollController@rekapPerKaryawan');
     $router->get('rekap-medical/{tahun}', 'SpreadMedicalController@rekap');

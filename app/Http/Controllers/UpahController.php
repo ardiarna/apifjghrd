@@ -52,11 +52,12 @@ class UpahController extends Controller
 
     public function create(Request $req, $karyawan_id) {
         $this->validate($req, [
+            'gaji' => 'numeric',
             'uang_makan' => 'required|numeric',
             'makan_harian' => 'required|in:Y,N',
             'overtime' => 'required|in:Y,N'
         ]);
-        $inputs = $req->only(['uang_makan', 'makan_harian', 'overtime']);
+        $inputs = $req->only(['gaji', 'uang_makan', 'makan_harian', 'overtime']);
         $inputs['karyawan_id'] = $karyawan_id;
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Upah berhasil dibuat');
@@ -65,11 +66,13 @@ class UpahController extends Controller
     public function update(Request $req, $id) {
         $this->validate($req, [
             'karyawan_id' => 'required',
+            'gaji' => 'numeric',
             'uang_makan' => 'numeric',
             'makan_harian' => 'in:Y,N',
             'overtime' => 'in:Y,N'
         ]);
         $inputs = $req->only(['karyawan_id']);
+        if ($req->has('gaji')) $inputs['gaji'] = $req->input('gaji');
         $inputs['uang_makan'] = $req->input('uang_makan');
         $inputs['makan_harian'] = $req->input('makan_harian');
         $inputs['overtime'] = $req->input('overtime');
@@ -79,11 +82,13 @@ class UpahController extends Controller
 
     public function updateByKaryawanId(Request $req, $karyawan_id) {
         $this->validate($req, [
+            'gaji' => 'numeric',
             'uang_makan' => 'numeric',
             'makan_harian' => 'in:Y,N',
             'overtime' => 'in:Y,N'
         ]);
         $inputs['karyawan_id'] = $karyawan_id;
+        if ($req->has('gaji')) $inputs['gaji'] = $req->input('gaji');
         $inputs['uang_makan'] = $req->input('uang_makan');
         $inputs['makan_harian'] = $req->input('makan_harian');
         $inputs['overtime'] = $req->input('overtime');
