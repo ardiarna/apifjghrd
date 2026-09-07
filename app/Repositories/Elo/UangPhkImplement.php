@@ -92,6 +92,12 @@ class UangPhkImplement implements UangPhkRepository {
         if(isset($inputs['keterangan'])) {
             $model->keterangan = $inputs['keterangan'];
         }
+        if(isset($inputs['ket_lain'])) {
+            $model->ket_lain = $inputs['ket_lain'];
+        }
+        if(isset($inputs['ket_pot_lain'])) {
+            $model->ket_pot_lain = $inputs['ket_pot_lain'];
+        }
         $model->save();
         return $model;
     }

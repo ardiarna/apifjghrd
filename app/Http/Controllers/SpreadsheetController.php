@@ -1035,7 +1035,11 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('N'.$bar, $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : '');
                         $si->setCellValue('O'.$bar, $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : '');
                         $si->setCellValue('P'.$bar, '=(E'.$bar.'+F'.$bar.'+G'.$bar.'+H'.$bar.'+J'.$bar.'+K'.$bar.')-(L'.$bar.'+N'.$bar.'+O'.$bar.')');
-                        $si->setCellValue('Q'.$bar, $uangPhk->keterangan);
+                        $kets = [];
+                        if (!empty($uangPhk->keterangan)) $kets[] = $uangPhk->keterangan;
+                        if (!empty($uangPhk->ket_lain)) $kets[] = $uangPhk->ket_lain;
+                        if (!empty($uangPhk->ket_pot_lain)) $kets[] = $uangPhk->ket_pot_lain;
+                        $si->setCellValue('Q'.$bar, implode('; ', $kets));
                         $bar++;
                         $nomor++;
                     }
@@ -1072,7 +1076,7 @@ class SpreadsheetController extends Controller
                 $si->getColumnDimension($kol[$k])->setWidth(100, Dimension::UOM_PIXELS);
             }
             $si->getColumnDimension('P')->setWidth(130, Dimension::UOM_PIXELS);
-            $si->getColumnDimension('Q')->setWidth(200, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('Q')->setWidth(350, Dimension::UOM_PIXELS);
             $i++;
         }
 
