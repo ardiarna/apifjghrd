@@ -280,7 +280,13 @@ $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use
     $router->delete('{id}', 'UpahController@delete');
 });
 
-$router->group(['prefix' => 'excel', 'middleware' => 'auth:api'], function () use ($router) {
+$router->group(["prefix" => "excel", "middleware" => "auth:api"], function () use ($router) {
+    $router->get('data-karyawan-per-joint/{tahunAwal}/{tahunAkhir}/{includeEx}', 'SpreadKaryawanCustomController@dataKaryawanPerJoint');
+    $router->get('data-engineering-dept', 'SpreadKaryawanCustomController@dataEngineeringDept');
+    $router->get('alamat-engineering-dept', 'SpreadKaryawanCustomController@alamatEngineeringDept');
+    $router->get('nik-tlp-karyawan', 'SpreadKaryawanCustomController@nikTlpKaryawan');
+    $router->get('data-jabatan-karyawan', 'SpreadKaryawanCustomController@dataJabatanKaryawan');
+    $router->get('data-status-karyawan', 'SpreadKaryawanCustomController@dataStatusKaryawan');
     $router->get('list-payroll/{tahun}', 'SpreadsheetController@listPayroll');
     $router->get('list-phk/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listPHK');
     $router->get('list-ex-karyawan/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listExKaryawan');
@@ -363,3 +369,4 @@ $router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use 
         $router->delete('{id}', 'CicJenisCutiKhususController@delete');
     });
 });
+$router->get('debug-excel', 'SpreadKaryawanCustomController@dataStatusKaryawan');

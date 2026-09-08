@@ -1379,12 +1379,47 @@ class SpreadsheetController extends Controller
         $si->setShowGridlines(false);
         $si->setTitle('DATA KARYAWAN');
         
+        // Calculate active areas
+        $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $activeAreas = [];
+        foreach ($dataKaryawan as $d) {
+            $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
+            $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
+        }
+        $activeAreasSorted = [];
+        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        foreach ($dbAreasModels as $a) {
+            if (isset($activeAreas[$a->kode])) {
+                $activeAreasSorted[] = strtoupper($a->nama);
+            }
+        }
+        if (isset($activeAreas['Lainnya'])) {
+            $activeAreasSorted[] = 'LAINNYA';
+        }
+        $areaString = implode(' - ', $activeAreasSorted);
+
         // Title
-        $si->setCellValue('A3', 'LIST DATA KARYAWAN');
+        $si->setCellValue('A2', 'LIST KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
+        $si->mergeCells('A2:R2');
+        $si->setCellValue('A3', $areaString);
         $si->mergeCells('A3:R3');
-        $si->getStyle('A3')->getFont()->setName('Malgun Gothic')->setSize(13);
-        $si->getStyle('A3')->getAlignment()->setHorizontal('center')->setVertical('bottom');
-        $si->getRowDimension(3)->setRowHeight(18);
+        
+        $styleJudul = [
+            'font' => [
+                'name' => 'Malgun Gothic',
+                'size' => 14,
+                'bold' => true,
+                'underline' => true,
+                'color' => ['argb' => '0000FF'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ]
+        ];
+        $si->getStyle('A2:R3')->applyFromArray($styleJudul);
+        $si->getRowDimension(2)->setRowHeight(22);
+        $si->getRowDimension(3)->setRowHeight(22);
         
         // Headers
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
@@ -1674,7 +1709,7 @@ class SpreadsheetController extends Controller
         $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->setBold(true)->getColor()->setARGB('FFFF0000');
         
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="DATA_KARYAWAN.xlsx"');
+        header('Content-Disposition: attachment;filename="DATA_GENERAL_KARYAWAN_FJG.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
