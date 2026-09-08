@@ -37,7 +37,7 @@ class HariLiburController extends Controller
             'nama' => 'required',
             'tanggal' => 'required|date'
         ]);
-        $inputs = $req->only(['nama', 'tanggal']);
+        $inputs = $req->only(['nama', 'tanggal', 'iscutber']);
         $data = $this->repo->create($inputs);
         return $this->createdResponse($data, 'Hari libur berhasil dibuat');
     }
@@ -48,6 +48,7 @@ class HariLiburController extends Controller
         ]);
         $inputs['nama'] = $req->input('nama');
         $inputs['tanggal'] = $req->input('tanggal');
+        if($req->has('iscutber')) $inputs['iscutber'] = $req->input('iscutber');
         $data = $this->repo->update($id, $inputs);
         return $this->successResponse($data, 'Hari libur berhasil diubah');
     }

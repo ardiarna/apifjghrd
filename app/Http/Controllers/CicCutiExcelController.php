@@ -98,8 +98,9 @@ class CicCutiExcelController extends Controller
             $row = 2;
 
                         $hariLiburs = HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
-            $holidayDates = $hariLiburs->pluck('tanggal')->toArray();
-            $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDates) {
+            $holidayDatesRed = $hariLiburs->where('iscutber', 'N')->pluck('tanggal')->toArray();
+            $holidayDatesGreen = $hariLiburs->where('iscutber', 'Y')->pluck('tanggal')->toArray();
+            $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDatesRed, $holidayDatesGreen) {
                 $sheet->setCellValue('A'.$row, 'LIST CUTI ' . $bulanIndo[$m] . ' ' . $tahun);
                 $sheet->mergeCells('A'.$row.':AK'.$row);
                 $sheet->getStyle('A'.$row)->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
@@ -130,7 +131,8 @@ class CicCutiExcelController extends Controller
 
                 $row++; // Row for 1-31
 
-                $weekendCols = [];
+                $redCols = [];
+                $greenCols = [];
                 for($d = 1; $d <= 31; $d++) {
                     $col = $arrkol[$d + 1]; // C is index 2
                     if($d <= $daysInMonth) {
@@ -138,9 +140,12 @@ class CicCutiExcelController extends Controller
 
                         $dateStr = sprintf('%04d-%02d-%02d', $tahun, $m, $d);
                         $dayOfWeek = date('N', strtotime($dateStr));
-                                                if($dayOfWeek == 6 || $dayOfWeek == 7 || in_array($dateStr, $holidayDates)) {
-                            $weekendCols[] = $col;
+                                                if($dayOfWeek == 6 || $dayOfWeek == 7 || in_array($dateStr, $holidayDatesRed)) {
+                            $redCols[] = $col;
                             $sheet->getStyle($col.$row)->getFont()->getColor()->setARGB('FFFF0000');
+                        } elseif(in_array($dateStr, $holidayDatesGreen)) {
+                            $greenCols[] = $col;
+                            $sheet->getStyle($col.$row)->getFont()->getColor()->setARGB('FF92D050');
                         }
                     } else {
                         $sheet->setCellValue($col.$row, '');
@@ -269,9 +274,15 @@ class CicCutiExcelController extends Controller
                     $row++;
                 }
 
-                foreach($weekendCols as $col) {
+                foreach($redCols as $col) {
                     $startR = $headerStartRow + 1;
                     $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFont()->getColor()->setARGB('FFFFFFFF');
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                }
+                foreach($greenCols as $col) {
+                    $startR = $headerStartRow + 1;
+                    $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FF92D050');
                     $sheet->getStyle($col.$startR.':'.$col.($row-1))->getFont()->getColor()->setARGB('FFFFFFFF');
                     $sheet->getStyle($col.$startR.':'.$col.($row-1))->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 }
@@ -280,7 +291,8 @@ class CicCutiExcelController extends Controller
                         $drawTable('STAF', false);
 
             $row += 2;
-            foreach($hariLiburs as $hl) {
+            $holidaysRed = $hariLiburs->where('iscutber', 'N');
+            foreach($holidaysRed as $hl) {
                 $dt = \Carbon\Carbon::parse($hl->tanggal);
                 $sheet->getStyle('A'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
                 
@@ -296,6 +308,28 @@ class CicCutiExcelController extends Controller
                 $sheet->setCellValue('D'.$row, strtoupper($hl->nama));
                 $sheet->getStyle('D'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
                 $row++;
+            }
+            
+            $holidaysGreen = $hariLiburs->where('iscutber', 'Y');
+            if($holidaysGreen->count() > 0) {
+                $row += 2;
+                foreach($holidaysGreen as $hl) {
+                    $dt = \Carbon\Carbon::parse($hl->tanggal);
+                    $sheet->getStyle('A'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FF92D050');
+                    
+                    $tglStr = "TGL " . $dt->format('d') . " " . strtoupper($bulanIndo[$dt->format('n')]) . " '" . $dt->format('y');
+                    $sheet->setCellValue('B'.$row, $tglStr);
+                    $sheet->getStyle('B'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                    
+                    $sheet->setCellValue('C'.$row, '=');
+                    $sheet->getStyle('C'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                    $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center');
+                    
+                    $sheet->mergeCells('D'.$row.':AK'.$row);
+                    $sheet->setCellValue('D'.$row, strtoupper($hl->nama));
+                    $sheet->getStyle('D'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
+                    $row++;
+                }
             }
 
 

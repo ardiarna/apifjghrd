@@ -8,7 +8,7 @@ class HariLibur extends Model
 {
 
     protected $fillable = [
-        'nama', 'tanggal'
+        'nama', 'tanggal', 'iscutber'
     ];
 
 }

@@ -44,6 +44,9 @@ class HariLiburImplement implements HariLiburRepository {
         if($inputs['tanggal'] != null) {
             $model->tanggal = $inputs['tanggal'];
         }
+        if(isset($inputs['iscutber'])) {
+            $model->iscutber = $inputs['iscutber'];
+        }
         $model->save();
         return $model;
     }
