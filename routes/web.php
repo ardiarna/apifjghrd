@@ -282,8 +282,8 @@ $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use
 
 $router->group(["prefix" => "excel", "middleware" => "auth:api"], function () use ($router) {
     $router->get('data-karyawan-per-joint/{tahunAwal}/{tahunAkhir}/{includeEx}', 'SpreadKaryawanCustomController@dataKaryawanPerJoint');
-    $router->get('data-engineering-dept', 'SpreadKaryawanCustomController@dataEngineeringDept');
-    $router->get('alamat-engineering-dept', 'SpreadKaryawanCustomController@alamatEngineeringDept');
+    $router->get('data-divisi/{id}', 'SpreadKaryawanCustomController@dataDivisi');
+    $router->get('alamat-divisi/{id}', 'SpreadKaryawanCustomController@alamatDivisi');
     $router->get('nik-tlp-karyawan', 'SpreadKaryawanCustomController@nikTlpKaryawan');
     $router->get('data-jabatan-karyawan', 'SpreadKaryawanCustomController@dataJabatanKaryawan');
     $router->get('data-status-karyawan', 'SpreadKaryawanCustomController@dataStatusKaryawan');

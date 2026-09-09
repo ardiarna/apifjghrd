@@ -9,6 +9,7 @@ use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -299,36 +300,36 @@ class CutiExcelController extends Controller
             foreach($holidaysRed as $hl) {
                 $dt = \Carbon\Carbon::parse($hl->tanggal);
                 $sheet->getStyle('A'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFF0000');
-                
+
                 $tglStr = "TGL " . $dt->format('d') . " " . strtoupper($bulanIndo[$dt->format('n')]) . " '" . $dt->format('y');
                 $sheet->setCellValue('B'.$row, $tglStr);
                 $sheet->getStyle('B'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
-                
+
                 $sheet->setCellValue('C'.$row, '=');
                 $sheet->getStyle('C'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
                 $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center');
-                
+
                 $sheet->mergeCells('D'.$row.':AK'.$row);
                 $sheet->setCellValue('D'.$row, strtoupper($hl->nama));
                 $sheet->getStyle('D'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
                 $row++;
             }
-            
+
             $holidaysGreen = $hariLiburs->where('iscutber', 'Y');
             if($holidaysGreen->count() > 0) {
                 $row += 2;
                 foreach($holidaysGreen as $hl) {
                     $dt = \Carbon\Carbon::parse($hl->tanggal);
                     $sheet->getStyle('A'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FF92D050');
-                    
+
                     $tglStr = "TGL " . $dt->format('d') . " " . strtoupper($bulanIndo[$dt->format('n')]) . " '" . $dt->format('y');
                     $sheet->setCellValue('B'.$row, $tglStr);
                     $sheet->getStyle('B'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
-                    
+
                     $sheet->setCellValue('C'.$row, '=');
                     $sheet->getStyle('C'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
                     $sheet->getStyle('C'.$row)->getAlignment()->setHorizontal('center');
-                    
+
                     $sheet->mergeCells('D'.$row.':AK'.$row);
                     $sheet->setCellValue('D'.$row, strtoupper($hl->nama));
                     $sheet->getStyle('D'.$row)->getFont()->setBold(true)->setName('Arial')->setSize(10);
@@ -770,7 +771,7 @@ class CutiExcelController extends Controller
             18 => ['Cuti Yang Sudah Diambil',                    'E', $sudahDiambil, 'Hari', 'F'],
             19 => ['Cuti Masal ; Idul Fitri/Natal/Cuti Bersama', 'E', $cutiMasal,   'Hari', 'F'],
             20 => ['Cuti Yang Belum Diambil',                    'G', $belumDiambil, 'Hari'],
-            21 => ['Cuti Yang Akan Diambil',                     'G', $akanDiambil,  'Hari'],
+            21 => [($cuti->jenis_form == 'IJIN' ? 'Ijin Yang Akan Diambil' : 'Cuti Yang Akan Diambil'),                     'G', $akanDiambil,  'Hari'],
             22 => ['Sisa Hak Cuti Tahunan',                      'G', $sisaHak,      'Hari'],
         ];
         foreach ($tahunanRows as $row => $r) {
@@ -966,6 +967,11 @@ class CutiExcelController extends Controller
 
         // G21 bottom border (for "akan diambil" – acts as input line)
         $sheet->getStyle('G21')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+        $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_PORTRAIT);
+        $sheet->getPageSetup()->setFitToPage(TRUE);
+        $sheet->getPageSetup()->setFitToWidth(1);
+        $sheet->getPageSetup()->setFitToHeight(1);
 
         return $this->downloadExcel($spreadsheet, 'FORM_CUTI_' . preg_replace('/\s+/', '_', $k->nama) . '_' . $tahun . '.xlsx');
     }

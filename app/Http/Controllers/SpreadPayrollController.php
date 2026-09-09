@@ -176,7 +176,8 @@ class SpreadPayrollController extends Controller
                 $si->setCellValue('B'.$bar, $jenis == '3' ? $this->afAbbreviateName($dkaryawan->nama).' ('.$dkaryawan->area->nama.')' : $this->afAbbreviateName($dkaryawan->nama));
                 $si->setCellValue('C'.$bar, $dkaryawan->jabatan->nama);
                 $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_masuk)));
-                for ($k=1; $k <= 12; $k++) {
+                $barStart = $bar;
+                for ($k=1; $k <= 13; $k++) {
                     if(isset($bulans[$k])) {
                         $d = $bulans[$k];
                         $si->setCellValue('E'.$bar, ($d->gaji + $d->kenaikan_gaji) > 0 ? ($d->gaji + $d->kenaikan_gaji) : ' ');
@@ -230,17 +231,25 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('AA'.$bar, $dp->total_diterima > 0 ? $dp->total_diterima : ' ');
                         $si->setCellValue('AB'.$bar, $dp->keterangan);
                     } else {
-                        for ($z=4; $z <= 25; $z++) {
-                            $si->setCellValue($kol[$z].$bar, ' ');
-                        }
+                        // Skip row if no data
+                        continue;
                     }
-                    $si->setCellValue('AC'.$bar, $arrBulan[$k]."'".substr($keyTahun, -2));
+                    
+                    if ($k == 13) {
+                        $si->setCellValue('AC'.$bar, 'THR');
+                    } else {
+                        $si->setCellValue('AC'.$bar, $arrBulan[$k]."'".substr($keyTahun, -2));
+                    }
                     $bar++;
                 }
-                $si->setCellValue('AC'.$bar, 'THR');
-                $bar++;
+                
                 $barSub[] = $bar;
-                $si->setCellValue('AA'.$bar, '=SUM(AA'.($bar-13).':AA'.($bar-1).')');
+                // Sum only from $barStart to $bar-1
+                if ($bar > $barStart) {
+                    $si->setCellValue('AA'.$bar, '=SUM(AA'.$barStart.':AA'.($bar-1).')');
+                } else {
+                    $si->setCellValue('AA'.$bar, '0');
+                }
                 $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFF00');
                 $bar++;
                 $nomor++;
