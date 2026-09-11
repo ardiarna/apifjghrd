@@ -32,7 +32,7 @@ class SpreadsheetController extends Controller
         $this->repoKaryawan = $repoKaryawan;
     }
 
-    public function listPayroll($tahun) {
+    public function listPayroll($tahun, $bulans = null) {
         $arrBulan = ['', 'JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DESEMBER'];
         $arrkol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
 
@@ -52,6 +52,10 @@ class SpreadsheetController extends Controller
             $headers[0]['medical'] = $dataTahunLalu[0]->medical;
         }
         $dataHeaders = $this->repoHeader->findAll(['tahun' => $tahun]);
+        if ($bulans != null) {
+            $arrBulanReq = explode("-", $bulans);
+            $dataHeaders = $dataHeaders->whereIn("bulan", $arrBulanReq);
+        }
         foreach ($dataHeaders as $dh) {
             $headers[$dh->bulan]['overtime'] = $dh->overtime_fjg + $dh->overtime_cus;
             $headers[$dh->bulan]['overtime_fjg'] = $dh->overtime_fjg;
@@ -494,7 +498,7 @@ class SpreadsheetController extends Controller
 
             $barOT = $barMakan + 1;
             $barPot = $barOT;
-            
+
             $si->setCellValue('F'.$barOT, 'OVERTIME & ON CALL CUSTOMERS :');
             $si->mergeCells('F'.$barOT.':I'.$barOT);
             $si->setCellValue('J'.$barOT, 'OVERTIME & MEDICAL :');
@@ -533,17 +537,17 @@ class SpreadsheetController extends Controller
             $si->setCellValue('L'.$barOM, number_format(abs($persenMed),2,',','.').'%');
             $si->getStyle('L'.$barOM)->getAlignment()->setHorizontal('right');
             $barOM++;
-            
+
             $si->setCellValue('J'.$barOM, ''); // Empty row
             $si->setCellValue('K'.$barOM, '');
             $si->setCellValue('L'.$barOM, '');
             $barOM++;
-            
+
             $si->setCellValue('J'.$barOM, 'OVERTIME :');
             $si->setCellValue('K'.$barOM, '');
             $si->setCellValue('L'.$barOM, '');
             $barOM++;
-            
+
             $nowFjg = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]['overtime_fjg'] : 0;
             $beforeFjg = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]['overtime_fjg'] : 0;
             if($nowFjg == 0 && $beforeFjg == 0) {
@@ -569,7 +573,7 @@ class SpreadsheetController extends Controller
             $si->setCellValue('L'.$barOM, number_format(abs($persenFjg),2,',','.').'%');
             $si->getStyle('L'.$barOM)->getAlignment()->setHorizontal('right');
             $barOM++;
-            
+
             $nowCus = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]['overtime_cus'] : 0;
             $beforeCus = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]['overtime_cus'] : 0;
             if(isset($oncallJumlahs[$dh->bulan])) $nowCus -= $oncallJumlahs[$dh->bulan];
@@ -664,7 +668,7 @@ class SpreadsheetController extends Controller
             $si->getStyle('B'.$barPotAwal.':'.'E'.$barOT)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('B'.$barPotAwal.':'.'E'.$barOT)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
             $si->getStyle('B'.$barPot.':E'.$barOT)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            
+
             $barTTD = $barPot - 1; // Align horizontally with OVERTIME header!
             $barTTD++;
             $si->setCellValue($arrkol[$kolTotal-4].$barTTD, 'Diajukan Oleh :');
@@ -1017,11 +1021,11 @@ class SpreadsheetController extends Controller
                         $dkaryawan = $dataKaryawan[$karyawan_id];
                         $si->setCellValue('A'.$bar, $nomor);
                         $si->setCellValue('B'.$bar, $this->afAbbreviateName($dkaryawan->nama));
-                        
+
                         $tgl_masuk = $dkaryawan->tanggal_masuk ? date('d-m-Y', strtotime($dkaryawan->tanggal_masuk)) : '';
                         $tgl_keluar = $dkaryawan->tanggal_keluar ? date('d-m-Y', strtotime($dkaryawan->tanggal_keluar)) : '';
                         $si->setCellValue('C'.$bar, $tgl_masuk . ' s/d ' . $tgl_keluar);
-                        
+
                         $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_lahir)));
                         $si->setCellValue('E'.$bar, $uangPhk->kompensasi > 0 ? $uangPhk->kompensasi : '');
                         $si->setCellValue('F'.$bar, $uangPhk->pesangon > 0 ? $uangPhk->pesangon : '');
@@ -1093,22 +1097,22 @@ class SpreadsheetController extends Controller
         exit;
     }
 
-    
+
     public function listSalary() {
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
-        
+
         $si = $spreadsheet->getActiveSheet();
         $si->setShowGridlines(false);
         $si->setTitle('LIST SLRY FJG');
-        
+
         // Title
         $si->setCellValue('A2', 'SALARY PT.FRATEKINDO JAYA GEMILANG');
         $si->mergeCells('A2:L2');
         $si->getStyle('A2')->getFont()->setSize(14)->getColor()->setARGB('0000FF');
         $si->getStyle('A2')->getFont()->setUnderline(true);
         $si->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
-        
+
         // Headers
         $si->setCellValue('A4', 'NO'); $si->mergeCells('A4:A5');
         $si->setCellValue('B4', 'NAMA KARYAWAN'); $si->mergeCells('B4:B5');
@@ -1117,29 +1121,29 @@ class SpreadsheetController extends Controller
         $si->setCellValue('E4', 'TGL LAHIR'); $si->mergeCells('E4:E5');
         $si->setCellValue('F4', 'JABATAN'); $si->mergeCells('F4:F5');
         $si->setCellValue('G4', 'GAJI'); $si->mergeCells('G4:G5');
-        
+
         $si->setCellValue('H4', 'U/MAKAN & TRANSPORTASI'); $si->mergeCells('H4:I4');
         $si->setCellValue('H5', 'TETAP');
         $si->setCellValue('I5', 'TDK TETAP');
-        
+
         $si->setCellValue('J4', 'STATUS OVERTIME'); $si->mergeCells('J4:J5');
-        
+
         $si->setCellValue('K4', 'STATUS KARYAWAN'); $si->mergeCells('K4:L4');
         $si->setCellValue('K5', 'TETAP / PKWTT');
         $si->setCellValue('L5', 'KONTRAK / PKWT / PERCOBAAN');
-        
+
         $si->getStyle('A4:L5')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
         $si->getStyle('A4:L5')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
         $si->getStyle('A4:L5')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         $si->getRowDimension(4)->setRowHeight(30);
         $si->getRowDimension(5)->setRowHeight(30);
-        
+
         // Column Widths
         $widths = ['A'=>5, 'B'=>37, 'C'=>12, 'D'=>16, 'E'=>12, 'F'=>50, 'G'=>20, 'H'=>20, 'I'=>20, 'J'=>12, 'K'=>20, 'L'=>48];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
-        
+
         // Data
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
         $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
@@ -1149,34 +1153,34 @@ class SpreadsheetController extends Controller
         $totalKaryawanPerArea = [];
         $totalKaryawan = 0;
         $statusNamaToId = [];
-        
+
         foreach ($dataKaryawan as $d) {
             $staf = $d->staf;
             $area = $d->area ? $d->area->nama : 'Lainnya';
             $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
             $details[$staf][$area][] = $d;
-            
+
             $statusNama = $d->statusKerja ? $d->statusKerja->nama : 'Lain-lain';
-            
+
             if (!isset($totalKaryawanPerStatus[$statusNama])) {
                 $totalKaryawanPerStatus[$statusNama] = 0;
                 $statusNamaToId[$statusNama] = $d->status_kerja_id;
             }
             $totalKaryawanPerStatus[$statusNama]++;
-            
+
             if (!isset($totalKaryawanPerArea[$kodeArea])) $totalKaryawanPerArea[$kodeArea] = 0;
             $totalKaryawanPerArea[$kodeArea]++;
-            
+
             if (!isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea])) $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] = 0;
             $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]++;
-            
+
             $totalKaryawan++;
         }
 
         $si->freezePane('C6');
         $bar = 6;
         $nomor = 1;
-        
+
         krsort($details);
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
@@ -1192,29 +1196,29 @@ class SpreadsheetController extends Controller
                     $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
                     $bar++;
                 }
-                
+
                 foreach ($karyawans as $d) {
                     $si->setCellValue('A'.$bar, $nomor);
                     $si->setCellValue('B'.$bar, $d->nama);
-                    
+
                     $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                     $si->setCellValue('C'.$bar, $tgl_masuk);
-                    
+
                     $si->setCellValue('D'.$bar, $d->nik ? $d->nik : '');
-                    
+
                     $tgl_lahir = $d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '';
                     $si->setCellValue('E'.$bar, $tgl_lahir);
-                    
+
                     $si->setCellValue('F'.$bar, $d->jabatan ? $d->jabatan->nama : '');
-                    
+
                     $upah = isset($upahsData[$d->id]) ? $upahsData[$d->id] : null;
                     $gaji = $upah ? $upah->gaji : 0;
                     $si->setCellValue('G'.$bar, $gaji);
                     $si->getStyle('G'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-                    
+
                     $uang_makan = $upah ? $upah->uang_makan : 0;
                     $makanHarian = $upah ? $upah->makan_harian : 'N';
-                    
+
                     if ($makanHarian == 'Y') {
                         $si->setCellValue('H'.$bar, '');
                         $si->setCellValue('I'.$bar, $uang_makan);
@@ -1224,10 +1228,10 @@ class SpreadsheetController extends Controller
                         $si->getStyle('H'.$bar)->getNumberFormat()->setFormatCode('#,##0');
                         $si->setCellValue('I'.$bar, '');
                     }
-                    
+
                     $overtime = ($upah && $upah->overtime == 'Y') ? 'OT' : 'NON OT';
                     $si->setCellValue('J'.$bar, $overtime);
-                    
+
                     $statusNama = $d->statusKerja ? strtolower($d->statusKerja->nama) : '';
                     if (strpos($statusNama, 'tetap') !== false || strpos($statusNama, 'pkwtt') !== false) {
                         $si->setCellValue('K'.$bar, 'TETAP/PKWTT');
@@ -1236,13 +1240,13 @@ class SpreadsheetController extends Controller
                         if ($perjanjians->count() > 0) {
                             $latest = $perjanjians->last();
                             $bulanMap = [
-                                1 => 'JAN', 2 => 'PEB', 3 => 'MAR', 4 => 'APR', 
-                                5 => 'MEI', 6 => 'JUN', 7 => 'JUL', 8 => 'AGUSTUS', 
+                                1 => 'JAN', 2 => 'PEB', 3 => 'MAR', 4 => 'APR',
+                                5 => 'MEI', 6 => 'JUN', 7 => 'JUL', 8 => 'AGUSTUS',
                                 9 => 'SEP', 10 => 'OKT', 11 => 'NOP', 12 => 'DES'
                             ];
                             $awal = strtotime($latest->tanggal_awal);
                             $strAwal = date('d', $awal) . ' ' . $bulanMap[(int)date('n', $awal)] . date('\'y', $awal);
-                            
+
                             $strAkhir = '';
                             if ($latest->tanggal_akhir) {
                                 $akhir = strtotime($latest->tanggal_akhir);
@@ -1259,8 +1263,8 @@ class SpreadsheetController extends Controller
                             if ($perjanjians->count() > 0) {
                                 $latest = $perjanjians->last();
                                 $bulanMap = [
-                                    1 => 'JAN', 2 => 'PEB', 3 => 'MAR', 4 => 'APR', 
-                                    5 => 'MEI', 6 => 'JUN', 7 => 'JUL', 8 => 'AGUSTUS', 
+                                    1 => 'JAN', 2 => 'PEB', 3 => 'MAR', 4 => 'APR',
+                                    5 => 'MEI', 6 => 'JUN', 7 => 'JUL', 8 => 'AGUSTUS',
                                     9 => 'SEP', 10 => 'OKT', 11 => 'NOP', 12 => 'DES'
                                 ];
                                 $awal = strtotime($latest->tanggal_awal);
@@ -1272,17 +1276,17 @@ class SpreadsheetController extends Controller
                                 }
                                 $si->setCellValue('L'.$bar, 'PER : ' . $strAwal . $strAkhir);
                             } else {
-                                $si->setCellValue('L'.$bar, ''); 
+                                $si->setCellValue('L'.$bar, '');
                             }
                         }
                     }
-                    
+
                     $si->getStyle('A'.$bar.':L'.$bar)->getAlignment()->setVertical('center');
                     $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('C'.$bar.':E'.$bar)->getAlignment()->setHorizontal('center');
                                         $si->getStyle('I'.$bar)->getAlignment()->setHorizontal('right');
                     $si->getStyle('J'.$bar.':L'.$bar)->getAlignment()->setHorizontal('center');
-                    
+
                     $statusId = $d->status_kerja_id;
                     $bgColor = null;
                     if ($statusId == '2') $bgColor = 'FFBBDEFB';
@@ -1293,33 +1297,33 @@ class SpreadsheetController extends Controller
                     if ($bgColor) {
                         $si->getStyle('A'.$bar.':L'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
                     }
-                    
+
                     $bar++;
                     $nomor++;
                 }
-                
+
                 // 1 blank row after each area
                 $bar++;
             }
         }
-        
+
         $lastDataRow = $bar - 1;
         $si->setCellValue('A'.$bar, 'TOTAL GAJI POKOK KARYAWAN');
         $si->mergeCells('A'.$bar.':F'.$bar);
         $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-        
+
         $si->setCellValue('G'.$bar, '=SUM(G6:G'.$lastDataRow.')');
         $si->setCellValue('H'.$bar, '=SUM(H6:H'.$lastDataRow.')');
         $si->setCellValue('I'.$bar, '=SUM(I6:I'.$lastDataRow.')');
-        
+
         $si->getStyle('A'.$bar.':I'.$bar)->getFont()->getColor()->setARGB('FFFF0000');
         $si->getStyle('A'.$bar.':I'.$bar)->getFont()->setBold(true);
         $si->getStyle('G'.$bar.':I'.$bar)->getNumberFormat()->setFormatCode('#,##0');
-        
+
         if ($bar > 6) {
             $si->getStyle('A4:L'.$bar)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         }
-        
+
         $bar += 2;
         $dbAreas = \App\Models\Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
         $allAreas = $dbAreas;
@@ -1328,13 +1332,13 @@ class SpreadsheetController extends Controller
                 $allAreas[] = $a;
             }
         }
-        
+
         $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(3 + count($allAreas));
-        
+
         $si->setCellValue('B'.$bar, 'KETERANGAN STATUS KARYAWAN');
         $si->getStyle('B'.$bar)->getFont()->setBold(true);
         $bar++;
-        
+
         foreach ($totalKaryawanPerStatus as $statusNama => $total) {
             $statusId = isset($statusNamaToId[$statusNama]) ? $statusNamaToId[$statusNama] : null;
             $textColor = 'FF000000'; // Default black
@@ -1343,10 +1347,10 @@ class SpreadsheetController extends Controller
             elseif ($statusId == '4') $textColor = 'FF9C27B0';
             elseif ($statusId == '5') $textColor = 'FF4CAF50';
             elseif ($statusId && $statusId != '1') $textColor = 'FFF44336';
-            
+
             $si->setCellValue('B'.$bar, $statusNama);
             $si->setCellValue('C'.$bar, ': ' . $total);
-            
+
             $colIdx = 4; // Column D
             foreach ($allAreas as $kodeArea) {
                 $nilai = isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]) ? $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] : 0;
@@ -1354,15 +1358,15 @@ class SpreadsheetController extends Controller
                 $si->setCellValue($cellName.$bar, $kodeArea . ': ' . $nilai);
                 $colIdx++;
             }
-            
+
             $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->getColor()->setARGB($textColor);
-            
+
             $bar++;
         }
-        
+
         $si->setCellValue('B'.$bar, 'TOTAL KARYAWAN');
         $si->setCellValue('C'.$bar, ': ' . $totalKaryawan);
-        
+
         $colIdx = 4;
         foreach ($allAreas as $kodeArea) {
             $nilaiArea = isset($totalKaryawanPerArea[$kodeArea]) ? $totalKaryawanPerArea[$kodeArea] : 0;
@@ -1371,13 +1375,13 @@ class SpreadsheetController extends Controller
             $colIdx++;
         }
         $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->setBold(true)->getColor()->setARGB('FFFF0000');
-        
+
         $spreadsheet->setActiveSheetIndex(0);
-        
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="LIST_SALARY.xlsx"');
         header('Cache-Control: max-age=0');
-        
+
         $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
         $writer->save('php://output');
     }
@@ -1385,11 +1389,11 @@ class SpreadsheetController extends Controller
     public function listKaryawan() {
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
-        
+
         $si = $spreadsheet->getActiveSheet();
         $si->setShowGridlines(false);
         $si->setTitle('DATA KARYAWAN');
-        
+
         // Calculate active areas
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
         $activeAreas = [];
@@ -1414,7 +1418,7 @@ class SpreadsheetController extends Controller
         $si->mergeCells('A2:S2');
         $si->setCellValue('A3', $areaString);
         $si->mergeCells('A3:S3');
-        
+
         $styleJudul = [
             'font' => [
                 'name' => 'Malgun Gothic',
@@ -1431,7 +1435,7 @@ class SpreadsheetController extends Controller
         $si->getStyle('A2:S3')->applyFromArray($styleJudul);
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
-        
+
         // Headers
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
         $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
@@ -1439,13 +1443,13 @@ class SpreadsheetController extends Controller
         $si->setCellValue('D5', 'NIK'); $si->mergeCells('D5:D6');
         $si->setCellValue('E5', 'AGAMA'); $si->mergeCells('E5:E6');
         $si->setCellValue('F5', 'J A B A T A N'); $si->mergeCells('F5:F6');
-        
+
         $si->setCellValue('G5', 'DOKUMEN KARYAWAN'); $si->mergeCells('G5:J5');
         $si->setCellValue('G6', 'NOMOR KK');
         $si->setCellValue('H6', 'NO.NIK/PASSEPORT');
         $si->setCellValue('I6', 'NAMA KARYAWAN & KELUARGA');
         $si->setCellValue('J6', 'TEMPAT & TGL LAHIR');
-        
+
         $si->setCellValue('K5', 'ALAMAT SESUAI K T P'); $si->mergeCells('K5:K6');
         $si->setCellValue('L5', 'ALAMAT TINGGAL SEKARANG'); $si->mergeCells('L5:L6');
         $si->setCellValue('M5', 'NO.TLP'); $si->mergeCells('M5:M6');
@@ -1455,19 +1459,19 @@ class SpreadsheetController extends Controller
         $si->setCellValue('Q5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('Q5:Q6');
         $si->setCellValue('R5', 'EMAIL PRIBADI'); $si->mergeCells('R5:R6');
         $si->setCellValue('S5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('S5:S6');
-        
+
         $si->getStyle('A5:S6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
         $si->getStyle('A5:S6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
         $si->getStyle('A5:S6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $si->getRowDimension(5)->setRowHeight(18);
         $si->getRowDimension(6)->setRowHeight(15);
-        
+
         // Column Widths
         $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>16.00, 'E'=>10.77, 'F'=>40.14, 'G'=>18.10, 'H'=>21.33, 'I'=>48.00, 'J'=>30.00, 'K'=>56, 'L'=>57.10, 'M'=>18.00, 'N'=>25.00, 'O'=>15.66, 'P'=>45.00, 'Q'=>28.44, 'R'=>28.55, 'S'=>40.00];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
-        
+
         // Data
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
         $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
@@ -1477,41 +1481,41 @@ class SpreadsheetController extends Controller
         $totalKaryawanPerArea = [];
         $totalKaryawan = 0;
         $statusNamaToId = [];
-        
+
         foreach ($dataKaryawan as $d) {
             $staf = $d->staf;
             $area = $d->area ? $d->area->nama : 'Lainnya';
             $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
             $details[$staf][$area][] = $d;
-            
+
             $statusNama = $d->statusKerja ? $d->statusKerja->nama : 'Lain-lain';
-            
+
             if (!isset($totalKaryawanPerStatus[$statusNama])) {
                 $totalKaryawanPerStatus[$statusNama] = 0;
                 $statusNamaToId[$statusNama] = $d->status_kerja_id;
             }
             $totalKaryawanPerStatus[$statusNama]++;
-            
+
             if (!isset($totalKaryawanPerArea[$kodeArea])) $totalKaryawanPerArea[$kodeArea] = 0;
             $totalKaryawanPerArea[$kodeArea]++;
-            
+
             if (!isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea])) $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] = 0;
             $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]++;
-            
+
             $totalKaryawan++;
         }
 
         $si->freezePane('C7');
         $bar = 7;
         $nomor = 1;
-        
+
         krsort($details);
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
                 $si->setCellValue('B'.$bar, 'NON STAF :');
                 $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
                 $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
-                
+
                 $bar++;
             }
             foreach ($areas as $area => $karyawans) {
@@ -1519,14 +1523,14 @@ class SpreadsheetController extends Controller
                     $si->setCellValue('B'.$bar, $area.' :');
                     $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
-                    
+
                     $bar++;
                 }
-                
+
                 foreach ($karyawans as $d) {
                     $keluargas = $d->keluargas()->get();
                     $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
-                    
+
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
                     $maxRows = max(1 + $numKeluarga, $numPerjanjian);
@@ -1538,7 +1542,7 @@ class SpreadsheetController extends Controller
                         $pendidikanFormat = $d->pendidikan->nama;
                         $almamater = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_almamater));
                         $jurusan = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_jurusan));
-                        
+
                         if ($almamater) $pendidikanFormat .= ' ' . $almamater;
                         if ($jurusan) {
                             if ($maxRows >= 2) {
@@ -1554,36 +1558,36 @@ class SpreadsheetController extends Controller
                         if ($i == 0) {
                             $si->setCellValue('A'.$bar, $nomor);
                             $si->setCellValue('B'.$bar, $d->nama);
-                            
+
                             $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                             $si->setCellValue('C'.$bar, $tgl_masuk); // Masa Kerja
-                            
+
                             $si->setCellValue('D'.$bar, $d->nik ? $d->nik : '');
                             $si->setCellValue('E'.$bar, $d->agama ? $d->agama->nama : '');
                             $si->setCellValue('F'.$bar, $d->jabatan ? $d->jabatan->nama : '');
-                            
+
                             $si->setCellValue('G'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
-                            $si->setCellValue('H'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : ''); 
+                            $si->setCellValue('H'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
                             $si->setCellValue('I'.$bar, $d->nama); // Nama Karyawan & Keluarga
-                            
+
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                             $si->setCellValue('J'.$bar, $ttl);
-                            
+
                             $alamat_ktp = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_ktp));
                             $alamat_tinggal = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_tinggal));
                             $si->setCellValue('K'.$bar, $alamat_ktp);
                             $si->setCellValue('L'.$bar, $alamat_tinggal);
                             $si->setCellValue('M'.$bar, $d->telepon ? "'".$d->telepon : '');
                             $si->setCellValue('N'.$bar, ''); // No TLP Keluarga
-                            
+
                             $kawinStatus = $d->kawin == 'Y' ? 'Kawin' : ($d->kawin == 'N' ? 'Single' : 'Single Parent');
                             $jumlahAnak = $d->jumlahAnak();
                             $kawinFormat = $kawinStatus . ($jumlahAnak > 0 ? ' / ' . $jumlahAnak : '');
-                            $si->setCellValue('O'.$bar, $kawinFormat); 
-                            
+                            $si->setCellValue('O'.$bar, $kawinFormat);
+
                             $si->setCellValue('P'.$bar, $pendidikanFormat);
-                            
+
                             $si->setCellValue('R'.$bar, $d->email);
                             $statusNamaCell = $d->statusKerja ? $d->statusKerja->nama : '';
                             if ($numPerjanjian > 0) {
@@ -1599,7 +1603,7 @@ class SpreadsheetController extends Controller
                                 }
                             }
                             $si->setCellValue('S'.$bar, $statusNamaCell);
-                            
+
                             $statusId = $d->status_kerja_id;
                             $bgColor = null;
                             if ($statusId == '2') $bgColor = 'FFBBDEFB';
@@ -1620,18 +1624,18 @@ class SpreadsheetController extends Controller
                                 $si->setCellValue('J'.$bar, $ttlKeluarga);
                                 $si->setCellValue('N'.$bar, $keluarga->telepon ? "'".$keluarga->telepon : '');
                             }
-                            
+
                             if ($i == 1 && $pendidikanJurusan != '') {
                                 $si->setCellValue('P'.$bar, $pendidikanJurusan);
                             }
                         }
-                        
+
                         // Perjanjian Kerja
                         if ($i < $numPerjanjian) {
                             $pj = $perjanjians[$i];
                             $si->setCellValue('Q'.$bar, $pj->nomor);
                         }
-                        
+
                         $si->getStyle('A'.$bar.':S'.$bar)->getAlignment()->setVertical('top');
                         $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('C'.$bar.':E'.$bar)->getAlignment()->setHorizontal('center');
@@ -1640,10 +1644,10 @@ class SpreadsheetController extends Controller
                         $si->getStyle('O'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('Q'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('S'.$bar)->getAlignment()->setHorizontal('center');
-                        
+
                         $bar++;
                     }
-                    
+
                     if ($maxRows > 1) {
                         $si->mergeCells('K'.$startBar.':K'.($bar-1));
                         $si->mergeCells('L'.$startBar.':L'.($bar-1));
@@ -1656,19 +1660,19 @@ class SpreadsheetController extends Controller
                     $si->getStyle('K'.$startBar.':L'.($bar-1))->getAlignment()->setWrapText(true);
                     $si->getStyle('P'.$startBar.':P'.($bar-1))->getAlignment()->setWrapText(true);
                     $si->getStyle('S'.$startBar.':S'.($bar-1))->getAlignment()->setWrapText(true);
-                    
+
                     $bar++; // Insert empty row between employees
                     $nomor++;
                 }
             }
         }
-        
+
         if ($bar > 7) {
             $si->getStyle('A7:S'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('A7:S'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('A7:S'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
-        
+
         $bar += 2;
         $dbAreas = Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
         $allAreas = $dbAreas;
@@ -1677,13 +1681,13 @@ class SpreadsheetController extends Controller
                 $allAreas[] = $a;
             }
         }
-        
+
         $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(3 + count($allAreas));
-        
+
         $si->setCellValue('B'.$bar, 'KETERANGAN STATUS KARYAWAN');
         $si->getStyle('B'.$bar)->getFont()->setBold(true);
         $bar++;
-        
+
         foreach ($totalKaryawanPerStatus as $statusNama => $total) {
             $statusId = isset($statusNamaToId[$statusNama]) ? $statusNamaToId[$statusNama] : null;
             $textColor = 'FF000000'; // Default black
@@ -1692,10 +1696,10 @@ class SpreadsheetController extends Controller
             elseif ($statusId == '4') $textColor = 'FFEA80FC';
             elseif ($statusId == '5') $textColor = 'FFB9F6CA';
             elseif ($statusId != '1' && $statusId != null) $textColor = 'FFF44336';
-            
+
             $si->setCellValue('B'.$bar, $statusNama);
             $si->setCellValue('C'.$bar, ': ' . $total);
-            
+
             $colIdx = 4; // Column D
             foreach ($allAreas as $kodeArea) {
                 $nilai = isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]) ? $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] : 0;
@@ -1703,15 +1707,15 @@ class SpreadsheetController extends Controller
                 $si->setCellValue($cellName.$bar, $kodeArea . ': ' . $nilai);
                 $colIdx++;
             }
-            
+
             $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->getColor()->setARGB($textColor);
-            
+
             $bar++;
         }
-        
+
         $si->setCellValue('B'.$bar, 'TOTAL KARYAWAN');
         $si->setCellValue('C'.$bar, ': ' . $totalKaryawan);
-        
+
         $colIdx = 4;
         foreach ($allAreas as $kodeArea) {
             $nilaiArea = isset($totalKaryawanPerArea[$kodeArea]) ? $totalKaryawanPerArea[$kodeArea] : 0;
@@ -1720,7 +1724,7 @@ class SpreadsheetController extends Controller
             $colIdx++;
         }
         $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->setBold(true)->getColor()->setARGB('FFFF0000');
-        
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="DATA_GENERAL_KARYAWAN_FJG.xlsx"');
         header('Cache-Control: max-age=0');
@@ -1737,13 +1741,13 @@ class SpreadsheetController extends Controller
     public function listExKaryawan($tahun_awal, $tahun_akhir) {
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
-        
+
         $dataPhks = Phk::with(['karyawan', 'statusKerja', 'statusPhk'])
             ->whereYear('tanggal_akhir', '>=', $tahun_awal)
             ->whereYear('tanggal_akhir', '<=', $tahun_akhir)
             ->orderBy('tanggal_akhir', 'asc')
             ->get();
-            
+
         $detailsByYear = [];
         foreach ($dataPhks as $phk) {
             $year = date('Y', strtotime($phk->tanggal_akhir));
@@ -1753,7 +1757,7 @@ class SpreadsheetController extends Controller
                 $detailsByYear[$year][$staf][$area][] = $phk;
             }
         }
-        
+
         $areasLookup = Area::pluck('urutan', 'nama')->toArray();
         foreach ($detailsByYear as &$stafs) {
             foreach ($stafs as &$areas) {
@@ -1765,7 +1769,7 @@ class SpreadsheetController extends Controller
             }
         }
         unset($stafs, $areas);
-        
+
         if (empty($detailsByYear)) {
             $spreadsheet->getActiveSheet()->setTitle('KOSONG');
         }
@@ -1777,23 +1781,23 @@ class SpreadsheetController extends Controller
             }
             $spreadsheet->setActiveSheetIndex($sheetIndex);
             $si = $spreadsheet->getActiveSheet();
-            
+
             $si->setShowGridlines(false);
             $si->setTitle('EX KARYAWAN ' . $year);
-            
+
             // Headers at row 3 and 4
             $si->setCellValue('A3', 'NO'); $si->mergeCells('A3:A4');
             $si->setCellValue('B3', 'N A M A'); $si->mergeCells('B3:B4');
             $si->setCellValue('C3', 'MASA KERJA'); $si->mergeCells('C3:C4');
             $si->setCellValue('D3', 'AGAMA'); $si->mergeCells('D3:D4');
             $si->setCellValue('E3', 'J A B A T A N'); $si->mergeCells('E3:E4');
-            
+
             $si->setCellValue('F3', 'DOKUMEN KARYAWAN'); $si->mergeCells('F3:I3');
             $si->setCellValue('F4', 'NOMOR KK');
             $si->setCellValue('G4', 'NO.NIK/PASSEPORT');
             $si->setCellValue('H4', 'NAMA KARYAWAN & KELUARGA');
             $si->setCellValue('I4', 'TEMPAT & TGL LAHIR');
-            
+
             $si->setCellValue('J3', 'ALAMAT SESUAI K T P'); $si->mergeCells('J3:J4');
             $si->setCellValue('K3', 'ALAMAT TINGGAL SEKARANG'); $si->mergeCells('K3:K4');
             $si->setCellValue('L3', 'NO.TLP'); $si->mergeCells('L3:L4');
@@ -1803,23 +1807,23 @@ class SpreadsheetController extends Controller
             $si->setCellValue('P3', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('P3:P4');
             $si->setCellValue('Q3', 'EMAIL PRIBADI'); $si->mergeCells('Q3:Q4');
             $si->setCellValue('R3', 'STATUS PHK KARYAWAN'); $si->mergeCells('R3:R4');
-            
+
             $si->getStyle('A3:R4')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
             $si->getStyle('A3:R4')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
             $si->getStyle('A3:R4')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getRowDimension(3)->setRowHeight(18);
             $si->getRowDimension(4)->setRowHeight(15);
-            
+
             // Column Widths
             $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>25.00, 'D'=>16.00, 'E'=>40.14, 'F'=>18.10, 'G'=>21.33, 'H'=>48.00, 'I'=>30.00, 'J'=>56, 'K'=>57.10, 'L'=>18.00, 'M'=>25.00, 'N'=>15.66, 'O'=>45.00, 'P'=>28.44, 'Q'=>28.55, 'R'=>45.00];
             foreach ($widths as $col => $width) {
                 $si->getColumnDimension($col)->setWidth($width);
             }
-            
+
             $si->freezePane('C5');
             $bar = 5;
             $nomor = 1;
-            
+
             krsort($details);
             foreach ($details as $staf => $areas) {
                 if($staf == 'N') {
@@ -1835,13 +1839,13 @@ class SpreadsheetController extends Controller
                         $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
                         $bar++;
                     }
-                    
+
                     foreach ($phksGrouped as $phk) {
                         $d = $phk->karyawan;
-                        
+
                         $keluargas = $d->keluargas()->get();
                         $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
-                        
+
                         $numKeluarga = $keluargas->count();
                         $numPerjanjian = $perjanjians->count();
                         $maxRows = max(1 + $numKeluarga, $numPerjanjian);
@@ -1853,7 +1857,7 @@ class SpreadsheetController extends Controller
                             $pendidikanFormat = $d->pendidikan->nama;
                             $almamater = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_almamater));
                             $jurusan = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_jurusan));
-                            
+
                             if ($almamater) $pendidikanFormat .= ' ' . $almamater;
                             if ($jurusan) {
                                 if ($maxRows >= 2) {
@@ -1869,47 +1873,47 @@ class SpreadsheetController extends Controller
                             if ($i == 0) {
                                 $si->setCellValue('A'.$bar, $nomor);
                                 $si->setCellValue('B'.$bar, $d->nama);
-                                
+
                                 $tgl_masuk = $phk->tanggal_awal ? date('d-m-Y', strtotime($phk->tanggal_awal)) : '';
                                 $tgl_akhir = $phk->tanggal_akhir ? date('d-m-Y', strtotime($phk->tanggal_akhir)) : '';
                                 $masaKerjaFormat = $tgl_masuk . ($tgl_akhir ? ' s/d ' . $tgl_akhir : '');
                                 $si->setCellValue('C'.$bar, $masaKerjaFormat);
-                                
+
                                 $si->setCellValue('D'.$bar, $d->agama ? $d->agama->nama : '');
                                 $si->setCellValue('E'.$bar, $d->jabatan ? $d->jabatan->nama : '');
-                                
+
                                 $si->setCellValue('F'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
                                 $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
                                 $si->setCellValue('G'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
-                                
+
                                 $si->setCellValue('H'.$bar, $d->nama);
-                                
+
                                 $tgl_lahir = $d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '';
                                 $si->setCellValue('I'.$bar, $d->tempat_lahir . ', ' . $tgl_lahir);
-                                
+
                                 $alamat_ktp = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_ktp));
                                 $alamat_tinggal = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_tinggal));
                                 $si->setCellValue('J'.$bar, $alamat_ktp);
                                 $si->setCellValue('K'.$bar, $alamat_tinggal);
                                 $si->setCellValue('L'.$bar, $d->telepon ? "'".$d->telepon : '');
                                 $si->setCellValue('M'.$bar, ''); // No TLP Keluarga
-                                
+
                                 $kawinStatus = $d->kawin == 'Y' ? 'Kawin' : ($d->kawin == 'N' ? 'Single' : 'Single Parent');
                                 $jumlahAnak = $d->jumlahAnak();
                                 $kawinFormat = $kawinStatus . ($jumlahAnak > 0 ? ' / ' . $jumlahAnak : '');
-                                $si->setCellValue('N'.$bar, $kawinFormat); 
-                                
+                                $si->setCellValue('N'.$bar, $kawinFormat);
+
                                 $si->setCellValue('O'.$bar, $pendidikanFormat);
-                                
+
                                 $si->setCellValue('Q'.$bar, $d->email);
-                                
+
                                 $statusNama = $phk->statusKerja ? $phk->statusKerja->nama : '';
                                 $statusPhkNama = $phk->statusPhk ? $phk->statusPhk->nama : '';
                                 $keteranganPhk = $phk->keterangan ? ' ('.$phk->keterangan.')' : '';
                                 $statusKolomR = $statusNama . ($statusPhkNama ? ' / ' . $statusPhkNama : '') . $keteranganPhk;
-                                
+
                                 $si->setCellValue('R'.$bar, $statusKolomR);
-                                
+
                             } else {
                                 // Family rows (i >= 1)
                                 if ($i <= $numKeluarga) {
@@ -1917,22 +1921,22 @@ class SpreadsheetController extends Controller
                                     $si->setCellValue('H'.$bar, $kel->nama);
                                     $tgl_lahir_kel = $kel->tanggal_lahir ? date('d-m-Y', strtotime($kel->tanggal_lahir)) : '';
                                     $si->setCellValue('I'.$bar, $kel->tempat_lahir . ', ' . $tgl_lahir_kel);
-                                    
+
                                     $si->setCellValue('M'.$bar, $kel->telepon ? "'".$kel->telepon : '');
                                 }
-                                
+
                                 // Second row for Pendidikan Jurusan
                                 if ($i == 1 && $pendidikanJurusan != '') {
                                     $si->setCellValue('O'.$bar, $pendidikanJurusan);
                                 }
                             }
-                            
+
                             // Perjanjian Kerja
                             if ($i < $numPerjanjian) {
                                 $pj = $perjanjians[$i];
                                 $si->setCellValue('P'.$bar, $pj->nomor);
                             }
-                            
+
                             $si->getStyle('A'.$bar.':R'.$bar)->getAlignment()->setVertical('top');
                             $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                             $si->getStyle('C'.$bar.':D'.$bar)->getAlignment()->setHorizontal('center');
@@ -1941,15 +1945,15 @@ class SpreadsheetController extends Controller
                             $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('center');
                             $si->getStyle('P'.$bar)->getAlignment()->setHorizontal('center');
                             $si->getStyle('R'.$bar)->getAlignment()->setHorizontal('left');
-                            
+
                             $bar++;
                         }
-                        
+
                         // Set WrapText for J, K, O, R for the whole block of this employee
                         $si->getStyle('J'.$startBar.':K'.($bar-1))->getAlignment()->setWrapText(true);
                         $si->getStyle('O'.$startBar.':O'.($bar-1))->getAlignment()->setWrapText(true);
                         $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
-                        
+
                         // Merge cells vertically for this employee
                         if ($maxRows > 1) {
                             $colsToMerge = ['J', 'K', 'R'];
@@ -1958,25 +1962,25 @@ class SpreadsheetController extends Controller
                                 $si->getStyle($col.$startBar.':'.$col.($bar-1))->getAlignment()->setVertical('top');
                             }
                         }
-                        
+
                         // Add an empty row between employees
                         $bar++;
                         $nomor++;
                     }
                 }
             }
-            
+
             if ($bar > 5) {
                 $si->getStyle('A5:R'.($bar-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 $si->getStyle('A5:R'.($bar-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
                 $si->getStyle('A5:R'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
             }
-            
+
             $sheetIndex++;
         }
-        
+
         $spreadsheet->setActiveSheetIndex(0);
-        
+
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="DATA_EX_KARYAWAN.xlsx"');
         header('Cache-Control: max-age=0');

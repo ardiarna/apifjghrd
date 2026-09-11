@@ -141,13 +141,20 @@ $router->group(['prefix' => 'cuti', 'middleware' => 'auth:api'], function () use
     $router->post('submit', 'CutiController@submit');
     $router->delete('{id}', 'CutiController@delete');
     $router->get('excel/jadwal/{tahun}', 'CutiExcelController@jadwal');
+    $router->get('excel/pdf-jadwal-cuti/{tahun}', 'PdfJadwalCutiController@jadwal');
     $router->get('excel/list/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@listCuti');
+    $router->get('excel/pdf-list/{tahunAwal}/{tahunAkhir}', 'PdfListCutiController@listCuti');
     $router->get('excel/list/{tahun}', 'CutiExcelController@listCutiSingle');
+    $router->get('excel/pdf-list/{tahun}', 'PdfListCutiController@listCutiSingle');
     $router->get('excel/form/{id}', 'CutiExcelController@form');
     $router->get('excel/tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@tanpaPotongan');
+    $router->get('excel/pdf-tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'PdfCutiTanpaPotonganController@tanpaPotongan');
     $router->get('excel/tanpa-potongan/{tahun}', 'CutiExcelController@tanpaPotonganSingle');
+    $router->get('excel/pdf-tanpa-potongan/{tahun}', 'PdfCutiTanpaPotonganController@tanpaPotonganSingle');
     $router->get('excel/unpaid/{tahunAwal}/{tahunAkhir}', 'CutiExcelController@unpaid');
+    $router->get('excel/pdf-unpaid/{tahunAwal}/{tahunAkhir}', 'PdfCutiUnpaidController@unpaid');
     $router->get('excel/unpaid/{tahun}', 'CutiExcelController@unpaidSingle');
+    $router->get('excel/pdf-unpaid/{tahun}', 'PdfCutiUnpaidController@unpaidSingle');
 });
 
 $router->group(['prefix' => 'oncall_customer', 'middleware' => 'auth:api'], function () use ($router) {
@@ -282,20 +289,37 @@ $router->group(['prefix' => 'upah', 'middleware' => 'auth:api'], function () use
 
 $router->group(["prefix" => "excel", "middleware" => "auth:api"], function () use ($router) {
     $router->get('data-karyawan-per-joint/{tahunAwal}/{tahunAkhir}/{includeEx}', 'SpreadKaryawanCustomController@dataKaryawanPerJoint');
+    $router->get('pdf-data-karyawan-per-joint/{tahunAwal}/{tahunAkhir}/{includeEx}', 'PdfDataKaryawanPerJointController@rekap');
     $router->get('data-divisi/{id}', 'SpreadKaryawanCustomController@dataDivisi');
+    $router->get('pdf-data-divisi/{id}', 'PdfDataDivisiController@rekap');
     $router->get('alamat-divisi/{id}', 'SpreadKaryawanCustomController@alamatDivisi');
+    $router->get('pdf-alamat-divisi/{id}', 'PdfAlamatDivisiController@rekap');
     $router->get('nik-tlp-karyawan', 'SpreadKaryawanCustomController@nikTlpKaryawan');
+    $router->get('pdf-nik-tlp-karyawan', 'PdfNikTlpKaryawanController@rekap');
     $router->get('data-jabatan-karyawan', 'SpreadKaryawanCustomController@dataJabatanKaryawan');
+    $router->get('pdf-data-jabatan-karyawan', 'PdfDataJabatanKaryawanController@rekap');
     $router->get('data-status-karyawan', 'SpreadKaryawanCustomController@dataStatusKaryawan');
-    $router->get('list-payroll/{tahun}', 'SpreadsheetController@listPayroll');
+    $router->get('pdf-data-status-karyawan', 'PdfDataStatusKaryawanController@rekap');
+    $router->get('list-payroll/{tahun}/{bulans}', 'SpreadsheetController@listPayroll');
     $router->get('list-phk/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listPHK');
+    $router->get('pdf-list-phk/{tahun_awal}/{tahun_akhir}', 'PdfListPhkController@listPHK');
     $router->get('list-ex-karyawan/{tahun_awal}/{tahun_akhir}', 'SpreadsheetController@listExKaryawan');
+    $router->get('pdf-list-ex-karyawan/{tahun_awal}/{tahun_akhir}', 'PdfListExKaryawanController@rekap');
     $router->get('list-karyawan', 'SpreadsheetController@listKaryawan');
+    $router->get('pdf-list-karyawan', 'PdfListKaryawanController@rekap');
     $router->get('list-salary', 'SpreadsheetController@listSalary');
+    $router->get('pdf-list-salary', 'PdfListSalaryController@listSalary');
+    $router->get('pdf-list-payroll/{tahun}/{bulans}', 'PdfListPayrollController@listPayroll');
+    $router->get('pdf-list-payroll/{tahun}', 'PdfListPayrollController@listPayroll');
+
     $router->get('rekap-gaji/{tahun}', 'SpreadsheetController@rekapGaji');
+    $router->get('pdf-rekap-gaji/{tahun}', 'PdfRekapGajiController@rekapGaji');
     $router->get('rekap-payroll-perkaryawan/{jenis}/{tahun}/{area}', 'SpreadPayrollController@rekapPerKaryawan');
+    $router->get('pdf-rekap-payroll-perkaryawan/{jenis}/{tahun}/{area}', 'PdfRekapPayrollPerKaryawanController@rekapPerKaryawan');
     $router->get('rekap-medical/{tahun}', 'SpreadMedicalController@rekap');
+    $router->get('pdf-rekap-medical/{tahun}', 'PdfRekapMedicalController@rekap');
     $router->get('rekap-overtime/{tahun}', 'SpreadOvertimeController@rekap');
+    $router->get('pdf-rekap-overtime/{tahun}', 'PdfRekapOvertimeController@rekap');
     $router->get('slip-gaji/{tahun}/{bulan}/{jenis}/{area}', 'SpreadSlipGajiController@cetak');
     $router->get('pdf-slip-gaji/{tahun}/{bulan}/{jenis}/{area}', 'PdfSlipGajiController@cetak');
     $router->get('slip-karyawan/{karyawan_id}/{tahun}/{bulans}', 'SpreadSlipGajiController@perKaryawan');
@@ -303,6 +327,9 @@ $router->group(["prefix" => "excel", "middleware" => "auth:api"], function () us
     $router->get('payroll/{karyawan_id}/{tahun}', 'SpreadPphController@karyawan');
     $router->get('payroll-periode/{karyawan_id}/{tahun_awal}/{bulan_awal}/{tahun_akhir}/{bulan_akhir}', 'SpreadPphController@karyawanPeriode');
     $router->get('rekap-pph21/{jenis}/{tahun}/{area}', 'SpreadPphController@rekap');
+    $router->get('pdf-rekap-pph21/{jenis}/{tahun}/{area}', 'PdfRekapPph21Controller@rekap');
+    $router->get('pdf-rekap-pph21-test/{jenis}/{tahun}/{area}', 'PdfRekapPph21Controller@rekap');
+
 });
 
 $router->group(['prefix' => 'jatah-cuti', 'middleware' => 'auth:api'], function () use ($router) {
@@ -370,3 +397,4 @@ $router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use 
     });
 });
 $router->get('debug-excel', 'SpreadKaryawanCustomController@dataStatusKaryawan');
+$router->get('test-pdf-pph/{jenis}/{tahun}/{area}', 'PdfRekapPph21Controller@rekap');
