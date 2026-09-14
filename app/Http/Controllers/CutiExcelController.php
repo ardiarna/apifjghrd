@@ -455,7 +455,7 @@ class CutiExcelController extends Controller
 
                 foreach ($karyawans as $k) {
                     $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
-                        ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
+                        ->whereIn('kategori', ['IJIN', 'CUTI_MASAL', 'GANTI_HARI_LIBUR'])
                         ->whereHas('cuti', function($q) use ($k, $tahun) {
                             $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
                         })
@@ -504,7 +504,7 @@ class CutiExcelController extends Controller
 
                             $dateStr = implode(', ', $dateStrings);
                         }
-                        $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : 'Ijin');
+                        $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : ($det->kategori == 'GANTI_HARI_LIBUR' ? 'Ganti Hari Libur' : 'Ijin'));
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 

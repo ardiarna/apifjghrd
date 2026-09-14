@@ -453,7 +453,7 @@ class CicCutiExcelController extends Controller
 
                 foreach ($cic_karyawans as $k) {
                     $detailsKet = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
-                        ->whereIn('kategori', ['IJIN', 'CUTI_MASAL'])
+                        ->whereIn('kategori', ['IJIN', 'CUTI_MASAL', 'GANTI_HARI_LIBUR'])
                         ->whereHas('cicCuti', function($q) use ($k, $tahun) {
                             $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
                         })
@@ -502,7 +502,7 @@ class CicCutiExcelController extends Controller
 
                             $dateStr = implode(', ', $dateStrings);
                         }
-                        $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : 'Ijin');
+                        $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : ($det->kategori == 'GANTI_HARI_LIBUR' ? 'Ganti Hari Libur' : 'Ijin'));
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
 
