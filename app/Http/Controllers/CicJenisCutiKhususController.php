@@ -27,7 +27,7 @@ class CicJenisCutiKhususController extends Controller
     {
         $this->validate($req, [
             'nama'      => 'required|string|max:100',
-            'lama_hari' => 'required|integer|min:1',
+            'lama_hari' => 'required|numeric|min:0.1',
             'satuan'    => 'in:hari,bulan',
             'urutan'    => 'integer|min:0',
         ]);
@@ -40,7 +40,7 @@ class CicJenisCutiKhususController extends Controller
     public function update(Request $req, $id)
     {
         $this->validate($req, [
-            'lama_hari' => 'integer|min:1',
+            'lama_hari' => 'numeric|min:0.1',
             'satuan'    => 'in:hari,bulan',
             'urutan'    => 'integer|min:0',
         ]);

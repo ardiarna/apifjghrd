@@ -45,7 +45,7 @@ class CutiController extends Controller
                     [
                         'id' => 'masal_' . $m->id,
                         'kategori' => 'CUTI_MASAL',
-                        'lama_hari' => (int)$m->lama_hari,
+                        'lama_hari' => (float)$m->lama_hari,
                         'keterangan' => $m->keterangan ?? '',
                         'dates' => $m->dates->map(function($d) {
                             return ['tanggal' => $d->tanggal];
