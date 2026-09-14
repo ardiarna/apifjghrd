@@ -15,7 +15,53 @@ class CutiController extends Controller
     public function findAll(Request $request)
     {
         $tahun = $request->tahun ?? date('Y');
-        $data = Cuti::with(['karyawan.jabatan', 'karyawan.divisi', 'karyawan.statusKerja', 'karyawan.area', 'details.dates', 'details.jenisKhusus'])->where('tahun', $tahun)->orderBy('created_at', 'desc')->get();
+        $cutis = Cuti::with(['karyawan.jabatan', 'karyawan.divisi', 'karyawan.statusKerja', 'karyawan.area', 'details.dates', 'details.jenisKhusus'])
+            ->where('tahun', $tahun)
+            ->where('jenis_form', '!=', 'CUTI_MASAL')
+            ->orderBy('created_at', 'desc')->get();
+            
+        $masals = \App\Models\CutiMasal::where('tahun', $tahun)
+            ->orderBy('created_at', 'desc')->get();
+            
+        $data = [];
+        foreach ($cutis as $c) {
+            $data[] = $c;
+        }
+        
+        foreach ($masals as $m) {
+            $count = Cuti::where('cuti_masal_id', $m->id)->count();
+            
+            $data[] = [
+                'id' => (string)$m->id,
+                'jenis_form' => 'CUTI_MASAL_GLOBAL',
+                'tahun' => (string)$m->tahun,
+                'tanggal_kembali' => $m->tanggal_kembali,
+                'created_at' => $m->created_at,
+                'karyawan' => [
+                    'id' => 0,
+                    'nama' => $count . ' KARYAWAN'
+                ],
+                'details' => [
+                    [
+                        'id' => 'masal_' . $m->id,
+                        'kategori' => 'CUTI_MASAL',
+                        'lama_hari' => (int)$m->lama_hari,
+                        'keterangan' => $m->keterangan ?? '',
+                        'dates' => $m->dates->map(function($d) {
+                            return ['tanggal' => $d->tanggal];
+                        })->toArray()
+                    ]
+                ],
+                'tanggal_cuti_str' => ''
+            ];
+        }
+        
+        usort($data, function($a, $b) {
+            $dateA = is_array($a) ? $a['created_at'] : $a->created_at;
+            $dateB = is_array($b) ? $b['created_at'] : $b->created_at;
+            return strtotime($dateB) - strtotime($dateA);
+        });
+        
         return response()->json(['status' => 'success', 'message' => 'success', 'data' => $data], 200);
     }
 
@@ -269,6 +315,22 @@ class CutiController extends Controller
 
         DB::beginTransaction();
         try {
+            $cutiMasalModel = \App\Models\CutiMasal::create([
+                'tahun' => $request->tahun,
+                'keterangan' => $request->keterangan,
+                'tanggal_kembali' => $request->tanggal_kembali ?? null,
+                'lama_hari' => $request->lama_hari ?? 0,
+            ]);
+
+            if (!empty($request->global_dates)) {
+                foreach($request->global_dates as $dt) {
+                    \App\Models\CutiMasalDate::create([
+                        'cuti_masal_id' => $cutiMasalModel->id,
+                        'tanggal' => $dt,
+                    ]);
+                }
+            }
+
             foreach($request->karyawans as $k) {
                 $karyawanId = $k['karyawan_id'];
                 $tahun = $request->tahun;
@@ -290,9 +352,9 @@ class CutiController extends Controller
                 $cuti = Cuti::create([
                     'karyawan_id' => $karyawanId,
                     'jenis_form' => 'CUTI_MASAL',
-                    
                     'tanggal_kembali' => $request->tanggal_kembali ?? null,
                     'tahun' => $tahun,
+                    'cuti_masal_id' => $cutiMasalModel->id,
                 ]);
                 foreach($k['details'] as $detail) {
                     $isSnapshotKategori = ($detail['kategori'] == 'CUTI_MASAL');
@@ -333,4 +395,109 @@ class CutiController extends Controller
         }
         return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan'], 404);
     }
-}
+
+    public function detailMasal($id)
+    {
+        $masal = \App\Models\CutiMasal::with(['dates', 'cutis.karyawan.jabatan', 'cutis.karyawan.divisi', 'cutis.karyawan.statusKerja', 'cutis.karyawan.area', 'cutis.details.dates', 'cutis.details.jenisKhusus'])->find($id);
+        if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
+        return response()->json(['status' => 'success', 'data' => $masal]);
+    }
+
+    public function updateKeteranganMasal(Request $request, $id)
+    {
+        $masal = \App\Models\CutiMasal::find($id);
+        if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
+        $masal->keterangan = $request->keterangan;
+        $masal->save();
+        return response()->json(['status' => 'success']);
+    }
+
+    public function deleteMasal($id)
+    {
+        $masal = \App\Models\CutiMasal::find($id);
+        if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
+        $cutis = Cuti::where('cuti_masal_id', $id)->get();
+        foreach($cutis as $c) {
+            $c->delete();
+        }
+        $masal->delete();
+        return response()->json(['status' => 'success']);
+    }
+
+    public function updateKeteranganDetail(Request $request, $id)
+    {
+        $detail = \App\Models\CutiDetail::find($id);
+        if (!$detail) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
+        $detail->keterangan = $request->keterangan;
+        $detail->save();
+        return response()->json(['status' => 'success']);
+    }
+    public function addKaryawanMasal(Request $request, $id)
+    {
+        $this->validate($request, [
+            'karyawans' => 'required|array'
+        ]);
+
+        $masal = \App\Models\CutiMasal::find($id);
+        if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
+
+        DB::beginTransaction();
+        try {
+            foreach($request->karyawans as $k) {
+                $karyawanId = $k['karyawan_id'];
+                $tahun = $masal->tahun;
+                
+                // check if already added to this mass leave
+                $exists = Cuti::where('karyawan_id', $karyawanId)->where('cuti_masal_id', $id)->first();
+                if ($exists) continue;
+
+                $jatahSnap = JatahCutiTahunan::where('karyawan_id', $karyawanId)
+                    ->where('tahun', $tahun)->first();
+                $snapTotalHakCuti = $jatahSnap
+                    ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
+                    : 0;
+                $snapSudahDiambil = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+                $snapCutiMasal = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
+                    $q->where('kategori', 'CUTI_MASAL')
+                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
+                })->count();
+
+                $cuti = Cuti::create([
+                    'karyawan_id' => $karyawanId,
+                    'jenis_form' => 'CUTI_MASAL',
+                    'tanggal_kembali' => $masal->tanggal_kembali,
+                    'tahun' => $tahun,
+                    'cuti_masal_id' => $masal->id,
+                ]);
+                foreach($k['details'] as $detail) {
+                    $isSnapshotKategori = ($detail['kategori'] == 'CUTI_MASAL');
+                    $cd = CutiDetail::create([
+                        'cuti_id' => $cuti->id,
+                        'kategori' => $detail['kategori'],
+                        'jenis_unpaid' => $detail['jenis_unpaid'] ?? null,
+                        'lama_hari' => $detail['lama_hari'],
+                        'keterangan' => $detail['keterangan'] ?? $masal->keterangan,
+                        'snap_total_hak_cuti' => $isSnapshotKategori ? $snapTotalHakCuti : null,
+                        'snap_sudah_diambil'  => $isSnapshotKategori ? $snapSudahDiambil  : null,
+                        'snap_cuti_masal'     => $isSnapshotKategori ? $snapCutiMasal     : null,
+                    ]);
+                    if(!empty($detail['dates'])) {
+                        foreach($detail['dates'] as $dt) {
+                            CutiDate::create([
+                                'cuti_detail_id' => $cd->id,
+                                'tanggal' => $dt
+                            ]);
+                        }
+                    }
+                }
+            }
+            DB::commit();
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['status' => 'error', 'message' => $e->getMessage()], 500);
+        }
+    }}

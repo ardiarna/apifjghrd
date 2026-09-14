@@ -138,6 +138,11 @@ $router->group(['prefix' => 'cuti', 'middleware' => 'auth:api'], function () use
     $router->get('info', 'CutiController@info');
     $router->get('info-masal', 'CutiController@infoMasal');
     $router->post('submit-masal', 'CutiController@submitMasal');
+    $router->get('masal/{id}', 'CutiController@detailMasal');
+    $router->put('masal/{id}/keterangan', 'CutiController@updateKeteranganMasal');
+    $router->post('masal/{id}/karyawan', 'CutiController@addKaryawanMasal');
+    $router->delete('masal/{id}', 'CutiController@deleteMasal');
+    $router->put('detail/{id}/keterangan', 'CutiController@updateKeteranganDetail');
     $router->post('submit', 'CutiController@submit');
     $router->delete('{id}', 'CutiController@delete');
     $router->get('excel/jadwal/{tahun}', 'CutiExcelController@jadwal');
