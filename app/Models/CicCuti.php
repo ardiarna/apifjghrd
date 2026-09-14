@@ -8,4 +8,8 @@ class CicCuti extends Model {
     public function cicKaryawan() { return $this->belongsTo(CicKaryawan::class, 'cic_karyawan_id'); }
     public function details() { return $this->hasMany(CicCutiDetail::class, 'cic_cuti_id'); }
     public function approveUser() { return $this->belongsTo(User::class, 'approve_user_id'); }
+    public function cicCutiMasal()
+    {
+        return $this->belongsTo(CicCutiMasal::class, 'cic_cuti_masal_id');
+    }
 }

@@ -372,6 +372,12 @@ $router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use 
         $router->post('submit', 'CicCutiController@submit');
         $router->delete('{id}', 'CicCutiController@delete');
 
+        $router->get('masal/{id}', 'CicCutiController@detailMasal');
+        $router->post('masal/{id}/karyawan', 'CicCutiController@addKaryawanMasal');
+        $router->put('masal/{id}/keterangan', 'CicCutiController@updateKeteranganMasal');
+        $router->put('detail/{id}/keterangan', 'CicCutiController@updateKeteranganDetail');
+        $router->delete('masal/{id}', 'CicCutiController@hapusCutiMasal');
+
         $router->group(['prefix' => 'excel'], function () use ($router) {
             $router->get('jadwal/{tahun}', 'CicCutiExcelController@jadwal');
             $router->get('list/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@listCuti');
