@@ -15,10 +15,19 @@ class CutiController extends Controller
     public function findAll(Request $request)
     {
         $tahun = $request->tahun ?? date('Y');
-        $cutis = Cuti::with(['karyawan.jabatan', 'karyawan.divisi', 'karyawan.statusKerja', 'karyawan.area', 'details.dates', 'details.jenisKhusus'])
+        
+        $query = Cuti::with(['karyawan.jabatan', 'karyawan.divisi', 'karyawan.statusKerja', 'karyawan.area', 'details.dates', 'details.jenisKhusus'])
             ->where('tahun', $tahun)
-            ->where('jenis_form', '!=', 'CUTI_MASAL')
-            ->orderBy('created_at', 'desc')->get();
+            ->orderBy('created_at', 'desc');
+            
+        if ($request->has('karyawan_id')) {
+            $query->where('karyawan_id', $request->karyawan_id);
+            $cutis = $query->get();
+            return response()->json(['status' => 'success', 'message' => 'success', 'data' => $cutis], 200);
+        }
+
+        $query->where('jenis_form', '!=', 'CUTI_MASAL');
+        $cutis = $query->get();
             
         $masals = \App\Models\CutiMasal::where('tahun', $tahun)
             ->orderBy('created_at', 'desc')->get();
