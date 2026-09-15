@@ -67,7 +67,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<table>";
         
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
-        $widths = [10, 55, 20, 30, 20, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 40, 50, 60];
+        $widths = [10, 55, 20, 12, 12, 30, 20, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 50, 80, 60];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
         $html .= "</tr>";
 
@@ -75,6 +75,8 @@ class PdfListKaryawanController extends Controller
         $html .= "<th rowspan=\"2\">NO</th>";
         $html .= "<th rowspan=\"2\">N A M A</th>";
         $html .= "<th rowspan=\"2\">MASA KERJA</th>";
+        $html .= "<th rowspan=\"2\">AGE (YEARS)</th>";
+        $html .= "<th rowspan=\"2\">YEARS OF SERVICE</th>";
         $html .= "<th rowspan=\"2\">NIK</th>";
         $html .= "<th rowspan=\"2\">AGAMA</th>";
         $html .= "<th rowspan=\"2\">J A B A T A N</th>";
@@ -85,8 +87,8 @@ class PdfListKaryawanController extends Controller
         $html .= "<th rowspan=\"2\">NO.TLP KELUARGA</th>";
         $html .= "<th rowspan=\"2\">STATUS</th>";
         $html .= "<th rowspan=\"2\">PENDIDIKAN TERAKHIR</th>";
-        $html .= "<th rowspan=\"2\">NOMOR PERJANJIAN KERJA</th>";
         $html .= "<th rowspan=\"2\">EMAIL PRIBADI</th>";
+        $html .= "<th rowspan=\"2\">NOMOR PERJANJIAN KERJA</th>";
         $html .= "<th rowspan=\"2\">STATUS KARYAWAN PKWT / KONTRAK</th>";
         $html .= "</tr>";
 
@@ -144,7 +146,20 @@ class PdfListKaryawanController extends Controller
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
-                    $maxRows = max(1 + $numKeluarga, $numPerjanjian);
+
+                    $alamatKtpArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_ktp))));
+                    $alamatKtpArr = array_values($alamatKtpArr);
+                    $alamatTinggalArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_tinggal))));
+                    $alamatTinggalArr = array_values($alamatTinggalArr);
+
+                    $kontaks = $d->keluargaKontaks()->get();
+                    $kontakArr = [];
+                    foreach ($kontaks as $k_kontak) {
+                        $kontakArr[] = $k_kontak->telepon ? "" . $k_kontak->telepon : '';
+                        $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
+                    }
+
+                    $maxRows = max(1 + $numKeluarga, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -184,6 +199,23 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td class=\"al\">".$d->nama."</td>";
                             $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                             $html .= "<td class=\"ac\">".$tgl_masuk."</td>";
+                            
+                            $age = '';
+                            if ($d->tanggal_lahir) {
+                                $dt1 = date_create($d->tanggal_lahir);
+                                $dt2 = date_create('today');
+                                $age = date_diff($dt1, $dt2)->y;
+                            }
+                            $html .= "<td class=\"ac\">".$age."</td>";
+
+                            $service = '';
+                            if ($d->tanggal_masuk) {
+                                $dt1 = date_create($d->tanggal_masuk);
+                                $dt2 = date_create('today');
+                                $service = date_diff($dt1, $dt2)->y;
+                            }
+                            $html .= "<td class=\"ac\">".$service."</td>";
+
                             $html .= "<td class=\"ac\">".($d->nik ? $d->nik : '')."</td>";
                             $html .= "<td class=\"ac\">".($d->agama ? $d->agama->nama : '')."</td>";
                             $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
@@ -194,8 +226,8 @@ class PdfListKaryawanController extends Controller
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                             $html .= "<td class=\"al\">".$ttl."</td>";
                         } else {
-                            // Blank for A to G
-                            $html .= "<td></td><td></td><td></td><td></td><td></td><td></td><td></td>";
+                            // Blank for A to I
+                            $html .= "<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>";
                             // H to J (Keluarga)
                             if ($i <= $numKeluarga) {
                                 $keluarga = $keluargas[$i - 1];
@@ -209,28 +241,29 @@ class PdfListKaryawanController extends Controller
                         }
 
                         // K & L (Alamat)
-                        if ($i == 0) {
-                            $alamat_ktp = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_ktp));
-                            $alamat_tinggal = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_tinggal));
-                            $html .= "<td class=\"al\">".$alamat_ktp."</td>";
-                            $html .= "<td class=\"al\">".$alamat_tinggal."</td>";
-                            $html .= "<td class=\"ac\">".($d->telepon ? "".$d->telepon : '')."</td>";
+                        // K & L (Alamat), M (Telepon), N (Keluarga TLP)
+                        if (isset($alamatKtpArr[$i])) {
+                            $html .= "<td class=\"al\">".$alamatKtpArr[$i]."</td>";
                         } else {
-                            // Excel merges K and L, but user prefers grid without merge for consistency, or we output empty cells.
-                            // I'll output empty cells to make it consistent with A-F.
-                            $html .= "<td></td><td></td><td></td>"; // K, L, M
+                            $html .= "<td></td>";
                         }
 
-                        // N (Keluarga TLP)
-                        if ($i == 0) {
-                            $html .= "<td></td>"; // Family phone on row 0 is blank
+                        if (isset($alamatTinggalArr[$i])) {
+                            $html .= "<td class=\"al\">".$alamatTinggalArr[$i]."</td>";
                         } else {
-                            if ($i <= $numKeluarga) {
-                                $keluarga = $keluargas[$i - 1];
-                                $html .= "<td class=\"ac\">".($keluarga->telepon ? "".$keluarga->telepon : '')."</td>";
-                            } else {
-                                $html .= "<td></td>";
-                            }
+                            $html .= "<td></td>";
+                        }
+
+                        if ($i == 0) {
+                            $html .= "<td class=\"ac\">".($d->telepon ? "".$d->telepon : '')."</td>";
+                        } else {
+                            $html .= "<td></td>";
+                        }
+
+                        if (isset($kontakArr[$i])) {
+                            $html .= "<td class=\"ac\">".$kontakArr[$i]."</td>";
+                        } else {
+                            $html .= "<td></td>";
                         }
 
                         // O (Status Kawin)
@@ -252,34 +285,43 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td></td>";
                         }
 
-                        // Q (Perjanjian Kerja)
-                        if ($i < $numPerjanjian) {
-                            $pj = $perjanjians[$i];
-                            $html .= "<td class=\"ac\">".$pj->nomor."</td>";
+                        // Q (Email Pribadi)
+                        if ($i == 0) {
+                            $html .= "<td class=\"al\">".$d->email."</td>";
                         } else {
                             $html .= "<td></td>";
                         }
 
-                        // R & S (Email & Status Karyawan)
-                        if ($i == 0) {
-                            $html .= "<td class=\"al\">".$d->email."</td>";
-                            
-                            $statusNamaCell = $d->statusKerja ? $d->statusKerja->nama : '';
-                            if ($numPerjanjian > 0) {
-                                $latestPerjanjian = $perjanjians[$numPerjanjian - 1];
-                                $statusId = $d->status_kerja_id;
-                                if ($statusId == '1') {
-                                    $tglAwal = date('j M\'y', strtotime($latestPerjanjian->tanggal_awal));
-                                    $statusNamaCell .= " (Per: " . $tglAwal . ")";
+                        // R (Perjanjian Kerja) & S (Status Karyawan)
+                        if ($i < $numPerjanjian) {
+                            $pj = $perjanjians[$i];
+                            $kontrakText = $pj->nomor;
+                            if ($pj->tanggal_awal) {
+                                $tglAwal = strtoupper(date('j M\'y', strtotime($pj->tanggal_awal)));
+                                $tglAkhir = $pj->tanggal_akhir ? strtoupper(date('j M\'y', strtotime($pj->tanggal_akhir))) : '';
+                                if ($tglAkhir) {
+                                    $kontrakText .= " (" . $tglAwal . " - " . $tglAkhir . ")";
                                 } else {
-                                    $tglAwal = strtoupper(date('j M\'y', strtotime($latestPerjanjian->tanggal_awal)));
-                                    $tglAkhir = $latestPerjanjian->tanggal_akhir ? strtoupper(date('j M\'y', strtotime($latestPerjanjian->tanggal_akhir))) : '';
-                                    $statusNamaCell .= " (" . $tglAwal . ($tglAkhir ? " - " . $tglAkhir : "") . ")";
+                                    $kontrakText .= " (Per: " . $tglAwal . ")";
                                 }
+                            }
+                            $html .= "<td class=\"ac\">".$kontrakText."</td>";
+
+                            $statusNamaCell = $pj->statusKerja ? $pj->statusKerja->nama : '';
+                            if ($pj->tanggal_awal) {
+                                $awal = new \DateTime($pj->tanggal_awal);
+                                $akhir = $pj->tanggal_akhir ? new \DateTime($pj->tanggal_akhir) : new \DateTime();
+                                $akhir->modify('+1 day'); // to include end date in full month/year diff
+                                $diff = $awal->diff($akhir);
+                                $dur = [];
+                                if ($diff->y > 0) $dur[] = $diff->y . ' tahun';
+                                if ($diff->m > 0) $dur[] = $diff->m . ' bulan';
+                                $durStr = count($dur) > 0 ? implode(' ', $dur) : $diff->d . ' hari';
+                                $statusNamaCell .= " (" . $durStr . ")";
                             }
                             $html .= "<td class=\"ac\">".$statusNamaCell."</td>";
                         } else {
-                            $html .= "<td></td><td></td>"; // R, S empty
+                            $html .= "<td></td><td></td>";
                         }
 
                         $html .= "</tr>";

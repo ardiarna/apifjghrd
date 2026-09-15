@@ -1415,9 +1415,9 @@ class SpreadsheetController extends Controller
 
         // Title
         $si->setCellValue('A2', 'LIST KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $si->mergeCells('A2:S2');
+        $si->mergeCells('A2:U2');
         $si->setCellValue('A3', $areaString);
-        $si->mergeCells('A3:S3');
+        $si->mergeCells('A3:U3');
 
         $styleJudul = [
             'font' => [
@@ -1432,7 +1432,7 @@ class SpreadsheetController extends Controller
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ]
         ];
-        $si->getStyle('A2:S3')->applyFromArray($styleJudul);
+        $si->getStyle('A2:U3')->applyFromArray($styleJudul);
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
@@ -1440,34 +1440,36 @@ class SpreadsheetController extends Controller
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
         $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
         $si->setCellValue('C5', 'MASA KERJA'); $si->mergeCells('C5:C6');
-        $si->setCellValue('D5', 'NIK'); $si->mergeCells('D5:D6');
-        $si->setCellValue('E5', 'AGAMA'); $si->mergeCells('E5:E6');
-        $si->setCellValue('F5', 'J A B A T A N'); $si->mergeCells('F5:F6');
+        $si->setCellValue('D5', 'AGE (YEARS)'); $si->mergeCells('D5:D6');
+        $si->setCellValue('E5', 'YEARS OF SERVICE'); $si->mergeCells('E5:E6');
+        $si->setCellValue('F5', 'NIK'); $si->mergeCells('F5:F6');
+        $si->setCellValue('G5', 'AGAMA'); $si->mergeCells('G5:G6');
+        $si->setCellValue('H5', 'J A B A T A N'); $si->mergeCells('H5:H6');
 
-        $si->setCellValue('G5', 'DOKUMEN KARYAWAN'); $si->mergeCells('G5:J5');
-        $si->setCellValue('G6', 'NOMOR KK');
-        $si->setCellValue('H6', 'NO.NIK/PASSEPORT');
-        $si->setCellValue('I6', 'NAMA KARYAWAN & KELUARGA');
-        $si->setCellValue('J6', 'TEMPAT & TGL LAHIR');
+        $si->setCellValue('I5', 'DOKUMEN KARYAWAN'); $si->mergeCells('I5:L5');
+        $si->setCellValue('I6', 'NOMOR KK');
+        $si->setCellValue('J6', 'NO.NIK/PASSEPORT');
+        $si->setCellValue('K6', 'NAMA KARYAWAN & KELUARGA');
+        $si->setCellValue('L6', 'TEMPAT & TGL LAHIR');
 
-        $si->setCellValue('K5', 'ALAMAT SESUAI K T P'); $si->mergeCells('K5:K6');
-        $si->setCellValue('L5', 'ALAMAT TINGGAL SEKARANG'); $si->mergeCells('L5:L6');
-        $si->setCellValue('M5', 'NO.TLP'); $si->mergeCells('M5:M6');
-        $si->setCellValue('N5', 'NO.TLP KELUARGA'); $si->mergeCells('N5:N6');
-        $si->setCellValue('O5', 'STATUS'); $si->mergeCells('O5:O6');
-        $si->setCellValue('P5', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('P5:P6');
-        $si->setCellValue('Q5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('Q5:Q6');
-        $si->setCellValue('R5', 'EMAIL PRIBADI'); $si->mergeCells('R5:R6');
-        $si->setCellValue('S5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('S5:S6');
+        $si->setCellValue('M5', 'ALAMAT SESUAI K T P'); $si->mergeCells('M5:M6');
+        $si->setCellValue('N5', 'ALAMAT TINGGAL SEKARANG'); $si->mergeCells('N5:N6');
+        $si->setCellValue('O5', 'NO.TLP'); $si->mergeCells('O5:O6');
+        $si->setCellValue('P5', 'NO.TLP KELUARGA'); $si->mergeCells('P5:P6');
+        $si->setCellValue('Q5', 'STATUS'); $si->mergeCells('Q5:Q6');
+        $si->setCellValue('R5', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('R5:R6');
+        $si->setCellValue('S5', 'EMAIL PRIBADI'); $si->mergeCells('S5:S6');
+        $si->setCellValue('T5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('T5:T6');
+        $si->setCellValue('U5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('U5:U6');
 
-        $si->getStyle('A5:S6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $si->getStyle('A5:S6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
-        $si->getStyle('A5:S6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $si->getStyle('A5:U6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:U6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:U6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $si->getRowDimension(5)->setRowHeight(18);
         $si->getRowDimension(6)->setRowHeight(15);
 
         // Column Widths
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>16.00, 'E'=>10.77, 'F'=>40.14, 'G'=>18.10, 'H'=>21.33, 'I'=>48.00, 'J'=>30.00, 'K'=>56, 'L'=>57.10, 'M'=>18.00, 'N'=>25.00, 'O'=>15.66, 'P'=>45.00, 'Q'=>28.44, 'R'=>28.55, 'S'=>40.00];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>11.00, 'E'=>11.00, 'F'=>16.00, 'G'=>10.77, 'H'=>40.14, 'I'=>18.10, 'J'=>21.33, 'K'=>48.00, 'L'=>30.00, 'M'=>56, 'N'=>57.10, 'O'=>18.00, 'P'=>25.00, 'Q'=>15.66, 'R'=>45.00, 'S'=>28.55, 'T'=>56.88, 'U'=>40.00];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
@@ -1533,7 +1535,20 @@ class SpreadsheetController extends Controller
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
-                    $maxRows = max(1 + $numKeluarga, $numPerjanjian);
+
+                    $alamatKtpArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_ktp))));
+                    $alamatKtpArr = array_values($alamatKtpArr);
+                    $alamatTinggalArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_tinggal))));
+                    $alamatTinggalArr = array_values($alamatTinggalArr);
+
+                    $kontaks = $d->keluargaKontaks()->get();
+                    $kontakArr = [];
+                    foreach ($kontaks as $k_kontak) {
+                        $kontakArr[] = $k_kontak->telepon ? "'" . $k_kontak->telepon : '';
+                        $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
+                    }
+
+                    $maxRows = max(1 + $numKeluarga, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -1562,47 +1577,44 @@ class SpreadsheetController extends Controller
                             $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                             $si->setCellValue('C'.$bar, $tgl_masuk); // Masa Kerja
 
-                            $si->setCellValue('D'.$bar, $d->nik ? $d->nik : '');
-                            $si->setCellValue('E'.$bar, $d->agama ? $d->agama->nama : '');
-                            $si->setCellValue('F'.$bar, $d->jabatan ? $d->jabatan->nama : '');
+                            $age = '';
+                            if ($d->tanggal_lahir) {
+                                $dt1 = date_create($d->tanggal_lahir);
+                                $dt2 = date_create('today');
+                                $age = date_diff($dt1, $dt2)->y;
+                            }
+                            $si->setCellValue('D'.$bar, $age);
 
-                            $si->setCellValue('G'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
+                            $service = '';
+                            if ($d->tanggal_masuk) {
+                                $dt1 = date_create($d->tanggal_masuk);
+                                $dt2 = date_create('today');
+                                $service = date_diff($dt1, $dt2)->y;
+                            }
+                            $si->setCellValue('E'.$bar, $service);
+
+                            $si->setCellValue('F'.$bar, $d->nik ? $d->nik : '');
+                            $si->setCellValue('G'.$bar, $d->agama ? $d->agama->nama : '');
+                            $si->setCellValue('H'.$bar, $d->jabatan ? $d->jabatan->nama : '');
+
+                            $si->setCellValue('I'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
-                            $si->setCellValue('H'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
-                            $si->setCellValue('I'.$bar, $d->nama); // Nama Karyawan & Keluarga
+                            $si->setCellValue('J'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
+                            $si->setCellValue('K'.$bar, $d->nama); // Nama Karyawan & Keluarga
 
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
-                            $si->setCellValue('J'.$bar, $ttl);
+                            $si->setCellValue('L'.$bar, $ttl);
 
-                            $alamat_ktp = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_ktp));
-                            $alamat_tinggal = trim(preg_replace('/\s+/', ' ', (string)$d->alamat_tinggal));
-                            $si->setCellValue('K'.$bar, $alamat_ktp);
-                            $si->setCellValue('L'.$bar, $alamat_tinggal);
-                            $si->setCellValue('M'.$bar, $d->telepon ? "'".$d->telepon : '');
-                            $si->setCellValue('N'.$bar, ''); // No TLP Keluarga
+                            $si->setCellValue('O'.$bar, $d->telepon ? "'".$d->telepon : '');
 
                             $kawinStatus = $d->kawin == 'Y' ? 'Kawin' : ($d->kawin == 'N' ? 'Single' : 'Single Parent');
                             $jumlahAnak = $d->jumlahAnak();
                             $kawinFormat = $kawinStatus . ($jumlahAnak > 0 ? ' / ' . $jumlahAnak : '');
-                            $si->setCellValue('O'.$bar, $kawinFormat);
+                            $si->setCellValue('Q'.$bar, $kawinFormat);
 
-                            $si->setCellValue('P'.$bar, $pendidikanFormat);
+                            $si->setCellValue('R'.$bar, $pendidikanFormat);
 
-                            $si->setCellValue('R'.$bar, $d->email);
-                            $statusNamaCell = $d->statusKerja ? $d->statusKerja->nama : '';
-                            if ($numPerjanjian > 0) {
-                                $latestPerjanjian = $perjanjians[$numPerjanjian - 1];
-                                $statusId = $d->status_kerja_id;
-                                if ($statusId == '1') {
-                                    $tglAwal = date('j M\'y', strtotime($latestPerjanjian->tanggal_awal));
-                                    $statusNamaCell .= " (Per: " . $tglAwal . ")";
-                                } else {
-                                    $tglAwal = strtoupper(date('j M\'y', strtotime($latestPerjanjian->tanggal_awal)));
-                                    $tglAkhir = $latestPerjanjian->tanggal_akhir ? strtoupper(date('j M\'y', strtotime($latestPerjanjian->tanggal_akhir))) : '';
-                                    $statusNamaCell .= " (" . $tglAwal . ($tglAkhir ? " - " . $tglAkhir : "") . ")";
-                                }
-                            }
-                            $si->setCellValue('S'.$bar, $statusNamaCell);
+                            $si->setCellValue('S'.$bar, $d->email);
 
                             $statusId = $d->status_kerja_id;
                             $bgColor = null;
@@ -1612,54 +1624,85 @@ class SpreadsheetController extends Controller
                             elseif ($statusId == '5') $bgColor = 'FFB9F6CA';
                             elseif ($statusId != '1') $bgColor = 'FFF44336';
                             if ($bgColor) {
-                                $si->getStyle('A'.$bar.':S'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
+                                $si->getStyle('A'.$bar.':U'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
                             }
                         } else {
                             // Family rows (i >= 1)
                             if ($i <= $numKeluarga) {
                                 $keluarga = $keluargas[$i - 1];
-                                $si->setCellValue('H'.$bar, $keluarga->nomor_ktp ? "'".$keluarga->nomor_ktp : '');
-                                $si->setCellValue('I'.$bar, $keluarga->nama);
+                                $si->setCellValue('J'.$bar, $keluarga->nomor_ktp ? "'".$keluarga->nomor_ktp : '');
+                                $si->setCellValue('K'.$bar, $keluarga->nama);
                                 $ttlKeluarga = $keluarga->tempat_lahir . ', ' . ($keluarga->tanggal_lahir ? date('d-m-Y', strtotime($keluarga->tanggal_lahir)) : '');
-                                $si->setCellValue('J'.$bar, $ttlKeluarga);
-                                $si->setCellValue('N'.$bar, $keluarga->telepon ? "'".$keluarga->telepon : '');
+                                $si->setCellValue('L'.$bar, $ttlKeluarga);
                             }
 
                             if ($i == 1 && $pendidikanJurusan != '') {
-                                $si->setCellValue('P'.$bar, $pendidikanJurusan);
+                                $si->setCellValue('R'.$bar, $pendidikanJurusan);
                             }
                         }
 
                         // Perjanjian Kerja
                         if ($i < $numPerjanjian) {
                             $pj = $perjanjians[$i];
-                            $si->setCellValue('Q'.$bar, $pj->nomor);
+                            $kontrakText = $pj->nomor;
+                            if ($pj->tanggal_awal) {
+                                $tglAwal = strtoupper(date('j M\'y', strtotime($pj->tanggal_awal)));
+                                $tglAkhir = $pj->tanggal_akhir ? strtoupper(date('j M\'y', strtotime($pj->tanggal_akhir))) : '';
+                                if ($tglAkhir) {
+                                    $kontrakText .= " (" . $tglAwal . " - " . $tglAkhir . ")";
+                                } else {
+                                    $kontrakText .= " (Per: " . $tglAwal . ")";
+                                }
+                            }
+                            $si->setCellValue('T'.$bar, $kontrakText);
+                            
+                            $statusNamaCell = $pj->statusKerja ? $pj->statusKerja->nama : '';
+                            if ($pj->tanggal_awal) {
+                                $awal = new \DateTime($pj->tanggal_awal);
+                                $akhir = $pj->tanggal_akhir ? new \DateTime($pj->tanggal_akhir) : new \DateTime();
+                                $akhir->modify('+1 day'); // to include end date in full month/year diff
+                                $diff = $awal->diff($akhir);
+                                $dur = [];
+                                if ($diff->y > 0) $dur[] = $diff->y . ' tahun';
+                                if ($diff->m > 0) $dur[] = $diff->m . ' bulan';
+                                $durStr = count($dur) > 0 ? implode(' ', $dur) : $diff->d . ' hari';
+                                $statusNamaCell .= " (" . $durStr . ")";
+                            }
+                            $si->setCellValue('U'.$bar, $statusNamaCell);
                         }
 
-                        $si->getStyle('A'.$bar.':S'.$bar)->getAlignment()->setVertical('top');
+                        // Alamat
+                        if (isset($alamatKtpArr[$i])) {
+                            $si->setCellValue('M'.$bar, $alamatKtpArr[$i]);
+                        }
+                        if (isset($alamatTinggalArr[$i])) {
+                            $si->setCellValue('N'.$bar, $alamatTinggalArr[$i]);
+                        }
+
+                        // Kontak Darurat
+                        if (isset($kontakArr[$i])) {
+                            $si->setCellValue('P'.$bar, $kontakArr[$i]);
+                        }
+
+                        $si->getStyle('A'.$bar.':U'.$bar)->getAlignment()->setVertical('top');
                         $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('C'.$bar.':E'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('G'.$bar.':H'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('M'.$bar.':N'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('O'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('C'.$bar.':G'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('I'.$bar.':J'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('O'.$bar.':P'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('Q'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('S'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('T'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('U'.$bar)->getAlignment()->setHorizontal('center');
 
                         $bar++;
                     }
 
                     if ($maxRows > 1) {
-                        $si->mergeCells('K'.$startBar.':K'.($bar-1));
-                        $si->mergeCells('L'.$startBar.':L'.($bar-1));
-                        $si->getStyle('K'.$startBar.':L'.($bar-1))->getAlignment()->setVertical('top');
-                        // Set WrapText for K, L, P, S for the whole block of this employee
-                        $si->getStyle('K'.$startBar.':L'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('P'.$startBar.':P'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('S'.$startBar.':S'.($bar-1))->getAlignment()->setWrapText(true);
+                        // Set WrapText for R, U for the whole block of this employee
+                        $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
+                        $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
                     }
-                    $si->getStyle('K'.$startBar.':L'.($bar-1))->getAlignment()->setWrapText(true);
-                    $si->getStyle('P'.$startBar.':P'.($bar-1))->getAlignment()->setWrapText(true);
-                    $si->getStyle('S'.$startBar.':S'.($bar-1))->getAlignment()->setWrapText(true);
+                    $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
+                    $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
 
                     $bar++; // Insert empty row between employees
                     $nomor++;
@@ -1668,9 +1711,9 @@ class SpreadsheetController extends Controller
         }
 
         if ($bar > 7) {
-            $si->getStyle('A7:S'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:S'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:S'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle('A7:U'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:U'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:U'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         $bar += 2;
