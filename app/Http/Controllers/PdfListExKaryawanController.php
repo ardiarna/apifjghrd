@@ -58,7 +58,7 @@ class PdfListExKaryawanController extends Controller
             }
         }
         unset($stafs, $areas);
-        
+
         if (empty($detailsByYear)) {
             $html .= "<div class=\"title\">KOSONG</div>";
         }
@@ -73,7 +73,7 @@ class PdfListExKaryawanController extends Controller
             $html .= "<div class=\"title\">EX KARYAWAN $year</div>";
 
             $html .= "<table>";
-            
+
             $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
             $widths = [10, 55, 30, 30, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 40, 50, 60];
             foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
@@ -99,7 +99,7 @@ class PdfListExKaryawanController extends Controller
 
             $html .= "<tr>";
             $html .= "<th>NOMOR KK</th>";
-            $html .= "<th>NO.NIK/PASSEPORT</th>";
+            $html .= "<th>NO.KTP / PASPOR</th>";
             $html .= "<th>NAMA KARYAWAN & KELUARGA</th>";
             $html .= "<th>TEMPAT & TGL LAHIR</th>";
             $html .= "</tr>";
@@ -144,7 +144,7 @@ class PdfListExKaryawanController extends Controller
 
                         for ($i = 0; $i < $maxRows; $i++) {
                             $html .= "<tr>";
-                            
+
                             if ($i == 0) {
                                 $html .= "<td class=\"ac\">".$nomor."</td>";
                                 $html .= "<td class=\"al\">".$d->nama."</td>";
@@ -227,12 +227,12 @@ class PdfListExKaryawanController extends Controller
                             // Q & R (Email & Status PHK)
                             if ($i == 0) {
                                 $html .= "<td class=\"al\">".$d->email."</td>";
-                                
+
                                 $statusNamaCell = $phk->statusKerja ? $phk->statusKerja->nama : '';
                                 $statusPhkNama = $phk->statusPhk ? $phk->statusPhk->nama : '';
                                 $keteranganPhk = $phk->keterangan ? ' ('.$phk->keterangan.')' : '';
                                 $statusKolomR = $statusNamaCell . ($statusPhkNama ? ' / ' . $statusPhkNama : '') . $keteranganPhk;
-                                
+
                                 $html .= "<td class=\"ac\">".$statusKolomR."</td>";
                             } else {
                                 $html .= "<td></td><td></td>"; // Q, R empty
@@ -246,7 +246,7 @@ class PdfListExKaryawanController extends Controller
             }
             $html .= "</table>";
         }
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('DATA_EX_KARYAWAN.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         exit;

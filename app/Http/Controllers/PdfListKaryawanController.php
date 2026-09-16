@@ -65,7 +65,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<div class=\"title\">$areaString</div>";
 
         $html .= "<table>";
-        
+
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
         $widths = [10, 55, 20, 12, 12, 30, 20, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 50, 80, 60];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
@@ -94,7 +94,7 @@ class PdfListKaryawanController extends Controller
 
         $html .= "<tr>";
         $html .= "<th>NOMOR KK</th>";
-        $html .= "<th>NO.NIK/PASSEPORT</th>";
+        $html .= "<th>NO.KTP / PASPOR</th>";
         $html .= "<th>NAMA KARYAWAN & KELUARGA</th>";
         $html .= "<th>TEMPAT & TGL LAHIR</th>";
         $html .= "</tr>";
@@ -193,13 +193,13 @@ class PdfListKaryawanController extends Controller
                         } else {
                             $html .= "<tr>";
                         }
-                        
+
                         if ($i == 0) {
                             $html .= "<td class=\"ac\">".$nomor."</td>";
                             $html .= "<td class=\"al\">".$d->nama."</td>";
                             $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                             $html .= "<td class=\"ac\">".$tgl_masuk."</td>";
-                            
+
                             $age = '';
                             if ($d->tanggal_lahir) {
                                 $dt1 = date_create($d->tanggal_lahir);
@@ -355,14 +355,14 @@ class PdfListKaryawanController extends Controller
             $html .= "<tr>";
             $html .= "<td style=\"border:none; $textStyle\">".$statusNama."</td>";
             $html .= "<td style=\"border:none; $textStyle\">: ".$total."</td>";
-            
+
             foreach ($allAreas as $kodeArea) {
                 $nilai = isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]) ? $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] : 0;
                 $html .= "<td style=\"border:none; padding-left:20px; $textStyle\">".$kodeArea.": ".$nilai."</td>";
             }
             $html .= "</tr>";
         }
-        
+
         $html .= "<tr>";
         $html .= "<td style=\"border:none; color: #FF0000;\">TOTAL KARYAWAN</td>";
         $html .= "<td style=\"border:none; color: #FF0000;\">: ".$totalKaryawan."</td>";
@@ -372,7 +372,7 @@ class PdfListKaryawanController extends Controller
         }
         $html .= "</tr>";
         $html .= "</table>";
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('DATA_GENERAL_KARYAWAN.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         exit;

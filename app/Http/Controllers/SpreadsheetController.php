@@ -1448,7 +1448,7 @@ class SpreadsheetController extends Controller
 
         $si->setCellValue('I5', 'DOKUMEN KARYAWAN'); $si->mergeCells('I5:L5');
         $si->setCellValue('I6', 'NOMOR KK');
-        $si->setCellValue('J6', 'NO.NIK/PASSEPORT');
+        $si->setCellValue('J6', 'NO.KTP / PASPOR');
         $si->setCellValue('K6', 'NAMA KARYAWAN & KELUARGA');
         $si->setCellValue('L6', 'TEMPAT & TGL LAHIR');
 
@@ -1655,7 +1655,7 @@ class SpreadsheetController extends Controller
                                 }
                             }
                             $si->setCellValue('T'.$bar, $kontrakText);
-                            
+
                             $statusNamaCell = $pj->statusKerja ? $pj->statusKerja->nama : '';
                             if ($pj->tanggal_awal) {
                                 $awal = new \DateTime($pj->tanggal_awal);
@@ -1837,7 +1837,7 @@ class SpreadsheetController extends Controller
 
             $si->setCellValue('F3', 'DOKUMEN KARYAWAN'); $si->mergeCells('F3:I3');
             $si->setCellValue('F4', 'NOMOR KK');
-            $si->setCellValue('G4', 'NO.NIK/PASSEPORT');
+            $si->setCellValue('G4', 'NO.KTP / PASPOR');
             $si->setCellValue('H4', 'NAMA KARYAWAN & KELUARGA');
             $si->setCellValue('I4', 'TEMPAT & TGL LAHIR');
 

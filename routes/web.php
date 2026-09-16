@@ -390,7 +390,20 @@ $router->group(['prefix' => 'cic', 'middleware' => 'auth:api'], function () use 
             $router->get('tanpa-potongan/{tahun}', 'CicCutiExcelController@tanpaPotonganSingle');
             $router->get('unpaid/{tahunAwal}/{tahunAkhir}', 'CicCutiExcelController@unpaid');
             $router->get('unpaid/{tahun}', 'CicCutiExcelController@unpaidSingle');
-            $router->get('form/{id}', 'CicCutiExcelController@form');
+                        $router->get('form/{id}', 'CicCutiExcelController@form');
+            
+            // PDF
+            $router->get('pdf-jadwal-cuti/{tahun}', 'PdfCicJadwalCutiController@jadwal');
+            $router->get('pdf-list/{tahunAwal}/{tahunAkhir}', 'PdfCicListCutiController@listCuti');
+            $router->get('pdf-list/{tahun}', 'PdfCicListCutiController@listCutiSingle');
+            $router->get('pdf-tanpa-potongan/{tahunAwal}/{tahunAkhir}', 'PdfCicCutiTanpaPotonganController@tanpaPotongan');
+            $router->get('pdf-tanpa-potongan/{tahun}', 'PdfCicCutiTanpaPotonganController@tanpaPotonganSingle');
+            $router->get('pdf-unpaid/{tahunAwal}/{tahunAkhir}', 'PdfCicCutiUnpaidController@unpaid');
+                        $router->get('pdf-unpaid/{tahun}', 'PdfCicCutiUnpaidController@unpaidSingle');
+            
+            // List Cuti Karyawan Individual
+            $router->get('list-cuti-karyawan/{karyawan_id}/{tahun}', 'CicSpreadKaryawanCutiController@listCuti');
+            $router->get('pdf-list-cuti-karyawan/{karyawan_id}/{tahun}', 'PdfCicKaryawanCutiController@listCuti');
         });
     });
 
