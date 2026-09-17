@@ -68,6 +68,8 @@ class CicCutiExcelController extends Controller
 
     public function jadwal($tahun)
     {
+        set_time_limit(0);
+        ini_set('memory_limit', '-1');
         $karyawans_raw = CicKaryawan::with('jabatan', 'area')->where('aktif', 'Y')->orderBy('id')->get();
         $details = [];
         foreach ($karyawans_raw as $d) {
