@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\MedicalRepository;
-use App\Repositories\PayrollHeaderRepository;
 use App\Traits\ApiResponser;
 use Illuminate\Http\Request;
 
@@ -45,9 +44,10 @@ class MedicalController extends Controller
         return $this->successResponse($data);
     }
 
-    public function findRekapByKaryawanIdAndTahun(PayrollHeaderRepository $payrollRepo, $karyawan_id, $tahun) {
+    public function findRekapByKaryawanIdAndTahun(\App\Repositories\UpahRepository $upahRepo, $karyawan_id, $tahun) {
         $data = $this->repo->findRekapByKaryawanIdAndTahun($karyawan_id, $tahun) ?? new \stdClass();
-        $data->gaji = $payrollRepo->findGajiByKaryawanIdAndTahun($karyawan_id, $tahun);
+        $upah = $upahRepo->findByKaryawanId($karyawan_id);
+        $data->gaji = $upah ? $upah->gaji : 0;
         $data->tahun = $tahun;
         return $this->successResponse($data);
     }
