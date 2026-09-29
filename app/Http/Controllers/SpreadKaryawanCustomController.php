@@ -770,7 +770,7 @@ class SpreadKaryawanCustomController extends Controller
         $areaString = implode(' - ', $activeAreasSorted);
 
         $si->setCellValue('A2', 'LIST NIK KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $si->mergeCells('A2:F2');
+        $si->mergeCells('A2:H2');
 
         $bulanMap = [
             1 => 'JANUARI', 2 => 'PEBRUARI', 3 => 'MARET', 4 => 'APRIL', 5 => 'MEI', 6 => 'JUNI',
@@ -778,7 +778,7 @@ class SpreadKaryawanCustomController extends Controller
         ];
         $bulanStr = $bulanMap[(int)date('n')] . ' ' . date('Y');
         $si->setCellValue('A3', 'UPDATE : ' . $bulanStr);
-        $si->mergeCells('A3:F3');
+        $si->mergeCells('A3:H3');
 
         $styleJudul = [
             'font' => [
@@ -793,20 +793,20 @@ class SpreadKaryawanCustomController extends Controller
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ]
         ];
-        $si->getStyle('A2:F3')->applyFromArray($styleJudul);
+        $si->getStyle('A2:H3')->applyFromArray($styleJudul);
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
-        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TGL LAHIR', 'D'=>'MASA KERJA', 'E'=>'N I K', 'F'=>'NO TLP'];
+        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TGL LAHIR', 'D'=>'MASA KERJA', 'E'=>'N I K', 'F'=>'NO TLP', 'G'=>'AGE (YEARS)', 'H'=>'YEARS OF SERVICE'];
         foreach ($headers as $col => $title) {
             $si->setCellValue($col.'5', $title);
             $si->mergeCells($col.'5:'.$col.'6');
         }
-        $si->getStyle('A5:F6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $si->getStyle('A5:F6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
-        $si->getStyle('A5:F6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $si->getStyle('A5:H6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:H6')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:H6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
 
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>15.00, 'D'=>15.00, 'E'=>21.33, 'F'=>18.00];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>15.00, 'D'=>15.00, 'E'=>21.33, 'F'=>18.00, 'G'=>12.00, 'H'=>15.00];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
@@ -844,13 +844,31 @@ class SpreadKaryawanCustomController extends Controller
                     $si->setCellValue('E'.$bar, $d->nik);
                     $si->setCellValue('F'.$bar, $d->telepon);
 
-                    $si->getStyle('A'.$bar.':F'.$bar)->getAlignment()->setVertical('top');
+                    $age = '';
+                    if ($d->tanggal_lahir) {
+                        $dt1 = date_create($d->tanggal_lahir);
+                        $dt2 = date_create('today');
+                        $age = date_diff($dt1, $dt2)->y;
+                    }
+                    $si->setCellValue('G'.$bar, $age);
+
+                    $service = '';
+                    if ($d->tanggal_masuk) {
+                        $dt1 = date_create($d->tanggal_masuk);
+                        $dt2 = date_create('today');
+                        $service = date_diff($dt1, $dt2)->y;
+                    }
+                    $si->setCellValue('H'.$bar, $service);
+
+                    $si->getStyle('A'.$bar.':H'.$bar)->getAlignment()->setVertical('top');
                     $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('B'.$bar.':F'.$bar)->getAlignment()->setWrapText(true);
+                    $si->getStyle('G'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('H'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('B'.$bar.':H'.$bar)->getAlignment()->setWrapText(true);
 
                     $bar++;
                     $nomor++;
@@ -862,9 +880,9 @@ class SpreadKaryawanCustomController extends Controller
 
         $lastDataRow = $bar - 1;
         if ($lastDataRow >= 7) {
-            $si->getStyle('A7:F'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            $si->getStyle('A7:F'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-            $si->getStyle('A7:F'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
         }
 
         // --- DIVISI TABLE ---
@@ -903,6 +921,175 @@ class SpreadKaryawanCustomController extends Controller
         exit;
     }
 
+
+        public function dataPendidikanKaryawan() {
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
+
+        $si = $spreadsheet->getActiveSheet();
+        $si->setShowGridlines(false);
+        $si->setTitle('DATA PENDIDIKAN');
+
+        // Calculate active areas
+        $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $activeAreas = [];
+        $details = [];
+        
+        foreach ($dataKaryawan as $d) {
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
+            $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
+            $details[$staf][$area][] = $d;
+        }
+        $activeAreasSorted = [];
+        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        foreach ($dbAreasModels as $a) {
+            if (isset($activeAreas[$a->kode])) {
+                $activeAreasSorted[] = strtoupper($a->nama);
+            }
+        }
+        if (isset($activeAreas['Lainnya'])) {
+            $activeAreasSorted[] = 'LAINNYA';
+        }
+        $areaString = implode(' - ', $activeAreasSorted);
+
+        // Title
+        $si->setCellValue('A2', 'DATA PENDIDIKAN KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
+        $si->mergeCells('A2:H2');
+        $si->setCellValue('A3', $areaString);
+        $si->mergeCells('A3:H3');
+
+        $styleJudul = [
+            'font' => [
+                'name' => 'Malgun Gothic',
+                'size' => 14,
+                'bold' => true,
+                'underline' => true,
+                'color' => ['argb' => '0000FF'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ]
+        ];
+        $si->getStyle('A2:H3')->applyFromArray($styleJudul);
+        $si->getRowDimension(2)->setRowHeight(22);
+        $si->getRowDimension(3)->setRowHeight(22);
+
+        // Headers
+        $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
+        $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
+        $si->setCellValue('C5', 'MASA KERJA'); $si->mergeCells('C5:C6');
+        $si->setCellValue('D5', 'AGE (YEARS)'); $si->mergeCells('D5:D6');
+        $si->setCellValue('E5', 'YEARS OF SERVICE'); $si->mergeCells('E5:E6');
+        $si->setCellValue('F5', 'N I K'); $si->mergeCells('F5:F6');
+        $si->setCellValue('G5', 'J A B A T A N'); $si->mergeCells('G5:G6');
+        $si->setCellValue('H5', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('H5:H6');
+
+        $si->getStyle('A5:H6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:H6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:H6')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        $si->getRowDimension(5)->setRowHeight(18);
+        $si->getRowDimension(6)->setRowHeight(15);
+
+        // Column Widths
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>11.00, 'D'=>10.77, 'E'=>16.00, 'F'=>21.33, 'G'=>40.14, 'H'=>45.00];
+        foreach ($widths as $col => $width) {
+            $si->getColumnDimension($col)->setWidth($width);
+        }
+
+        $si->freezePane('C7');
+        $bar = 7;
+        $nomor = 1;
+
+        krsort($details);
+        foreach ($details as $staf => $areas) {
+            if($staf == 'N') {
+                $si->setCellValue('B'.$bar, 'NON STAF :');
+                $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
+                $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
+                $bar++;
+            }
+            foreach ($areas as $area => $karyawans) {
+                if($staf == 'Y') {
+                    $si->setCellValue('B'.$bar, $area.' :');
+                    $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
+                    $bar++;
+                }
+
+                foreach ($karyawans as $d) {
+                    $si->setCellValue('A'.$bar, $nomor);
+                    $si->setCellValue('B'.$bar, $d->nama);
+
+                    $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
+                    $si->setCellValue('C'.$bar, $tgl_masuk); // Masa Kerja
+
+                    $age = '';
+                    if ($d->tanggal_lahir) {
+                        $dt1 = date_create($d->tanggal_lahir);
+                        $dt2 = date_create('today');
+                        $age = date_diff($dt1, $dt2)->y;
+                    }
+                    $si->setCellValue('D'.$bar, $age);
+
+                    $service = '';
+                    if ($d->tanggal_masuk) {
+                        $dt1 = date_create($d->tanggal_masuk);
+                        $dt2 = date_create('today');
+                        $service = date_diff($dt1, $dt2)->y;
+                    }
+                    $si->setCellValue('E'.$bar, $service);
+
+                    $si->setCellValue('F'.$bar, $d->nik ? $d->nik : '');
+                    $si->setCellValue('G'.$bar, $d->jabatan ? $d->jabatan->nama : '');
+
+                    $pendidikanFormat = '';
+                    if ($d->pendidikan) {
+                        $pendidikanFormat = $d->pendidikan->nama;
+                        $almamater = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_almamater));
+                        $jurusan = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_jurusan));
+
+                        if ($almamater) $pendidikanFormat .= ' ' . $almamater;
+                        if ($jurusan) {
+                            $pendidikanFormat .= ' , Jurusan: ' . $jurusan;
+                        }
+                    }
+                    $si->setCellValue('H'.$bar, $pendidikanFormat);
+
+                    $si->getStyle('A'.$bar.':H'.$bar)->getAlignment()->setVertical('top');
+                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('B'.$bar.':H'.$bar)->getAlignment()->setWrapText(true);
+
+                    $bar++;
+                    $nomor++;
+                }
+                // 1 blank row after each area/group
+                $bar++;
+            }
+        }
+
+        $lastDataRow = $bar - 1;
+        if ($lastDataRow >= 7) {
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+            $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="DATA_PENDIDIKAN_KARYAWAN.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+    }
 
     public function dataStatusKaryawan() {
         $spreadsheet = new Spreadsheet();

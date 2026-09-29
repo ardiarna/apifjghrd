@@ -71,6 +71,9 @@ class PdfListSalaryController extends Controller
             .text-red { color: #FF0000; }
         </style>';
 
+        $isBasic = request()->query('type') === 'basic';
+        $maxColSpan = $isBasic ? 7 : 12;
+
         $html = $css;
         $html .= '<table>
             <colgroup>
@@ -80,18 +83,22 @@ class PdfListSalaryController extends Controller
                 <col style="width: 16mm;">
                 <col style="width: 12mm;">
                 <col style="width: 50mm;">
-                <col style="width: 20mm;">
-                <col style="width: 20mm;">
+                <col style="width: 20mm;">';
+        
+        if (!$isBasic) {
+            $html .= '<col style="width: 20mm;">
                 <col style="width: 20mm;">
                 <col style="width: 12mm;">
                 <col style="width: 20mm;">
-                <col style="width: 48mm;">
-            </colgroup>
+                <col style="width: 48mm;">';
+        }
+
+        $html .= '</colgroup>
             <thead>
                 <tr>
-                    <td colspan="12" class="title">SALARY PT.FRATEKINDO JAYA GEMILANG</td>
+                    <td colspan="'.$maxColSpan.'" class="title">SALARY PT.FRATEKINDO JAYA GEMILANG</td>
                 </tr>
-                <tr><td colspan="12" class="no-border"></td></tr>
+                <tr><td colspan="'.$maxColSpan.'" class="no-border"></td></tr>
                 <tr class="header-bg ac">
                     <th rowspan="2">NO</th>
                     <th rowspan="2">NAMA KARYAWAN</th>
@@ -99,17 +106,23 @@ class PdfListSalaryController extends Controller
                     <th rowspan="2">NIK</th>
                     <th rowspan="2">TGL LAHIR</th>
                     <th rowspan="2">JABATAN</th>
-                    <th rowspan="2">GAJI</th>
-                    <th colspan="2">U/MAKAN & TRANSPORTASI</th>
+                    <th rowspan="2">GAJI</th>';
+                    
+        if (!$isBasic) {
+            $html .= '<th colspan="2">U/MAKAN & TRANSPORTASI</th>
                     <th rowspan="2">STATUS OVERTIME</th>
-                    <th colspan="2">STATUS KARYAWAN</th>
-                </tr>
-                <tr class="header-bg ac">
-                    <th>TETAP</th>
+                    <th colspan="2">STATUS KARYAWAN</th>';
+        }
+        $html .= '</tr>
+                <tr class="header-bg ac">';
+        
+        if (!$isBasic) {
+            $html .= '<th>TETAP</th>
                     <th>TDK TETAP</th>
                     <th>TETAP / PKWTT</th>
-                    <th>KONTRAK / PKWT / PERCOBAAN</th>
-                </tr>
+                    <th>KONTRAK / PKWT / PERCOBAAN</th>';
+        }
+        $html .= '</tr>
             </thead>
             <tbody>';
 
@@ -122,14 +135,14 @@ class PdfListSalaryController extends Controller
             if ($staf == 'N') {
                 $html .= '<tr>
                     <td style="border-left: 0.5pt solid #000; border-right: none; border-top: none; border-bottom: none;"></td>
-                    <td colspan="11" class="al text-blue" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;">NON STAF :</td>
+                    <td colspan="'.($maxColSpan - 1).'" class="al text-blue" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;">NON STAF :</td>
                 </tr>';
             }
             foreach ($areas as $area => $karyawans) {
                 if ($staf == 'Y') {
                     $html .= '<tr>
                         <td style="border-left: 0.5pt solid #000; border-right: none; border-top: none; border-bottom: none;"></td>
-                        <td colspan="11" class="al text-blue" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;">' . htmlspecialchars($area) . ' :</td>
+                        <td colspan="'.($maxColSpan - 1).'" class="al text-blue" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;">' . htmlspecialchars($area) . ' :</td>
                     </tr>';
                 }
 
@@ -219,13 +232,16 @@ class PdfListSalaryController extends Controller
                         <td class="ac">' . $nik . '</td>
                         <td class="ac">' . $tgl_lahir . '</td>
                         <td class="al">' . $jabatan . '</td>
-                        <td class="ar">' . ($gaji ? number_format($gaji, 0, ',', '.') : '0') . '</td>
-                        <td class="ar">' . ($makanTetap !== '' ? number_format($makanTetap, 0, ',', '.') : '') . '</td>
+                        <td class="ar">' . ($gaji ? number_format($gaji, 0, ',', '.') : '0') . '</td>';
+                        
+                    if (!$isBasic) {
+                        $html .= '<td class="ar">' . ($makanTetap !== '' ? number_format($makanTetap, 0, ',', '.') : '') . '</td>
                         <td class="ar">' . ($makanTdkTetap !== '' ? number_format($makanTdkTetap, 0, ',', '.') : '') . '</td>
                         <td class="ac">' . $overtime . '</td>
                         <td class="ac">' . $statusTetap . '</td>
-                        <td class="ac">' . $statusKontrak . '</td>
-                    </tr>';
+                        <td class="ac">' . $statusKontrak . '</td>';
+                    }
+                    $html .= '</tr>';
                     $nomor++;
                 }
 
@@ -233,7 +249,7 @@ class PdfListSalaryController extends Controller
                 if ($staf == 'Y') {
                     $html .= '<tr>
                         <td style="border-left: 0.5pt solid #000; border-right: none; border-top: none; border-bottom: none;"></td>
-                        <td colspan="11" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;"></td>
+                        <td colspan="'.($maxColSpan - 1).'" style="border-left: none; border-right: 0.5pt solid #000; border-top: none; border-bottom: none;"></td>
                     </tr>';
                 }
             }
@@ -242,11 +258,14 @@ class PdfListSalaryController extends Controller
         // Totals
         $html .= '<tr class="text-red">
             <td colspan="6" class="ac">TOTAL GAJI POKOK KARYAWAN</td>
-            <td class="ar">' . number_format($sumGaji, 0, ',', '.') . '</td>
-            <td class="ar">' . number_format($sumMakanTetap, 0, ',', '.') . '</td>
+            <td class="ar">' . number_format($sumGaji, 0, ',', '.') . '</td>';
+            
+        if (!$isBasic) {
+            $html .= '<td class="ar">' . number_format($sumMakanTetap, 0, ',', '.') . '</td>
             <td class="ar">' . number_format($sumMakanTdkTetap, 0, ',', '.') . '</td>
-            <td colspan="3"></td>
-        </tr>';
+            <td colspan="3"></td>';
+        }
+        $html .= '</tr>';
         $html .= '</tbody></table>';
 
         $html .= '<br><br>';
@@ -314,9 +333,12 @@ class PdfListSalaryController extends Controller
             'margin_footer' => 5,
         ]);
 
-        $mpdf->SetTitle('List Salary');
+        $title = $isBasic ? 'List Salary' : 'List Salary & Tunjangan';
+        $filename = $isBasic ? 'LIST_SALARY.pdf' : 'LIST_SALARY_&_TUNJANGAN.pdf';
+        
+        $mpdf->SetTitle($title);
         $mpdf->WriteHTML($html);
-        $mpdf->Output('LIST_SALARY.pdf', \Mpdf\Output\Destination::DOWNLOAD);
+        $mpdf->Output($filename, \Mpdf\Output\Destination::DOWNLOAD);
         exit;
     }
 }

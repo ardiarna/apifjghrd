@@ -381,28 +381,29 @@ class PdfListPayrollController extends Controller
 
             $nowFjg = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]["overtime_fjg"] : 0;
             $beforeFjg = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]["overtime_fjg"] : 0;
-            if($nowFjg == 0 && $beforeFjg == 0) { $statusFjg = "TETAP"; $persenFjg = 0; }
-            else if($beforeFjg == 0) { $statusFjg = $nowFjg > 0 ? "NAIK" : "TURUN"; $persenFjg = 100; }
-            else {
-                if($nowFjg == 0) { $statusFjg = "TURUN"; $persenFjg = 100; }
-                else if($nowFjg > 0) { $persenFjg = ($nowFjg - $beforeFjg) / $beforeFjg * 100; $statusFjg = $persenFjg > 0 ? "NAIK" : "TURUN"; }
-                else { $statusFjg = "TERCOVER"; $persenFjg = 0; }
+            if($nowFjg == 0 && $beforeFjg == 0) { 
+                $statusFjg = "TETAP"; $persenFjg = 0; 
+            } else if($beforeFjg == 0) { 
+                $statusFjg = "NAIK"; $persenFjg = 100; 
+            } else {
+                $persenFjg = ($nowFjg - $beforeFjg) / $beforeFjg * 100; 
+                $statusFjg = $persenFjg > 0 ? "NAIK" : "TURUN";
             }
             $medRows[] = ["- FRATEKINDO", $statusFjg, number_format(abs($persenFjg),2,",",".")."%"];
 
             $nowCus = isset($headers[$dh->bulan]) ? $headers[$dh->bulan]["overtime_cus"] : 0;
             $beforeCus = isset($headers[($dh->bulan-1)]) ? $headers[($dh->bulan-1)]["overtime_cus"] : 0;
-            if(isset($oncallJumlahs[$dh->bulan])) $nowCus -= $oncallJumlahs[$dh->bulan];
-            if(isset($oncallJumlahs[($dh->bulan-1)])) $beforeCus -= $oncallJumlahs[($dh->bulan-1)];
 
-            if($nowCus == 0 && $beforeCus == 0) { $statusCus = "TETAP"; $persenCus = 0; }
-            else if($beforeCus == 0) { $statusCus = $nowCus > 0 ? "NAIK" : "TURUN"; $persenCus = 100; }
-            else {
-                if($nowCus == 0) { $statusCus = "TURUN"; $persenCus = 100; }
-                else if($nowCus > 0) { $persenCus = ($nowCus - $beforeCus) / $beforeCus * 100; $statusCus = $persenCus > 0 ? "NAIK" : "TURUN"; }
-                else { $statusCus = "TERCOVER"; $persenCus = 0; }
+            if($nowCus == 0 && $beforeCus == 0) { 
+                $statusCus = "TETAP"; $persenCus = 0; 
+            } else if($beforeCus == 0) { 
+                $statusCus = "NAIK"; $persenCus = 100; 
+            } else {
+                $persenCus = ($nowCus - $beforeCus) / $beforeCus * 100; 
+                $statusCus = $persenCus > 0 ? "NAIK" : "TURUN";
             }
             $statusOT = $statusCus;
+            $nowCusOriginal = $nowCus; // Store to check Tercover
             $medRows[] = ["- CUSTOMER", $statusCus, number_format(abs($persenCus),2,",",".")."%"];
 
             $otDataCount = max(count($oncallsHTML), count($medRows));
@@ -465,7 +466,7 @@ class PdfListPayrollController extends Controller
                 <td colspan=\"3\" style=\"border: 1px solid #000;\">JUMLAH</td>
                 <td class=\"ar\" style=\"border: 1px solid #000;\">".number_format($sumOncalls,0,",",".")."</td>";
 
-            if ($statusOT == "TERCOVER") {
+            if ($sumOncalls > $nowCusOriginal) {
                 $html .= "<td colspan=\"3\" style=\"border: 1px solid #000;\">Tercover On Call Customer</td>";
             } else {
                 $html .= "<td colspan=\"3\" style=\"border: 1px solid #000;\"></td>";
