@@ -1091,6 +1091,271 @@ class SpreadKaryawanCustomController extends Controller
         $writer->save('php://output');
     }
 
+                        public function biodataKaryawan($id) {
+        $karyawan = $this->repoKaryawan->findById($id);
+        if (!$karyawan) return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan']);
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11);
+        $si = $spreadsheet->getActiveSheet();
+        $si->setShowGridlines(false);
+        $si->setTitle('BIODATA');
+
+        // Page Setup
+        $si->getPageSetup()->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+        $si->getPageSetup()->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
+        $si->getPageSetup()->setFitToPage(true);
+        $si->getPageSetup()->setFitToWidth(1);
+        $si->getPageSetup()->setFitToHeight(0);
+
+        // Column Widths
+        $si->getColumnDimension('A')->setWidth(3); // Small margin left
+        $si->getColumnDimension('B')->setWidth(26);
+        $si->getColumnDimension('C')->setWidth(3);
+        $si->getColumnDimension('D')->setWidth(40);
+        $si->getColumnDimension('E')->setWidth(15);
+        $si->getColumnDimension('F')->setWidth(15);
+        $si->getColumnDimension('G')->setWidth(3);
+        $si->getColumnDimension('H')->setWidth(35);
+        
+        $themeColor = 'FF1F4E78'; // Dark Blue
+        $sectionColor = 'FFD9E1F2'; // Light Blue
+
+        // Header Title
+        $si->setCellValue('B2', 'BIODATA KARYAWAN');
+        $si->mergeCells('B2:H3');
+        $si->getStyle('B2:H3')->getAlignment()->setHorizontal('center')->setVertical('center');
+        $si->getStyle('B2:H3')->getFont()->setSize(16)->setBold(true)->getColor()->setARGB('FFFFFFFF');
+        $si->getStyle('B2:H3')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($themeColor);
+
+        $bar = 5;
+        
+        // Helper function for section headers
+        $addSectionHeader = function($title, $row) use ($si, $sectionColor, $themeColor) {
+            $si->setCellValue('B'.$row, $title);
+            $si->mergeCells('B'.$row.':H'.$row);
+            $si->getStyle('B'.$row.':H'.$row)->getFont()->setBold(true)->getColor()->setARGB($themeColor);
+            $si->getStyle('B'.$row.':H'.$row)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($sectionColor);
+            $si->getStyle('B'.$row.':H'.$row)->getBorders()->getBottom()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_MEDIUM)->getColor()->setARGB($themeColor);
+            $si->getStyle('B'.$row.':H'.$row)->getAlignment()->setVertical('center');
+            $si->getRowDimension($row)->setRowHeight(20);
+        };
+
+        // --- 1. DATA PRIBADI ---
+        $addSectionHeader('I. DATA PRIBADI', $bar);
+        $bar += 2;
+
+        $usia = '';
+        if ($karyawan->tanggal_lahir) {
+            $dt1 = date_create($karyawan->tanggal_lahir);
+            $dt2 = date_create('today');
+            $usia = date_diff($dt1, $dt2)->y . ' Tahun';
+        }
+
+        $masaKerja = '';
+        if ($karyawan->tanggal_masuk) {
+            $dt1 = date_create($karyawan->tanggal_masuk);
+            $dt2 = $karyawan->tanggal_keluar ? date_create($karyawan->tanggal_keluar) : date_create('today');
+            $diff = date_diff($dt1, $dt2);
+            $masaKerja = $diff->y . ' Tahun ' . $diff->m . ' Bulan ' . $diff->d . ' Hari';
+        }
+
+        $j_anak = method_exists($karyawan, 'jumlahAnak') ? $karyawan->jumlahAnak() : $karyawan->jumlah_anak;
+
+        $fields = [
+            ['NIK / No. Karyawan', $karyawan->nik, 'Jenis Karyawan', $karyawan->staf == 'Y' ? 'Staf' : 'Non-Staf'],
+            ['Nama Lengkap', $karyawan->nama, 'Status Aktif', $karyawan->aktif == 'Y' ? 'Aktif' : 'Non-Aktif'],
+            ['Area', $karyawan->area ? $karyawan->area->nama : '', 'Tanggal Masuk', $karyawan->tanggal_masuk ? date('d-m-Y', strtotime($karyawan->tanggal_masuk)) : ''],
+            ['Divisi', $karyawan->divisi ? $karyawan->divisi->nama : '', 'Tanggal Keluar', $karyawan->tanggal_keluar ? date('d-m-Y', strtotime($karyawan->tanggal_keluar)) : ''],
+            ['Jabatan', $karyawan->jabatan ? $karyawan->jabatan->nama : '', 'Masa Kerja', $masaKerja],
+            ['Tempat Lahir', $karyawan->tempat_lahir, 'Status Kerja', $karyawan->statusKerja ? $karyawan->statusKerja->nama : ''],
+            ['Tanggal Lahir', $karyawan->tanggal_lahir ? date('d-m-Y', strtotime($karyawan->tanggal_lahir)) : '', 'Status PTKP', $karyawan->ptkp ? $karyawan->ptkp->nama : ''],
+            ['Usia', $usia, 'Jenis Kelamin', $karyawan->kelamin == 'L' ? 'Laki-Laki' : ($karyawan->kelamin == 'P' ? 'Perempuan' : '')],
+            ['Status Pernikahan', $karyawan->kawin == 'Y' ? 'Kawin' : ($karyawan->kawin == 'N' ? 'Single' : 'Single Parent'), 'Agama', $karyawan->agama ? $karyawan->agama->nama : ''],
+            ['Jumlah Anak', $j_anak ? "'".$j_anak : "'0", 'Pendidikan Terakhir', $karyawan->pendidikan ? $karyawan->pendidikan->nama : ''],
+            ['No. KTP', $karyawan->nomor_ktp ? "'".$karyawan->nomor_ktp : '', 'Jurusan', $karyawan->pendidikan_jurusan],
+            ['No. KK', $karyawan->nomor_kk ? "'".$karyawan->nomor_kk : '', 'Almamater', $karyawan->pendidikan_almamater],
+            ['No. Paspor', $karyawan->nomor_paspor ? "'".$karyawan->nomor_paspor : '', 'Email', $karyawan->email],
+            ['NPWP', $karyawan->nomor_pwp ? "'".$karyawan->nomor_pwp : '', 'No. Telepon / HP', $karyawan->telepon ? "'".$karyawan->telepon : ''],
+        ];
+
+        foreach ($fields as $f) {
+            $si->setCellValue('B'.$bar, $f[0]); $si->setCellValue('C'.$bar, ':'); $si->setCellValue('D'.$bar, $f[1]);
+            if (isset($f[2])) {
+                $si->setCellValue('F'.$bar, $f[2]); $si->setCellValue('G'.$bar, ':'); $si->setCellValue('H'.$bar, $f[3]);
+            }
+            $si->getRowDimension($bar)->setRowHeight(18);
+            $bar++;
+        }
+        
+        $bar++;
+        $si->setCellValue('B'.$bar, 'Alamat KTP'); $si->setCellValue('C'.$bar, ':'); $si->setCellValue('D'.$bar, trim(preg_replace('/\s+/', ' ', (string)$karyawan->alamat_ktp)));
+        $si->mergeCells('D'.$bar.':H'.$bar); $si->getStyle('D'.$bar)->getAlignment()->setWrapText(true); $si->getRowDimension($bar)->setRowHeight(30);
+        $bar++;
+        $si->setCellValue('B'.$bar, 'Alamat Tinggal'); $si->setCellValue('C'.$bar, ':'); $si->setCellValue('D'.$bar, trim(preg_replace('/\s+/', ' ', (string)$karyawan->alamat_tinggal)));
+        $si->mergeCells('D'.$bar.':H'.$bar); $si->getStyle('D'.$bar)->getAlignment()->setWrapText(true); $si->getRowDimension($bar)->setRowHeight(30);
+        $bar += 2;
+
+        // Table header style helper
+        $styleTableHeader = function($range) use ($si, $themeColor) {
+            $si->getStyle($range)->getFont()->setBold(true)->getColor()->setARGB('FFFFFFFF');
+            $si->getStyle($range)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($themeColor);
+            $si->getStyle($range)->getAlignment()->setHorizontal('center')->setVertical('center');
+            $si->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)->getColor()->setARGB('FFCCCCCC');
+        };
+
+        // Table body style helper
+        $styleTableBody = function($range) use ($si) {
+            $si->getStyle($range)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN)->getColor()->setARGB('FFCCCCCC');
+            $si->getStyle($range)->getAlignment()->setVertical('center');
+        };
+
+        // --- 2. ANGGOTA KELUARGA ---
+        $addSectionHeader('II. ANGGOTA KELUARGA', $bar);
+        $bar += 2;
+        
+        $mapHubungan = [
+            'S' => 'Suami',
+            'I' => 'Istri',
+            'A' => 'Anak',
+            'M' => 'Menantu',
+            'C' => 'Cucu',
+            'O' => 'Orang Tua',
+            'T' => 'Mertua',
+            'F' => 'Famili Lain',
+        ];
+
+        $keluargas = method_exists($karyawan, 'keluargas') ? $karyawan->keluargas()->get() : [];
+        if (count($keluargas) > 0) {
+            $si->setCellValue('B'.$bar, 'Nama Lengkap'); $si->mergeCells('B'.$bar.':C'.$bar);
+            $si->setCellValue('D'.$bar, 'Nomor KTP');
+            $si->setCellValue('E'.$bar, 'Hubungan'); $si->mergeCells('E'.$bar.':F'.$bar);
+            $si->setCellValue('G'.$bar, 'Tempat & Tanggal Lahir'); $si->mergeCells('G'.$bar.':H'.$bar);
+            $styleTableHeader('B'.$bar.':H'.$bar);
+            $si->getRowDimension($bar)->setRowHeight(20);
+            $bar++;
+            
+            $startTable = $bar;
+            foreach ($keluargas as $kel) {
+                $si->setCellValue('B'.$bar, $kel->nama); $si->mergeCells('B'.$bar.':C'.$bar);
+                $si->setCellValue('D'.$bar, $kel->nomor_ktp ? "'".$kel->nomor_ktp : '');
+                $hubLabel = isset($mapHubungan[$kel->hubungan]) ? $mapHubungan[$kel->hubungan] : $kel->hubungan;
+                $si->setCellValue('E'.$bar, $hubLabel); $si->mergeCells('E'.$bar.':F'.$bar);
+                $ttl = $kel->tempat_lahir . ', ' . ($kel->tanggal_lahir ? date('d-m-Y', strtotime($kel->tanggal_lahir)) : '');
+                $si->setCellValue('G'.$bar, $ttl); $si->mergeCells('G'.$bar.':H'.$bar);
+                $si->getRowDimension($bar)->setRowHeight(18);
+                $bar++;
+            }
+            $styleTableBody('B'.$startTable.':H'.($bar-1));
+        } else {
+            $si->setCellValue('B'.$bar, '- Tidak ada data anggota keluarga -');
+            $si->getStyle('B'.$bar)->getFont()->setItalic(true);
+            $bar++;
+        }
+        $bar += 2;
+
+        // --- 3. KONTAK DARURAT ---
+        $addSectionHeader('III. KONTAK DARURAT KELUARGA', $bar);
+        $bar += 2;
+        
+        $kontaks = method_exists($karyawan, 'keluargaKontaks') ? $karyawan->keluargaKontaks()->get() : [];
+        if (count($kontaks) > 0) {
+            $si->setCellValue('B'.$bar, 'No. Telepon'); $si->mergeCells('B'.$bar.':C'.$bar);
+            $si->setCellValue('D'.$bar, 'Keterangan'); $si->mergeCells('D'.$bar.':H'.$bar);
+            $styleTableHeader('B'.$bar.':H'.$bar);
+            $si->getRowDimension($bar)->setRowHeight(20);
+            $bar++;
+            
+            $startTable = $bar;
+            foreach ($kontaks as $kon) {
+                $si->setCellValue('B'.$bar, $kon->telepon ? "'".$kon->telepon : ''); $si->mergeCells('B'.$bar.':C'.$bar);
+                $si->setCellValue('D'.$bar, $kon->nama); $si->mergeCells('D'.$bar.':H'.$bar);
+                $si->getRowDimension($bar)->setRowHeight(18);
+                $bar++;
+            }
+            $styleTableBody('B'.$startTable.':H'.($bar-1));
+        } else {
+            $si->setCellValue('B'.$bar, '- Tidak ada data kontak darurat -');
+            $si->getStyle('B'.$bar)->getFont()->setItalic(true);
+            $bar++;
+        }
+        $bar += 2;
+
+        // --- 4. RIWAYAT TRAINING ---
+        $addSectionHeader('IV. RIWAYAT TRAINING', $bar);
+        $bar += 2;
+        
+        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->get() : [];
+        if (count($trainings) > 0) {
+            $si->setCellValue('B'.$bar, 'Nama Training'); $si->mergeCells('B'.$bar.':C'.$bar);
+            $si->setCellValue('D'.$bar, 'Tanggal');
+            $si->setCellValue('E'.$bar, 'Keterangan'); $si->mergeCells('E'.$bar.':H'.$bar);
+            $styleTableHeader('B'.$bar.':H'.$bar);
+            $si->getRowDimension($bar)->setRowHeight(20);
+            $bar++;
+            
+            $startTable = $bar;
+            foreach ($trainings as $tr) {
+                $trainingName = $tr->training ? $tr->training->nama : '';
+                $si->setCellValue('B'.$bar, $trainingName); $si->mergeCells('B'.$bar.':C'.$bar);
+                $si->setCellValue('D'.$bar, $tr->tanggal ? date('d-m-Y', strtotime($tr->tanggal)) : '');
+                $si->setCellValue('E'.$bar, $tr->keterangan); $si->mergeCells('E'.$bar.':H'.$bar);
+                $si->getRowDimension($bar)->setRowHeight(18);
+                $bar++;
+            }
+            $styleTableBody('B'.$startTable.':H'.($bar-1));
+        } else {
+            $si->setCellValue('B'.$bar, '- Tidak ada riwayat training -');
+            $si->getStyle('B'.$bar)->getFont()->setItalic(true);
+            $bar++;
+        }
+        $bar += 2;
+
+        // --- 5. PERJANJIAN KERJA ---
+        $addSectionHeader('V. PERJANJIAN KERJA', $bar);
+        $bar += 2;
+        
+        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->orderBy('tanggal_awal')->get() : [];
+        if (count($perjanjians) > 0) {
+            $si->setCellValue('B'.$bar, 'Nomor Kontrak'); $si->mergeCells('B'.$bar.':C'.$bar);
+            $si->setCellValue('D'.$bar, 'Status Kerja');
+            $si->setCellValue('E'.$bar, 'Mulai'); $si->mergeCells('E'.$bar.':F'.$bar);
+            $si->setCellValue('G'.$bar, 'Berakhir'); $si->mergeCells('G'.$bar.':H'.$bar);
+            $styleTableHeader('B'.$bar.':H'.$bar);
+            $si->getRowDimension($bar)->setRowHeight(20);
+            $bar++;
+            
+            $startTable = $bar;
+            foreach ($perjanjians as $pj) {
+                $si->setCellValue('B'.$bar, $pj->nomor); $si->mergeCells('B'.$bar.':C'.$bar);
+                $si->setCellValue('D'.$bar, $pj->statusKerja ? $pj->statusKerja->nama : '');
+                $si->setCellValue('E'.$bar, $pj->tanggal_awal ? date('d-m-Y', strtotime($pj->tanggal_awal)) : ''); $si->mergeCells('E'.$bar.':F'.$bar);
+                $si->setCellValue('G'.$bar, $pj->tanggal_akhir ? date('d-m-Y', strtotime($pj->tanggal_akhir)) : ''); $si->mergeCells('G'.$bar.':H'.$bar);
+                $si->getRowDimension($bar)->setRowHeight(18);
+                $bar++;
+            }
+            $styleTableBody('B'.$startTable.':H'.($bar-1));
+        } else {
+            $si->setCellValue('B'.$bar, '- Tidak ada data perjanjian kerja -');
+            $si->getStyle('B'.$bar)->getFont()->setItalic(true);
+            $bar++;
+        }
+
+        $bar += 3;
+        // Tanggal Cetak
+        $si->setCellValue('B'.$bar, 'Tanggal cetak : ' . date('d-m-Y'));
+        $si->getStyle('B'.$bar)->getFont()->setItalic(true)->setSize(10)->getColor()->setARGB('FF7F7F7F');
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="BIODATA_'.str_replace(' ', '_', strtoupper($karyawan->nama)).'.xlsx"');
+        header('Cache-Control: max-age=0');
+
+        $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+    }
+
     public function dataStatusKaryawan() {
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);

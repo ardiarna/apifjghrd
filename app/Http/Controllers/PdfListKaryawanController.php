@@ -159,7 +159,9 @@ class PdfListKaryawanController extends Controller
                         $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
                     }
 
-                    $maxRows = max(1 + $numKeluarga, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
+                    $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
+                    $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -220,23 +222,32 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td class=\"ac\">".($d->agama ? $d->agama->nama : '')."</td>";
                             $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
                             $html .= "<td class=\"ac\">".($d->nomor_kk ? "".$d->nomor_kk : '')."</td>";
+                            
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
-                            $html .= "<td class=\"ac\">".($ktp_or_paspor ? "".$ktp_or_paspor : '')."</td>";
+                            $html .= "<td class=\"ac\">".($ktp_or_paspor ? $ktp_or_paspor : '')."</td>";
+                            
                             $html .= "<td class=\"al\">".$d->nama."</td>";
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                             $html .= "<td class=\"al\">".$ttl."</td>";
                         } else {
                             // Blank for A to I
                             $html .= "<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>";
-                            // H to J (Keluarga)
-                            if ($i <= $numKeluarga) {
-                                $keluarga = $keluargas[$i - 1];
-                                $html .= "<td class=\"ac\">".($keluarga->nomor_ktp ? "".$keluarga->nomor_ktp : '')."</td>";
-                                $html .= "<td class=\"al\">".$keluarga->nama."</td>";
-                                $ttlKeluarga = $keluarga->tempat_lahir . ', ' . ($keluarga->tanggal_lahir ? date('d-m-Y', strtotime($keluarga->tanggal_lahir)) : '');
-                                $html .= "<td class=\"al\">".$ttlKeluarga."</td>";
+                            // J to L (Paspor & Keluarga)
+                            $offset = $hasPaspor ? 1 : 0;
+                            if ($hasPaspor && $i == 1) {
+                                $html .= "<td class=\"ac\">".$d->nomor_paspor."</td>";
+                                $html .= "<td></td><td></td>";
                             } else {
-                                $html .= "<td></td><td></td><td></td>";
+                                $keluargaIndex = $i - 1 - $offset;
+                                if ($keluargaIndex >= 0 && $keluargaIndex < $numKeluarga) {
+                                    $keluarga = $keluargas[$keluargaIndex];
+                                    $html .= "<td class=\"ac\">".($keluarga->nomor_ktp ? "".$keluarga->nomor_ktp : '')."</td>";
+                                    $html .= "<td class=\"al\">".$keluarga->nama."</td>";
+                                    $ttlKeluarga = $keluarga->tempat_lahir . ', ' . ($keluarga->tanggal_lahir ? date('d-m-Y', strtotime($keluarga->tanggal_lahir)) : '');
+                                    $html .= "<td class=\"al\">".$ttlKeluarga."</td>";
+                                } else {
+                                    $html .= "<td></td><td></td><td></td>";
+                                }
                             }
                         }
 

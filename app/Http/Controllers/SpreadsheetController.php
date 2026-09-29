@@ -1579,7 +1579,9 @@ class SpreadsheetController extends Controller
                         $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
                     }
 
-                    $maxRows = max(1 + $numKeluarga, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
+                    $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
+                    $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -1629,8 +1631,10 @@ class SpreadsheetController extends Controller
                             $si->setCellValue('H'.$bar, $d->jabatan ? $d->jabatan->nama : '');
 
                             $si->setCellValue('I'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
+                            
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
                             $si->setCellValue('J'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
+                            
                             $si->setCellValue('K'.$bar, $d->nama); // Nama Karyawan & Keluarga
 
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
@@ -1658,9 +1662,14 @@ class SpreadsheetController extends Controller
                                 $si->getStyle('A'.$bar.':U'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
                             }
                         } else {
-                            // Family rows (i >= 1)
-                            if ($i <= $numKeluarga) {
-                                $keluarga = $keluargas[$i - 1];
+                            $offset = $hasPaspor ? 1 : 0;
+                            if ($hasPaspor && $i == 1) {
+                                $si->setCellValue('J'.$bar, "'".$d->nomor_paspor);
+                            }
+                            
+                            $keluargaIndex = $i - 1 - $offset;
+                            if ($keluargaIndex >= 0 && $keluargaIndex < $numKeluarga) {
+                                $keluarga = $keluargas[$keluargaIndex];
                                 $si->setCellValue('J'.$bar, $keluarga->nomor_ktp ? "'".$keluarga->nomor_ktp : '');
                                 $si->setCellValue('K'.$bar, $keluarga->nama);
                                 $ttlKeluarga = $keluarga->tempat_lahir . ', ' . ($keluarga->tanggal_lahir ? date('d-m-Y', strtotime($keluarga->tanggal_lahir)) : '');
