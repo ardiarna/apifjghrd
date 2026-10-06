@@ -185,7 +185,7 @@ class CicCutiController extends Controller
             'cic_karyawan_id' => 'required|exists:cic_karyawans,id',
             'jenis_form' => 'required|in:CUTI,IJIN,CUTI_MASAL',
             
-            'tanggal_kembali' => 'nullable|date',
+            'tanggal_kembali' => 'nullable|string',
             'tahun' => 'required|integer',
             'details' => 'required|array',
         ]);

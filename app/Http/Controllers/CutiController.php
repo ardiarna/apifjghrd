@@ -200,7 +200,7 @@ class CutiController extends Controller
             'karyawan_id' => 'required|exists:karyawans,id',
             'jenis_form' => 'required|in:CUTI,IJIN,CUTI_MASAL',
             
-            'tanggal_kembali' => 'nullable|date',
+            'tanggal_kembali' => 'nullable|string',
             'tahun' => 'required|integer',
             'details' => 'required|array',
         ]);

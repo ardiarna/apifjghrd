@@ -611,6 +611,15 @@ class CutiExcelController extends Controller
             'November'=>'November','December'=>'Desember'];
         $fmtTgl = function($val) use ($bulanInd) {
             if (!$val) return '-';
+            if (strpos($val, ',') !== false) {
+                $vals = explode(',', $val);
+                $res = [];
+                foreach($vals as $v) {
+                    $dt = \Carbon\Carbon::parse(trim($v));
+                    $res[] = $dt->format('j') . ' ' . $bulanInd[$dt->format('F')] . ' ' . $dt->format('Y');
+                }
+                return implode(', ', $res);
+            }
             $dt = \Carbon\Carbon::parse($val);
             return $dt->format('j') . ' ' . $bulanInd[$dt->format('F')] . ' ' . $dt->format('Y');
         };
