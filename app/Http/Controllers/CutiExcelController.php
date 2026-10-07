@@ -470,42 +470,24 @@ class CutiExcelController extends Controller
                         $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
                         $lama = (int) $det->lama_hari;
 
-                        if ($lama > 5 || $satuan == 'bulan') {
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $formatDate = function($tanggal) use ($months) {
-                                $engMon = date('M', strtotime($tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
-                            };
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
 
-                            $dates = $det->dates()->orderBy('tanggal')->get();
-                            if($dates->count() == 1) {
-                                $dateStr = $formatDate($dates->first()->tanggal);
-                            } else {
-                                $first = $dates->first()->tanggal;
-                                $last = $dates->last()->tanggal;
-                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
-                            }
-                        } else {
-                            $groupedDates = [];
-                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
-                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                                $engMon = date('M', strtotime($d->tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
-
-                                $day = date('d', strtotime($d->tanggal));
-                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                                $groupedDates[$my][] = ltrim($day, '0');
-                            }
-
-                            $dateStrings = [];
-                            foreach($groupedDates as $my => $days) {
-                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                            }
-
-                            $dateStr = implode(', ', $dateStrings);
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
                         }
+
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
+
+                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? ($det->kategori == 'CUTI_MASAL' ? 'Cutber' : ($det->kategori == 'GANTI_HARI_LIBUR' ? 'Ganti Hari Libur' : 'Ijin'));
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
@@ -640,7 +622,30 @@ class CutiExcelController extends Controller
         $k     = $cuti->karyawan;
         $tahun = $cuti->tahun;
 
-        $tanggalKembali = $fmtTgl($cuti->tanggal_kembali);
+        $tanggalKembali = '-';
+        if ($cuti->tanggal_kembali) {
+            if (strpos($cuti->tanggal_kembali, ',') !== false) {
+                $vals = explode(',', $cuti->tanggal_kembali);
+                $groupedDates = [];
+                foreach($vals as $tanggal) {
+                    $tanggal = trim($tanggal);
+                    $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                    $engMon = date('M', strtotime($tanggal));
+                    $indMon = $months[$engMon] ?? $engMon;
+                    $my = $indMon . ' ' . date('Y', strtotime($tanggal));
+                    $day = date('d', strtotime($tanggal));
+                    if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                    $groupedDates[$my][] = ltrim($day, '0');
+                }
+                $dateStrings = [];
+                foreach($groupedDates as $my => $days) {
+                    $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                }
+                $tanggalKembali = implode(', ', $dateStrings);
+            } else {
+                $tanggalKembali = $fmtTgl($cuti->tanggal_kembali);
+            }
+        }
         $tanggalMasuk   = $fmtTgl($k->tanggal_masuk);
 
         $snapTotal = null; $snapDiambil = null; $snapMasal = null;
@@ -680,7 +685,21 @@ class CutiExcelController extends Controller
             if (count($unique) === 1) {
                 $tanggalInput = $fmtTgl($unique[0]);
             } else {
-                $tanggalInput = $fmtTgl($unique[0]) . ' s/d ' . $fmtTgl($unique[count($unique)-1]);
+                $groupedDates = [];
+                foreach($unique as $tanggal) {
+                    $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
+                    $engMon = date('M', strtotime($tanggal));
+                    $indMon = $months[$engMon] ?? $engMon;
+                    $my = $indMon . ' ' . date('Y', strtotime($tanggal));
+                    $day = date('d', strtotime($tanggal));
+                    if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                    $groupedDates[$my][] = ltrim($day, '0');
+                }
+                $dateStrings = [];
+                foreach($groupedDates as $my => $days) {
+                    $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                }
+                $tanggalInput = implode(', ', $dateStrings);
             }
         }
 
@@ -1107,42 +1126,24 @@ class CutiExcelController extends Controller
                         $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
                         $lama = (int) $det->lama_hari;
 
-                        if ($lama > 5 || $satuan == 'bulan') {
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $formatDate = function($tanggal) use ($months) {
-                                $engMon = date('M', strtotime($tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
-                            };
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
 
-                            $dates = $det->dates()->orderBy('tanggal')->get();
-                            if($dates->count() == 1) {
-                                $dateStr = $formatDate($dates->first()->tanggal);
-                            } else {
-                                $first = $dates->first()->tanggal;
-                                $last = $dates->last()->tanggal;
-                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
-                            }
-                        } else {
-                            $groupedDates = [];
-                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
-                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                                $engMon = date('M', strtotime($d->tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
-
-                                $day = date('d', strtotime($d->tanggal));
-                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                                $groupedDates[$my][] = ltrim($day, '0');
-                            }
-
-                            $dateStrings = [];
-                            foreach($groupedDates as $my => $days) {
-                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                            }
-
-                            $dateStr = implode(', ', $dateStrings);
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
                         }
+
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
+
+                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? 'Cuti Khusus';
                         $lines[] = "Tgl " . $dateStr . " = " . $ket;
                     }
@@ -1344,42 +1345,24 @@ class CutiExcelController extends Controller
                         $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
                         $lama = (int) $det->lama_hari;
 
-                        if ($lama > 5 || $satuan == 'bulan') {
+                        $groupedDates = [];
+                        foreach($det->dates()->orderBy('tanggal')->get() as $d) {
                             $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                            $formatDate = function($tanggal) use ($months) {
-                                $engMon = date('M', strtotime($tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
-                            };
+                            $engMon = date('M', strtotime($d->tanggal));
+                            $indMon = $months[$engMon] ?? $engMon;
+                            $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
 
-                            $dates = $det->dates()->orderBy('tanggal')->get();
-                            if($dates->count() == 1) {
-                                $dateStr = $formatDate($dates->first()->tanggal);
-                            } else {
-                                $first = $dates->first()->tanggal;
-                                $last = $dates->last()->tanggal;
-                                $dateStr = $formatDate($first) . ' s/d ' . $formatDate($last);
-                            }
-                        } else {
-                            $groupedDates = [];
-                            foreach($det->dates()->orderBy('tanggal')->get() as $d) {
-                                $months = ['Jan' => 'Jan', 'Feb' => 'Peb', 'Mar' => 'Mar', 'Apr' => 'Apr', 'May' => 'Mei', 'Jun' => 'Jun', 'Jul' => 'Jul', 'Aug' => 'Ags', 'Sep' => 'Sep', 'Oct' => 'Okt', 'Nov' => 'Nop', 'Dec' => 'Des'];
-                                $engMon = date('M', strtotime($d->tanggal));
-                                $indMon = $months[$engMon] ?? $engMon;
-                                $my = $indMon . ' \'' . date('y', strtotime($d->tanggal));
-
-                                $day = date('d', strtotime($d->tanggal));
-                                if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
-                                $groupedDates[$my][] = ltrim($day, '0');
-                            }
-
-                            $dateStrings = [];
-                            foreach($groupedDates as $my => $days) {
-                                $dateStrings[] = implode(', ', $days) . ' ' . $my;
-                            }
-
-                            $dateStr = implode(', ', $dateStrings);
+                            $day = date('d', strtotime($d->tanggal));
+                            if(!isset($groupedDates[$my])) $groupedDates[$my] = [];
+                            $groupedDates[$my][] = ltrim($day, '0');
                         }
+
+                        $dateStrings = [];
+                        foreach($groupedDates as $my => $days) {
+                            $dateStrings[] = implode(', ', $days) . ' ' . $my;
+                        }
+
+                        $dateStr = implode(', ', $dateStrings);
                         $ket = $det->keterangan ?? 'Unpaid';
                         $prefix = ($det->kategori == "UNPAID") ? "UNPAID LEAVE " : "GANTI HARI LIBUR ";
                         $lines[] = $prefix . "Tgl " . $dateStr . " = " . $ket;
