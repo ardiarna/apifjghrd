@@ -86,7 +86,7 @@ class SpreadMedicalController extends Controller
             $si->mergeCells('A'.$bar.':A'.($bar+1));
             $si->setCellValue('B'.$bar, 'NAMA KARYAWAN');
             $si->mergeCells('B'.$bar.':B'.($bar+1));
-            $si->setCellValue('C'.$bar, 'MASA KERJA');
+            $si->setCellValue('C'.$bar, 'TANGGAL GABUNG');
             $si->mergeCells('C'.$bar.':C'.($bar+1));
             $si->setCellValue('D'.$bar, 'TANGGAL LAHIR');
             $si->mergeCells('D'.$bar.':D'.($bar+1));
@@ -163,7 +163,7 @@ class SpreadMedicalController extends Controller
             $si->mergeCells('A'.$bar.':A'.($bar+1));
             $si->setCellValue('B'.$bar, 'NAMA KARYAWAN');
             $si->mergeCells('B'.$bar.':B'.($bar+1));
-            $si->setCellValue('C'.$bar, 'MASA KERJA');
+            $si->setCellValue('C'.$bar, 'TANGGAL GABUNG');
             $si->mergeCells('C'.$bar.':C'.($bar+1));
             $si->setCellValue('D'.$bar, 'TANGGAL LAHIR');
             $si->mergeCells('D'.$bar.':D'.($bar+1));
@@ -242,7 +242,7 @@ class SpreadMedicalController extends Controller
         $si->mergeCells('B'.$bar.':B'.($bar+1));
         $si->setCellValue('C'.$bar, 'JABATAN');
         $si->mergeCells('C'.$bar.':C'.($bar+1));
-        $si->setCellValue('D'.$bar, 'MASA KERJA');
+        $si->setCellValue('D'.$bar, 'TANGGAL GABUNG');
         $si->mergeCells('D'.$bar.':D'.($bar+1));
         $si->setCellValue('E'.$bar, 'TANGGAL LAHIR');
         $si->mergeCells('E'.$bar.':E'.($bar+1));

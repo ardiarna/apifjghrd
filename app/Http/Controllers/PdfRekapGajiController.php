@@ -95,7 +95,7 @@ class PdfRekapGajiController extends Controller
             $html .= "<tr class=\"header\">";
             $html .= "<th rowspan=\"2\">NO</th>";
             $html .= "<th rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">MASA<br/>KERJA</th>";
+            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>LAHIR</th>";
             $html .= "<th colspan=\"12\">B U L A N</th>";
             $html .= "<th rowspan=\"2\">TOTAL IDR</th>";

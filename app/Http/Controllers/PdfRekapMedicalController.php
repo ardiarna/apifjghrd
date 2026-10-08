@@ -77,7 +77,6 @@ class PdfRekapMedicalController extends Controller
         $html .= "<tr><td class=\"title ac no-border\" colspan=\"22\">KELAS : RAWAT JALAN</td></tr>";
         $html .= "<tr><td class=\"no-border\" colspan=\"22\">&nbsp;</td></tr></table>";
 
-        // Rawat Jalan: cols: NO,NAMA,JABATAN,MASA KERJA,TGL LAHIR,GAJI,TUN1,TUN2,JAN..DES,SISA,JUMLAH KLAIM
         $html .= "<table style=\"width:100%; table-layout:fixed;\">";
         // dummy row for column widths: 22 cols
         // NO=5,NAMA=30,JAB=25,MASAKER=13,TGLLHR=13,GAJI=16,TUN1=16,TUN2=16,12×bulan=12,SISA=16,JMLKLAIM=16  total=5+30+25+13+13+16+16+16+(12×12)+16+16=262mm
@@ -99,7 +98,7 @@ class PdfRekapMedicalController extends Controller
         $html .= "<th rowspan=\"2\">NO</th>";
         $html .= "<th rowspan=\"2\">NAMA KARYAWAN</th>";
         $html .= "<th rowspan=\"2\">JABATAN</th>";
-        $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">MASA<br/>KERJA</th>";
+        $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>GABUNG</th>";
         $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TGL<br/>LAHIR</th>";
         $html .= "<th rowspan=\"2\">GAJI</th>";
         $html .= "<th rowspan=\"2\">TUNJANGAN 1</th>";
@@ -201,7 +200,7 @@ class PdfRekapMedicalController extends Controller
             $html .= "<tr class=\"header\">";
             $html .= "<th rowspan=\"2\">NO</th>";
             $html .= "<th rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">MASA<br/>KERJA</th>";
+            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TGL<br/>LAHIR</th>";
             $html .= "<th rowspan=\"2\">JABATAN</th>";
             $html .= "<th rowspan=\"2\">BULAN &amp; TAHUN</th>";
@@ -255,7 +254,7 @@ class PdfRekapMedicalController extends Controller
             $html .= "<tr class=\"header\">";
             $html .= "<th rowspan=\"2\">NO</th>";
             $html .= "<th rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">MASA<br/>KERJA</th>";
+            $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th rowspan=\"2\" style=\"overflow:hidden;\">TGL<br/>LAHIR</th>";
             $html .= "<th rowspan=\"2\">JABATAN</th>";
             $html .= "<th rowspan=\"2\">BULAN &amp; TAHUN</th>";

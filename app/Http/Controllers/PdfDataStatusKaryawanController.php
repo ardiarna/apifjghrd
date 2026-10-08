@@ -111,7 +111,7 @@ class PdfDataStatusKaryawanController extends Controller
         $html .= "<th>NO</th>";
         $html .= "<th>N A M A</th>";
         $html .= "<th>TEMPAT & TGL LAHIR</th>";
-        $html .= "<th>MASA KERJA</th>";
+        $html .= "<th>TANGGAL GABUNG</th>";
         $html .= "<th>J A B A T A N</th>";
         $html .= "<th>PENDIDIKAN TERAKHIR</th>";
         $html .= "<th>STATUS KARYAWAN PKWT / KONTRAK</th>";

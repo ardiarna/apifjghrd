@@ -49,9 +49,9 @@ class CicSpreadKaryawanCutiController extends Controller
         $sheet->setCellValue('E3', ': ' . $k->nama);
         $sheet->mergeCells('E3:O3');
 
-        // baris 4, kolom B s/d D merge left 'MASA KERJA', kolom E s/d O merge left ': $nilai_masa_kerja'
+        // baris 4, kolom B s/d D merge left 'TANGGAL GABUNG', kolom E s/d O merge left ': $nilai_masa_kerja'
         $masaKerja = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
-        $sheet->setCellValue('B4', 'MASA KERJA');
+        $sheet->setCellValue('B4', 'TANGGAL GABUNG');
         $sheet->mergeCells('B4:D4');
         $sheet->setCellValue('E4', ': ' . $masaKerja);
         $sheet->mergeCells('E4:O4');

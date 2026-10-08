@@ -45,7 +45,7 @@ class PdfDataKaryawanPerJointController extends Controller
 
         $idxSheet = 0;
         $hasData = false;
-        
+
         for ($tahun = $tahunAwal; $tahun <= $tahunAkhir; $tahun++) {
             $karyawanTahunIni = [];
             foreach ($dataKaryawan as $d) {
@@ -94,8 +94,7 @@ class PdfDataKaryawanPerJointController extends Controller
 
             $html .= "<table>";
             $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
-            // NO (10%), NAMA (35%), MASA KERJA (25%), JABATAN (30%)
-            $widths = [15, 65, 45, 65]; 
+            $widths = [15, 65, 45, 65];
             foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
             $html .= "</tr>";
 
@@ -119,11 +118,11 @@ class PdfDataKaryawanPerJointController extends Controller
 
                     foreach ($karyawans as $d) {
                         $bgClass = $d->aktif == 'N' ? 'bg-pink' : '';
-                        
+
                         $html .= "<tr class=\"$bgClass\">";
                         $html .= "<td class=\"ac\">".$nomor."</td>";
                         $html .= "<td class=\"al\">".$d->nama."</td>";
-                        
+
                         $masaKerja = '';
                         if ($d->tanggal_masuk) {
                             $masaKerja = date('d-m-Y', strtotime($d->tanggal_masuk));
@@ -131,17 +130,17 @@ class PdfDataKaryawanPerJointController extends Controller
                                 $masaKerja .= ' s/d ' . date('d-m-Y', strtotime($d->tanggal_keluar));
                             }
                         }
-                        
+
                         $html .= "<td class=\"ac\">".$masaKerja."</td>";
                         $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
                         $html .= "</tr>";
-                        
+
                         $nomor++;
                     }
                 }
             }
             $html .= "</table>";
-            
+
             $html .= "<br/><br/><table style=\"width:30%; table-layout:fixed; border:none;\">";
             $html .= "<tr>";
             $html .= "<td style=\"width: 20px; border:none;\" class=\"bg-pink\"></td>";
@@ -149,11 +148,11 @@ class PdfDataKaryawanPerJointController extends Controller
             $html .= "</tr>";
             $html .= "</table>";
         }
-        
+
         if (!$hasData) {
             $html .= "<div class=\"title\">Kosong</div>";
         }
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('DATA_KARYAWAN_PERJOINT_' . $tahunAwal . '_' . $tahunAkhir . '.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         exit;

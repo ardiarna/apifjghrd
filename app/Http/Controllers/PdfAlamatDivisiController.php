@@ -102,7 +102,7 @@ class PdfAlamatDivisiController extends Controller
         $html .= "<th>NO</th>";
         $html .= "<th>N A M A</th>";
         $html .= "<th>TEMPAT & TGL LAHIR</th>";
-        $html .= "<th>MASA KERJA</th>";
+        $html .= "<th>TANGGAL GABUNG</th>";
         $html .= "<th>JABATAN</th>";
         $html .= "<th>ALAMAT SESUAI KTP</th>";
         $html .= "<th>ALAMAT TINGGAL SEKARANG</th>";

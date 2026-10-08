@@ -51,14 +51,14 @@ class PdfDataJabatanKaryawanController extends Controller
         ];
         $bulanStr = $bulanMap[(int)date('n')] . ' ' . date('Y');
 
-        $html .= "<div class=\"title\">DATA KARYAWAN FJG</div>";
+        $html .= "<div class=\"title\">DATA KARYAWAN PT.FRATEKINDO JAYA GEMILANG</div>";
         $html .= "<div class=\"subtitle\">UPDATE : $bulanStr</div>";
 
         $html .= "<table>";
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
         // A=4.55, B=38, C=45
         // Proportions: ~10%, ~40%, ~50%
-        $widths = [15, 75, 100]; 
+        $widths = [15, 75, 100];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
         $html .= "</tr>";
 
@@ -85,13 +85,13 @@ class PdfDataJabatanKaryawanController extends Controller
                     $html .= "<td class=\"al\">".$d->nama."</td>";
                     $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
                     $html .= "</tr>";
-                    
+
                     $nomor++;
                 }
             }
         }
         $html .= "</table>";
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('DATA_JABATAN_KARYAWAN.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         exit;

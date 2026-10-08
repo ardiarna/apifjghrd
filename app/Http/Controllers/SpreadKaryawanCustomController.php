@@ -91,7 +91,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
-        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TEMPAT & TGL LAHIR', 'D'=>'MASA KERJA', 'E'=>'JABATAN', 'F'=>'ALAMAT SESUAI KTP', 'G'=>'ALAMAT TINGGAL SEKARANG'];
+        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TEMPAT & TGL LAHIR', 'D'=>'TANGGAL GABUNG', 'E'=>'JABATAN', 'F'=>'ALAMAT SESUAI KTP', 'G'=>'ALAMAT TINGGAL SEKARANG'];
         foreach ($headers as $col => $title) {
             $si->setCellValue($col.'5', $title);
             $si->mergeCells($col.'5:'.$col.'6');
@@ -451,7 +451,7 @@ class SpreadKaryawanCustomController extends Controller
         ];
 
         // Title Rows
-        $si->setCellValue('A2', 'DATA KARYAWAN FJG');
+        $si->setCellValue('A2', 'DATA KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
         $si->mergeCells('A2:C2');
         $bulanStr = $bulanMap[(int)date('n')] . ' ' . date('Y');
         $si->setCellValue('A3', 'UPDATE : ' . $bulanStr);
@@ -797,7 +797,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
-        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TGL LAHIR', 'D'=>'MASA KERJA', 'E'=>'N I K', 'F'=>'NO TLP', 'G'=>'AGE (YEARS)', 'H'=>'YEARS OF SERVICE'];
+        $headers = ['A'=>'NO', 'B'=>'N A M A', 'C'=>'TGL LAHIR', 'D'=>'TANGGAL GABUNG', 'E'=>'N I K', 'F'=>'NO TLP', 'G'=>'AGE (YEARS)', 'H'=>'YEARS OF SERVICE'];
         foreach ($headers as $col => $title) {
             $si->setCellValue($col.'5', $title);
             $si->mergeCells($col.'5:'.$col.'6');
@@ -934,7 +934,7 @@ class SpreadKaryawanCustomController extends Controller
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
         $activeAreas = [];
         $details = [];
-        
+
         foreach ($dataKaryawan as $d) {
             $staf = $d->staf;
             $area = $d->area ? $d->area->nama : 'Lainnya';
@@ -980,7 +980,7 @@ class SpreadKaryawanCustomController extends Controller
         // Headers
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
         $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
-        $si->setCellValue('C5', 'MASA KERJA'); $si->mergeCells('C5:C6');
+        $si->setCellValue('C5', 'TANGGAL GABUNG'); $si->mergeCells('C5:C6');
         $si->setCellValue('D5', 'AGE (YEARS)'); $si->mergeCells('D5:D6');
         $si->setCellValue('E5', 'YEARS OF SERVICE'); $si->mergeCells('E5:E6');
         $si->setCellValue('F5', 'N I K'); $si->mergeCells('F5:F6');
@@ -1117,7 +1117,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->getColumnDimension('F')->setWidth(15);
         $si->getColumnDimension('G')->setWidth(3);
         $si->getColumnDimension('H')->setWidth(35);
-        
+
         $themeColor = 'FF1F4E78'; // Dark Blue
         $sectionColor = 'FFD9E1F2'; // Light Blue
 
@@ -1129,7 +1129,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->getStyle('B2:H3')->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($themeColor);
 
         $bar = 5;
-        
+
         // Helper function for section headers
         $addSectionHeader = function($title, $row) use ($si, $sectionColor, $themeColor) {
             $si->setCellValue('B'.$row, $title);
@@ -1187,7 +1187,7 @@ class SpreadKaryawanCustomController extends Controller
             $si->getRowDimension($bar)->setRowHeight(18);
             $bar++;
         }
-        
+
         $bar++;
         $si->setCellValue('B'.$bar, 'Alamat KTP'); $si->setCellValue('C'.$bar, ':'); $si->setCellValue('D'.$bar, trim(preg_replace('/\s+/', ' ', (string)$karyawan->alamat_ktp)));
         $si->mergeCells('D'.$bar.':H'.$bar); $si->getStyle('D'.$bar)->getAlignment()->setWrapText(true); $si->getRowDimension($bar)->setRowHeight(30);
@@ -1213,7 +1213,7 @@ class SpreadKaryawanCustomController extends Controller
         // --- 2. ANGGOTA KELUARGA ---
         $addSectionHeader('II. ANGGOTA KELUARGA', $bar);
         $bar += 2;
-        
+
         $mapHubungan = [
             'S' => 'Suami',
             'I' => 'Istri',
@@ -1234,7 +1234,7 @@ class SpreadKaryawanCustomController extends Controller
             $styleTableHeader('B'.$bar.':H'.$bar);
             $si->getRowDimension($bar)->setRowHeight(20);
             $bar++;
-            
+
             $startTable = $bar;
             foreach ($keluargas as $kel) {
                 $si->setCellValue('B'.$bar, $kel->nama); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1257,7 +1257,7 @@ class SpreadKaryawanCustomController extends Controller
         // --- 3. KONTAK DARURAT ---
         $addSectionHeader('III. KONTAK DARURAT KELUARGA', $bar);
         $bar += 2;
-        
+
         $kontaks = method_exists($karyawan, 'keluargaKontaks') ? $karyawan->keluargaKontaks()->get() : [];
         if (count($kontaks) > 0) {
             $si->setCellValue('B'.$bar, 'No. Telepon'); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1265,7 +1265,7 @@ class SpreadKaryawanCustomController extends Controller
             $styleTableHeader('B'.$bar.':H'.$bar);
             $si->getRowDimension($bar)->setRowHeight(20);
             $bar++;
-            
+
             $startTable = $bar;
             foreach ($kontaks as $kon) {
                 $si->setCellValue('B'.$bar, $kon->telepon ? "'".$kon->telepon : ''); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1284,7 +1284,7 @@ class SpreadKaryawanCustomController extends Controller
         // --- 4. RIWAYAT TRAINING ---
         $addSectionHeader('IV. RIWAYAT TRAINING', $bar);
         $bar += 2;
-        
+
         $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->get() : [];
         if (count($trainings) > 0) {
             $si->setCellValue('B'.$bar, 'Nama Training'); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1293,7 +1293,7 @@ class SpreadKaryawanCustomController extends Controller
             $styleTableHeader('B'.$bar.':H'.$bar);
             $si->getRowDimension($bar)->setRowHeight(20);
             $bar++;
-            
+
             $startTable = $bar;
             foreach ($trainings as $tr) {
                 $trainingName = $tr->training ? $tr->training->nama : '';
@@ -1314,7 +1314,7 @@ class SpreadKaryawanCustomController extends Controller
         // --- 5. PERJANJIAN KERJA ---
         $addSectionHeader('V. PERJANJIAN KERJA', $bar);
         $bar += 2;
-        
+
         $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->orderBy('tanggal_awal')->get() : [];
         if (count($perjanjians) > 0) {
             $si->setCellValue('B'.$bar, 'Nomor Kontrak'); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1324,7 +1324,7 @@ class SpreadKaryawanCustomController extends Controller
             $styleTableHeader('B'.$bar.':H'.$bar);
             $si->getRowDimension($bar)->setRowHeight(20);
             $bar++;
-            
+
             $startTable = $bar;
             foreach ($perjanjians as $pj) {
                 $si->setCellValue('B'.$bar, $pj->nomor); $si->mergeCells('B'.$bar.':C'.$bar);
@@ -1406,7 +1406,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->setCellValue('A6', 'NO'); $si->mergeCells('A6:A7');
         $si->setCellValue('B6', 'N A M A'); $si->mergeCells('B6:B7');
         $si->setCellValue('C6', 'TEMPAT & TGL LAHIR'); $si->mergeCells('C6:C7');
-        $si->setCellValue('D6', 'MASA KERJA'); $si->mergeCells('D6:D7');
+        $si->setCellValue('D6', 'TANGGAL GABUNG'); $si->mergeCells('D6:D7');
         $si->setCellValue('E6', 'J A B A T A N'); $si->mergeCells('E6:E7');
         $si->setCellValue('F6', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('F6:F7');
         $si->setCellValue('G6', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('G6:G7');

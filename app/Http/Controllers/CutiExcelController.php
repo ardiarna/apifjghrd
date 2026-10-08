@@ -407,7 +407,7 @@ class CutiExcelController extends Controller
         // 2. tabel header ada 2 baris semua di merge kecuali ...
         $sheet->setCellValue('A5', 'NO'); $sheet->mergeCells('A5:A6');
         $sheet->setCellValue('B5', 'NAMA KARYAWAN'); $sheet->mergeCells('B5:B6');
-        $sheet->setCellValue('C5', 'MASA KERJA'); $sheet->mergeCells('C5:C6');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG'); $sheet->mergeCells('C5:C6');
         $sheet->setCellValue('D5', 'JML CUTI'); $sheet->mergeCells('D5:D6');
 
         $sheet->setCellValue('E5', 'THN LALU'); $sheet->mergeCells('E5:F5');
@@ -1047,7 +1047,7 @@ class CutiExcelController extends Controller
 
         // Row 1 is blank
 
-        $sheet->setCellValue('A2', 'CUTI/IJIN TANPA MENGURANGI HAK KARYAWAN');
+        $sheet->setCellValue('A2', 'CUTI/IJIN TANPA MENGURANGI HAK KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
         $sheet->mergeCells('A2:R2');
         $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
@@ -1072,7 +1072,7 @@ class CutiExcelController extends Controller
         $sheet->setCellValue('B5', 'NAMA KARYAWAN');
 
         $sheet->mergeCells('C5:C6');
-        $sheet->setCellValue('C5', 'MASA KERJA');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG');
 
         $sheet->mergeCells('P5:P6');
         $sheet->setCellValue('P5', 'JUMLAH (HARI)');
@@ -1269,7 +1269,7 @@ class CutiExcelController extends Controller
 
         // Row 1 is blank
 
-        $sheet->setCellValue('A2', 'UNPAID LEAVE (CUTI TIDAK DIBAYAR) & GANTI HARI LIBUR');
+        $sheet->setCellValue('A2', 'UNPAID LEAVE (CUTI TIDAK DIBAYAR) & GANTI HARI LIBUR PT.FRATEKINDO JAYA GEMILANG');
         $sheet->mergeCells('A2:Q2');
         $sheet->getStyle('A2')->getFont()->setName('Malgun Gothic')->setSize(13)->getColor()->setARGB('0000FF');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal('center')->setVertical('center');
@@ -1294,7 +1294,7 @@ class CutiExcelController extends Controller
         $sheet->setCellValue('B5', 'NAMA KARYAWAN');
 
         $sheet->mergeCells('C5:C6');
-        $sheet->setCellValue('C5', 'MASA KERJA');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG');
 
         $sheet->mergeCells('P5:P6');
         $sheet->setCellValue('P5', 'JML IJIN');

@@ -53,7 +53,7 @@ class PdfCicCutiTanpaPotonganController extends Controller
                 })
                 ->orderBy('id')
                 ->get();
-                
+
             $details = [];
             foreach ($karyawans_raw as $d) {
                 $staf = $d->staf;
@@ -71,7 +71,7 @@ class PdfCicCutiTanpaPotonganController extends Controller
             $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
             $html .= "<td style=\"width:6mm; padding:0; border:none; height:0;\"></td>"; // NO
             $html .= "<td style=\"width:38mm; padding:0; border:none; height:0;\"></td>"; // NAMA
-            $html .= "<td style=\"width:18mm; padding:0; border:none; height:0;\"></td>"; // MASA KERJA
+            $html .= "<td style=\"width:18mm; padding:0; border:none; height:0;\"></td>";
             for ($b = 0; $b < 12; $b++) {
                 $html .= "<td style=\"width:9mm; padding:0; border:none; height:0;\"></td>"; // JAN-DES
             }
@@ -84,7 +84,7 @@ class PdfCicCutiTanpaPotonganController extends Controller
             $html .= "<tr>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NO</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th class=\"header-cell\" rowspan=\"2\">MASA<br/>KERJA</th>";
+            $html .= "<th class=\"header-cell\" rowspan=\"2\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th class=\"header-cell\" colspan=\"12\">BULAN</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">JUMLAH<br/>(HARI)</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">JUMLAH<br/>(BULAN)</th>";
@@ -197,7 +197,7 @@ class PdfCicCutiTanpaPotonganController extends Controller
                                     if ($isBulan) {
                                         $class .= " bg-green";
                                     }
-                                    
+
                                     $html .= "<td class=\"".$class."\">".($hariInMonth > 0 ? $hariInMonth : '')."</td>";
                                 }
 

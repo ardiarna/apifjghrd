@@ -65,7 +65,7 @@ class PdfListCutiController extends Controller
             $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
             $html .= "<td style=\"width:6mm; padding:0; border:none; height:0;\"></td>"; // NO
             $html .= "<td style=\"width:35mm; padding:0; border:none; height:0;\"></td>"; // NAMA
-            $html .= "<td style=\"width:16mm; padding:0; border:none; height:0;\"></td>"; // MASA KERJA
+            $html .= "<td style=\"width:16mm; padding:0; border:none; height:0;\"></td>";
             $html .= "<td style=\"width:8mm; padding:0; border:none; height:0;\"></td>";  // JML CUTI
             $html .= "<td style=\"width:8mm; padding:0; border:none; height:0;\"></td>";  // THN LALU +
             $html .= "<td style=\"width:8mm; padding:0; border:none; height:0;\"></td>";  // THN LALU -
@@ -84,7 +84,7 @@ class PdfListCutiController extends Controller
             $html .= "<tr>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NO</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th class=\"header-cell\" rowspan=\"2\" style=\"overflow:hidden;\">MASA<br/>KERJA</th>";
+            $html .= "<th class=\"header-cell\" rowspan=\"2\" style=\"overflow:hidden;\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\" style=\"overflow:hidden;\">JML<br/>CUTI</th>";
             $html .= "<th class=\"header-cell\" colspan=\"2\">THN LALU</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\" style=\"overflow:hidden;\">TOTAL<br/>CUTI</th>";

@@ -166,7 +166,6 @@ class PdfRekapOvertimeController extends Controller
                 $html .= "<td class=\"ar\" style=\"border: 1pt solid #000;\">".number_format($val, 0, ',', '.')."</td>";
                 $html .= "</tr>";
             }
-            // SISA OT DIBAYAR FJG
             $totalOncall = 0;
             foreach ($oncalls[$keyTahun] ?? [] as $v) { $totalOncall += $v; }
             $sisaOT = $grandTotalAll - $totalOncall;

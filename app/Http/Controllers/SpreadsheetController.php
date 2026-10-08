@@ -174,7 +174,7 @@ class SpreadsheetController extends Controller
             $si->setCellValue($arrkol[$kolom].$bar, 'JABATAN');
             $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
             $kolom++;  // 3.D
-            $si->setCellValue($arrkol[$kolom].$bar, 'MASA KERJA');
+            $si->setCellValue($arrkol[$kolom].$bar, 'TANGGAL GABUNG');
             $si->mergeCells($arrkol[$kolom].$bar.':'.$arrkol[$kolom].($bar+2));
             $kolom++; // 4.E
             $si->setCellValue($arrkol[$kolom].$bar, 'GAJI / UPAH IDR');
@@ -616,7 +616,7 @@ class SpreadsheetController extends Controller
             $si->setCellValue('F'.$barOT, 'JUMLAH');
             $si->mergeCells('F'.$barOT.':H'.$barOT);
             $si->setCellValue('I'.$barOT, '=SUM(I'.$barOTAwal.':I'.($barOT-1).')');
-            
+
             $onCallThisMonth = isset($oncallJumlahs[$dh->bulan]) ? $oncallJumlahs[$dh->bulan] : 0;
             if ($onCallThisMonth > $nowCus) {
                 $si->setCellValue('J'.$barOT, 'Tercover On Call Customer');
@@ -820,7 +820,7 @@ class SpreadsheetController extends Controller
             $si->mergeCells('A'.$bar.':A'.($bar+1));
             $si->setCellValue('B'.$bar, 'NAMA KARYAWAN');
             $si->mergeCells('B'.$bar.':B'.($bar+1));
-            $si->setCellValue('C'.$bar, 'MASA KERJA');
+            $si->setCellValue('C'.$bar, 'TANGGAL GABUNG');
             $si->mergeCells('C'.$bar.':C'.($bar+1));
             $si->setCellValue('D'.$bar, 'TANGGAL LAHIR');
             $si->mergeCells('D'.$bar.':D'.($bar+1));
@@ -1110,7 +1110,7 @@ class SpreadsheetController extends Controller
         // Headers
         $si->setCellValue('A4', 'NO'); $si->mergeCells('A4:A5');
         $si->setCellValue('B4', 'NAMA KARYAWAN'); $si->mergeCells('B4:B5');
-        $si->setCellValue('C4', 'MASA KERJA'); $si->mergeCells('C4:C5');
+        $si->setCellValue('C4', 'TANGGAL GABUNG'); $si->mergeCells('C4:C5');
         $si->setCellValue('D4', 'NIK'); $si->mergeCells('D4:D5');
         $si->setCellValue('E4', 'TGL LAHIR'); $si->mergeCells('E4:E5');
         $si->setCellValue('F4', 'JABATAN'); $si->mergeCells('F4:F5');
@@ -1316,7 +1316,7 @@ class SpreadsheetController extends Controller
         $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
 
         $si->setCellValue('G'.$bar, '=SUM(G6:G'.$lastDataRow.')');
-        
+
         if (!$isBasic) {
             $si->setCellValue('H'.$bar, '=SUM(H6:H'.$lastDataRow.')');
             $si->setCellValue('I'.$bar, '=SUM(I6:I'.$lastDataRow.')');
@@ -1470,7 +1470,7 @@ class SpreadsheetController extends Controller
         // Headers
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
         $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
-        $si->setCellValue('C5', 'MASA KERJA'); $si->mergeCells('C5:C6');
+        $si->setCellValue('C5', 'TANGGAL GABUNG'); $si->mergeCells('C5:C6');
         $si->setCellValue('D5', 'AGE (YEARS)'); $si->mergeCells('D5:D6');
         $si->setCellValue('E5', 'YEARS OF SERVICE'); $si->mergeCells('E5:E6');
         $si->setCellValue('F5', 'NIK'); $si->mergeCells('F5:F6');
@@ -1631,10 +1631,10 @@ class SpreadsheetController extends Controller
                             $si->setCellValue('H'.$bar, $d->jabatan ? $d->jabatan->nama : '');
 
                             $si->setCellValue('I'.$bar, $d->nomor_kk ? "'".$d->nomor_kk : '');
-                            
+
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
                             $si->setCellValue('J'.$bar, $ktp_or_paspor ? "'".$ktp_or_paspor : '');
-                            
+
                             $si->setCellValue('K'.$bar, $d->nama); // Nama Karyawan & Keluarga
 
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
@@ -1666,7 +1666,7 @@ class SpreadsheetController extends Controller
                             if ($hasPaspor && $i == 1) {
                                 $si->setCellValue('J'.$bar, "'".$d->nomor_paspor);
                             }
-                            
+
                             $keluargaIndex = $i - 1 - $offset;
                             if ($keluargaIndex >= 0 && $keluargaIndex < $numKeluarga) {
                                 $keluarga = $keluargas[$keluargaIndex];
@@ -1809,7 +1809,7 @@ class SpreadsheetController extends Controller
         $si->getStyle('B'.$bar.':'.$lastCol.$bar)->getFont()->setBold(true)->getColor()->setARGB('FFFF0000');
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="DATA_GENERAL_KARYAWAN_FJG.xlsx"');
+        header('Content-Disposition: attachment;filename="DATA_GENERAL_KARYAWAN.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');

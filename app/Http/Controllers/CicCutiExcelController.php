@@ -405,7 +405,7 @@ class CicCutiExcelController extends Controller
         // 2. tabel header ada 2 baris semua di merge kecuali ...
         $sheet->setCellValue('A5', 'NO'); $sheet->mergeCells('A5:A6');
         $sheet->setCellValue('B5', 'NAMA KARYAWAN'); $sheet->mergeCells('B5:B6');
-        $sheet->setCellValue('C5', 'MASA KERJA'); $sheet->mergeCells('C5:C6');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG'); $sheet->mergeCells('C5:C6');
         $sheet->setCellValue('D5', 'JML CUTI'); $sheet->mergeCells('D5:D6');
 
         $sheet->setCellValue('E5', 'THN LALU'); $sheet->mergeCells('E5:F5');
@@ -993,7 +993,7 @@ class CicCutiExcelController extends Controller
         $sheet->setCellValue('B5', 'NAMA KARYAWAN');
 
         $sheet->mergeCells('C5:C6');
-        $sheet->setCellValue('C5', 'MASA KERJA');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG');
 
         $sheet->mergeCells('P5:P6');
         $sheet->setCellValue('P5', 'JUMLAH (HARI)');
@@ -1215,7 +1215,7 @@ class CicCutiExcelController extends Controller
         $sheet->setCellValue('B5', 'NAMA KARYAWAN');
 
         $sheet->mergeCells('C5:C6');
-        $sheet->setCellValue('C5', 'MASA KERJA');
+        $sheet->setCellValue('C5', 'TANGGAL GABUNG');
 
         $sheet->mergeCells('P5:P6');
         $sheet->setCellValue('P5', 'JML IJIN');

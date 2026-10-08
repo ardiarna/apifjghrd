@@ -107,7 +107,7 @@ class PdfRekapPayrollPerKaryawanController extends Controller
             $html .= "<th class=\"ac\" rowspan=\"3\">NO</th>";
             $html .= "<th class=\"ac\" rowspan=\"3\">NAMA KARYAWAN</th>";
             $html .= "<th class=\"ac\" rowspan=\"3\">JABATAN</th>";
-            $html .= "<th class=\"ac\" rowspan=\"3\">MASA<br/>KERJA</th>";
+            $html .= "<th class=\"ac\" rowspan=\"3\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th class=\"ac\" rowspan=\"3\">GAJI / UPAH IDR</th>";
             $html .= "<th class=\"ac\" colspan=\"3\">U/MAKAN & TRANSPORTASI</th>";
             $html .= "<th class=\"ac\" colspan=\"8\">TUNJANGAN LAIN</th>";

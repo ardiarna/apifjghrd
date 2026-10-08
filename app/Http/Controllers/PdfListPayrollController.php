@@ -163,7 +163,7 @@ class PdfListPayrollController extends Controller
                     <th rowspan=\"3\">NO</th>
                     <th rowspan=\"3\">NAMA KARYAWAN</th>
                     <th rowspan=\"3\">JABATAN</th>
-                    <th rowspan=\"3\">MASA KERJA</th>
+                    <th rowspan=\"3\">TANGGAL GABUNG</th>
                     <th rowspan=\"3\">GAJI / UPAH IDR</th>
                     <th colspan=\"3\">U/MAKAN & TRANSPORTASI</th>
                     <th colspan=\"".($kolTun + 1)."\">TUNJANGAN LAIN</th>

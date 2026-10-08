@@ -97,7 +97,7 @@ class SpreadPayrollController extends Controller
             $si->mergeCells('B'.$bar.':B'.($bar+2));
             $si->setCellValue('C'.$bar, 'JABATAN');
             $si->mergeCells('C'.$bar.':C'.($bar+2));
-            $si->setCellValue('D'.$bar, 'MASA KERJA');
+            $si->setCellValue('D'.$bar, 'TANGGAL GABUNG');
             $si->mergeCells('D'.$bar.':D'.($bar+2));
             $si->setCellValue('E'.$bar, 'GAJI / UPAH IDR');
             $si->mergeCells('E'.$bar.':E'.($bar+2));

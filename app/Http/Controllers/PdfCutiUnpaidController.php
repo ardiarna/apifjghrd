@@ -51,7 +51,7 @@ class PdfCutiUnpaidController extends Controller
                     });
                 })
                 ->orderBy('id')->get();
-                
+
             $details = [];
             foreach ($karyawans_raw as $d) {
                 $staf = $d->staf;
@@ -60,7 +60,7 @@ class PdfCutiUnpaidController extends Controller
             }
             krsort($details);
 
-            $html .= "<div class=\"title\">UNPAID LEAVE (CUTI TIDAK DIBAYAR) & GANTI HARI LIBUR</div>";
+            $html .= "<div class=\"title\">UNPAID LEAVE (CUTI TIDAK DIBAYAR) & GANTI HARI LIBUR PT.FRATEKINDO JAYA GEMILANG</div>";
             $html .= "<div class=\"subtitle\">PERIODE : JANUARI S/D DESEMBER ".$tahun."</div>";
 
             $html .= "<table style=\"width:100%; table-layout:fixed;\">";
@@ -69,7 +69,7 @@ class PdfCutiUnpaidController extends Controller
             $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
             $html .= "<td style=\"width:6mm; padding:0; border:none; height:0;\"></td>"; // NO
             $html .= "<td style=\"width:38mm; padding:0; border:none; height:0;\"></td>"; // NAMA
-            $html .= "<td style=\"width:18mm; padding:0; border:none; height:0;\"></td>"; // MASA KERJA
+            $html .= "<td style=\"width:18mm; padding:0; border:none; height:0;\"></td>";
             for ($b = 0; $b < 12; $b++) {
                 $html .= "<td style=\"width:9mm; padding:0; border:none; height:0;\"></td>"; // JAN-DES
             }
@@ -81,7 +81,7 @@ class PdfCutiUnpaidController extends Controller
             $html .= "<tr>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NO</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">NAMA KARYAWAN</th>";
-            $html .= "<th class=\"header-cell\" rowspan=\"2\">MASA<br/>KERJA</th>";
+            $html .= "<th class=\"header-cell\" rowspan=\"2\">TANGGAL<br/>GABUNG</th>";
             $html .= "<th class=\"header-cell\" colspan=\"12\">B U L A N</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">JML<br/>IJIN</th>";
             $html .= "<th class=\"header-cell\" rowspan=\"2\">KETERANGAN</th>";

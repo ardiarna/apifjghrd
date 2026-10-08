@@ -102,7 +102,7 @@ class PdfListSalaryController extends Controller
                 <tr class="header-bg ac">
                     <th rowspan="2">NO</th>
                     <th rowspan="2">NAMA KARYAWAN</th>
-                    <th rowspan="2">MASA KERJA</th>
+                    <th rowspan="2">TANGGAL GABUNG</th>
                     <th rowspan="2">NIK</th>
                     <th rowspan="2">TGL LAHIR</th>
                     <th rowspan="2">JABATAN</th>

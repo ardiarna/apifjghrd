@@ -63,7 +63,7 @@ class PdfDataPendidikanKaryawanController extends Controller
         $html .= "<tr>";
         $html .= "<th>NO</th>";
         $html .= "<th>N A M A</th>";
-        $html .= "<th>MASA KERJA</th>";
+        $html .= "<th>TANGGAL GABUNG</th>";
         $html .= "<th>AGE (YEARS)</th>";
         $html .= "<th>YEARS OF SERVICE</th>";
         $html .= "<th>N I K</th>";

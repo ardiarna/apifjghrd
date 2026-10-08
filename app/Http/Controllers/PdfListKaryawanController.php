@@ -74,7 +74,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<tr>";
         $html .= "<th rowspan=\"2\">NO</th>";
         $html .= "<th rowspan=\"2\">N A M A</th>";
-        $html .= "<th rowspan=\"2\">MASA KERJA</th>";
+        $html .= "<th rowspan=\"2\">TANGGAL GABUNG</th>";
         $html .= "<th rowspan=\"2\">AGE (YEARS)</th>";
         $html .= "<th rowspan=\"2\">YEARS OF SERVICE</th>";
         $html .= "<th rowspan=\"2\">NIK</th>";
@@ -222,10 +222,10 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td class=\"ac\">".($d->agama ? $d->agama->nama : '')."</td>";
                             $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
                             $html .= "<td class=\"ac\">".($d->nomor_kk ? "".$d->nomor_kk : '')."</td>";
-                            
+
                             $ktp_or_paspor = $d->nomor_ktp ? $d->nomor_ktp : $d->nomor_paspor;
                             $html .= "<td class=\"ac\">".($ktp_or_paspor ? $ktp_or_paspor : '')."</td>";
-                            
+
                             $html .= "<td class=\"al\">".$d->nama."</td>";
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                             $html .= "<td class=\"al\">".$ttl."</td>";

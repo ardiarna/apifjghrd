@@ -81,7 +81,7 @@ class PdfNikTlpKaryawanController extends Controller
         $html .= "<th>NO</th>";
         $html .= "<th>N A M A</th>";
         $html .= "<th>TGL LAHIR</th>";
-        $html .= "<th>MASA KERJA</th>";
+        $html .= "<th>TANGGAL GABUNG</th>";
         $html .= "<th>N I K</th>";
         $html .= "<th>NO TLP</th>";
         $html .= "<th>AGE (YEARS)</th>";
