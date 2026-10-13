@@ -226,7 +226,7 @@ class PayrollPhkImplement implements PayrollPhkRepository {
         return $this->model->where('karyawan_id', $karyawan_id)
             ->orderBy('tahun', 'desc')
             ->orderBy('bulan', 'desc')
-            ->first();
+            ->get();
     }
 
     public function updateOrCreate(array $inputs) {

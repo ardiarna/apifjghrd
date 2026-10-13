@@ -121,6 +121,7 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->delete('{karyawan_id}/kontak-keluarga/{id}', 'KeluargaKontakController@delete');
     $router->delete('{karyawan_id}/perjanjian-kerja/{id}', 'PerjanjianKerjaController@delete');
     $router->delete('{karyawan_id}/phk/{id}', 'PhkController@delete');
+    $router->delete('{karyawan_id}/payroll-phk/{id}', 'PayrollPhkController@delete');
     $router->delete('{karyawan_id}/upah', 'UpahController@deleteByKaryawanId');
 });
 

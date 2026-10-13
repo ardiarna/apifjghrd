@@ -159,6 +159,7 @@ class KaryawanImplement implements KaryawanRepository {
         $model->aktif = 'Y';
         $model->tanggal_keluar = null;
         $model->phk_id = null;
+        $model->uang_phk_id = null;
         $model->save();
         return $model;
     }

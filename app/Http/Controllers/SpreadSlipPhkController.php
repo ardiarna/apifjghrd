@@ -25,7 +25,10 @@ class SpreadSlipPhkController extends Controller
         }
 
         $uangPhk = UangPhk::where('karyawan_id', $karyawan_id)->first();
-        $payrollPhk = PayrollPhk::where('karyawan_id', $karyawan_id)->first();
+        $payrollPhk = PayrollPhk::where('karyawan_id', $karyawan_id)
+            ->orderBy('tahun', 'desc')
+            ->orderBy('bulan', 'desc')
+            ->first();
         $phk = Phk::where('karyawan_id', $karyawan_id)->first();
 
         if (!$uangPhk) {
@@ -60,11 +63,7 @@ class SpreadSlipPhkController extends Controller
         $rowHeights = [
             1 => 17.0, 2 => 14.5, 3 => 22.5, 4 => 16.0, 5 => 14.0,
             6 => 20.25, 7 => 14.0, 8 => 24.0, 9 => 15.5, 10 => 14.5,
-            11 => 17.5, 12 => 16.75, 13 => 16.75, 14 => 16.75, 15 => 19.75,
-            16 => 14.0, 17 => 14.0, 18 => 14.0, 19 => 14.0, 20 => 14.0,
-            21 => 14.0, 22 => 14.0, 23 => 14.0, 24 => 14.0, 25 => 14.0,
-            26 => 14.0, 27 => 16.0, 28 => 16.75, 29 => 15.0, 30 => 15.0,
-            31 => 15.0, 32 => 15.0
+            11 => 17.5, 12 => 16.75
         ];
         foreach ($rowHeights as $r => $h) {
             $si->getRowDimension($r)->setRowHeight($h);
@@ -151,171 +150,258 @@ class SpreadSlipPhkController extends Controller
         $si->setCellValue('G12', 'B. POTONGAN :');
         $si->getStyle('G12')->getFont()->setName('Ebrima')->setSize(10)->setBold(true)->setUnderline(true)->getColor()->setARGB('0070C0');
 
-        // Row 13: Gaji Pokok & Pinjaman Kas
-        $periodGaji = ($payrollPhk && $payrollPhk->keterangan) ? ' Per : ' . $payrollPhk->keterangan : '';
-        $si->setCellValue('A13', 'Gaji Pokok' . $periodGaji);
-        $si->setCellValueExplicit('D13', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('E13', ($payrollPhk && $payrollPhk->gaji > 0) ? $payrollPhk->gaji : 0);
+        // Periods for Gaji Pokok & U/Makan
+        $bulan = ($payrollPhk && $payrollPhk->bulan) ? (int)$payrollPhk->bulan : null;
+        $tahun = ($payrollPhk && $payrollPhk->tahun) ? (int)$payrollPhk->tahun : null;
 
-        $si->setCellValue('G13', 'Pinjaman Kas');
-        $si->setCellValueExplicit('H13', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('I13', ($uangPhk && $uangPhk->pot_kas > 0) ? $uangPhk->pot_kas : 0);
-
-        // Row 15: U/Makan & Transportasi | Pinjaman Jangka Panjang
-        $si->setCellValue('A15', 'U/Makan & Transportasi');
-        $si->setCellValueExplicit('D15', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('E15', ($payrollPhk && $payrollPhk->uang_makan_jumlah > 0) ? $payrollPhk->uang_makan_jumlah : 0);
-
-        $si->setCellValue('G15', 'Pinjaman Jangka Panjang');
-        $si->setCellValueExplicit('H15', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('I15', ($uangPhk && $uangPhk->pot_cicilan > 0) ? $uangPhk->pot_cicilan : 0);
-
-        // Row 16: Sub-text U/Makan
-        if ($payrollPhk && $payrollPhk->hari_makan > 0) {
-            $si->setCellValue('A16', '(' . $payrollPhk->hari_makan . ' x ' . $payrollPhk->uang_makan_harian . ')');
+        if (!$bulan || !$tahun) {
+            $rawDate = ($phk && $phk->tanggal_akhir) ? $phk->tanggal_akhir : ($karyawan->tanggal_keluar ?: date('Y-m-d'));
+            $bulan = (int)date('m', strtotime($rawDate));
+            $tahun = (int)date('Y', strtotime($rawDate));
         }
 
-        // Row 18: Uang Pesangon | Potongan Kehadiran / Cuti
-        $si->setCellValue('A18', 'Uang Pesangon');
-        $si->setCellValueExplicit('D18', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('E18', ($uangPhk && $uangPhk->pesangon > 0) ? $uangPhk->pesangon : 0);
+        $arrBulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember");
+        $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
+        $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
+
+        $labelGaji = "Gaji Pokok Per : 26 " . $arrBulan[$prevBulan] . "'" . substr((string)$prevTahun, -2) . " - 25 " . $arrBulan[$bulan] . "'" . substr((string)$tahun, -2);
+
+        if ($payrollPhk && $payrollPhk->tanggal_awal && $payrollPhk->tanggal_akhir) {
+            $ttgl = explode('-', date('Y-m-d', strtotime($payrollPhk->tanggal_awal)));
+            $ttgm = explode('-', date('Y-m-d', strtotime($payrollPhk->tanggal_akhir)));
+            $labelMakan = '(Per: ' . $ttgl[2] . ' ' . $arrBulan[intval($ttgl[1])] . "'" . substr($ttgl[0], -2) . ' s/d ' . $ttgm[2] . ' ' . $arrBulan[intval($ttgm[1])] . "'" . substr($ttgm[0], -2) . ')';
+        } else {
+            $labelMakan = "(Per: 18 " . $arrBulan[$prevBulan] . "'" . substr((string)$prevTahun, -2) . " s/d 17 " . $arrBulan[$bulan] . "'" . substr((string)$tahun, -2) . ")";
+        }
+
+        $bar = 13;
+        // Row 13: Gaji Pokok & Pinjaman Kas
+        $si->setCellValue('A' . $bar, $labelGaji);
+        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->gaji > 0) ? $payrollPhk->gaji : 0);
+
+        $si->setCellValue('G' . $bar, 'Pinjaman Kas');
+        $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('I' . $bar, ($uangPhk && $uangPhk->pot_kas > 0) ? $uangPhk->pot_kas : 0);
+        $si->getRowDimension($bar)->setRowHeight(16.75);
+
+        $bar++; // 14
+        $si->getRowDimension($bar)->setRowHeight(16.75);
+
+        $bar++; // 15: U/Makan & Transportasi & Pinjaman Cicilan
+        $si->setCellValue('A' . $bar, 'U/Makan & Transportasi');
+        if ($payrollPhk && $payrollPhk->hari_makan > 0) {
+            $harianFormatted = number_format($payrollPhk->uang_makan_harian, 0, ',', '.');
+            $si->setCellValue('C' . $bar, $harianFormatted . ' x ' . $payrollPhk->hari_makan . ' HR');
+            $si->getStyle('C' . $bar)->getAlignment()->setHorizontal('right');
+        }
+        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->uang_makan_jumlah > 0) ? $payrollPhk->uang_makan_jumlah : 0);
+
+        $si->setCellValue('G' . $bar, 'Pinjaman Cicilan');
+        $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('I' . $bar, ($uangPhk && $uangPhk->pot_cicilan > 0) ? $uangPhk->pot_cicilan : 0);
+        $si->getRowDimension($bar)->setRowHeight(19.75);
+
+        $bar++; // 16: Sub-text U/Makan
+        $si->setCellValue('A' . $bar, $labelMakan);
+        $si->getRowDimension($bar)->setRowHeight(14.0);
+
+        $bar++; // 17: spacer
+        $si->getRowDimension($bar)->setRowHeight(14.0);
+
+        $bar++; // 18: Uang Pesangon & Potongan Kehadiran / Cuti
+        $si->setCellValue('A' . $bar, 'Uang Pesangon');
+        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('E' . $bar, ($uangPhk && $uangPhk->pesangon > 0) ? $uangPhk->pesangon : 0);
 
         if ($uangPhk && $uangPhk->pot_cuti_jumlah > 0) {
-            $si->setCellValue('G18', 'Potongan Cuti ' . ($uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari . ' HR' : ''));
-            $si->setCellValueExplicit('H18', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('I18', $uangPhk->pot_cuti_jumlah);
+            $si->setCellValue('G' . $bar, 'Potongan Cuti ' . ($uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari . ' HR' : ''));
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, $uangPhk->pot_cuti_jumlah);
         } else {
-            $si->setCellValue('G18', 'Keterlambatan Kehadiran');
-            $si->setCellValueExplicit('H18', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('I18', 0);
+            $si->setCellValue('G' . $bar, 'Keterlambatan Kehadiran');
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, 0);
         }
+        $si->getRowDimension($bar)->setRowHeight(14.0);
 
-        // Row 19: Sub-text Pesangon
+        $bar++; // 19: Sub-text Pesangon
         if ($uangPhk && $uangPhk->keterangan) {
-            $si->setCellValue('A19', '(' . $uangPhk->keterangan . ')');
+            $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
+        }
+        $si->getRowDimension($bar)->setRowHeight(14.0);
+
+        $bar++; // 20: spacer
+        $si->getRowDimension($bar)->setRowHeight(14.0);
+
+        // Slot 4 onwards: Penghargaan Masa Kerja, Kompensasi, UANG PISAH, Penggantian Hak, Lain-lain
+        $itemsLeft = [];
+        if ($uangPhk && $uangPhk->masa_kerja > 0) {
+            $itemsLeft[] = [
+                'label' => 'Uang Penghargaan Masa Kerja',
+                'nominal' => $uangPhk->masa_kerja,
+                'subtext' => null,
+            ];
+        }
+        if ($uangPhk && $uangPhk->kompensasi > 0) {
+            $itemsLeft[] = [
+                'label' => 'Uang Kompensasi',
+                'nominal' => $uangPhk->kompensasi,
+                'subtext' => null,
+            ];
+        }
+        if ($uangPhk && $uangPhk->uang_pisah > 0) {
+            $itemsLeft[] = [
+                'label' => 'Uang Pisah',
+                'nominal' => $uangPhk->uang_pisah,
+                'subtext' => null,
+            ];
+        }
+        // Uang Penggantian Hak
+        $subtextCuti = ($uangPhk && $uangPhk->sisa_cuti_hari > 0) ? '(Sisa Cuti = ' . $uangPhk->sisa_cuti_hari . ' hari)' : null;
+        $itemsLeft[] = [
+            'label' => 'Uang Penggantian Hak',
+            'nominal' => ($uangPhk && $uangPhk->sisa_cuti_jumlah > 0) ? $uangPhk->sisa_cuti_jumlah : 0,
+            'subtext' => $subtextCuti,
+        ];
+        // Lain-lain di bawah Uang Penggantian Hak (sembunyikan jika nilainya 0)
+        if ($uangPhk && $uangPhk->lain > 0) {
+            $ketLainStr = !empty($uangPhk->ket_lain) ? ' (' . $uangPhk->ket_lain . ')' : '';
+            $itemsLeft[] = [
+                'label' => 'Lain-lain' . $ketLainStr,
+                'nominal' => $uangPhk->lain,
+                'subtext' => null,
+            ];
         }
 
-        // Row 21: Penghargaan Masa Kerja / Kompensasi / Uang Pisah / Lain | Lain-lain
-        $nominalMasaKerja = ($uangPhk && $uangPhk->masa_kerja > 0) ? $uangPhk->masa_kerja : 0;
-        $nominalKompensasi = ($uangPhk && $uangPhk->kompensasi > 0) ? $uangPhk->kompensasi : 0;
-        $nominalUangPisah = ($uangPhk && $uangPhk->uang_pisah > 0) ? $uangPhk->uang_pisah : 0;
-        $totalPenghargaan = $nominalMasaKerja + $nominalKompensasi + $nominalUangPisah;
+        // Potongan Lain-lain
+        $potLainLabel = ($uangPhk && $uangPhk->pot_lain > 0 && !empty($uangPhk->ket_pot_lain))
+            ? 'Lain-lain (' . $uangPhk->ket_pot_lain . ')'
+            : 'Lain-lain';
+        $potLainVal = ($uangPhk && $uangPhk->pot_lain > 0) ? $uangPhk->pot_lain : 0;
+        $potLainRendered = false;
 
-        if ($totalPenghargaan > 0) {
-            $labels = [];
-            if ($nominalMasaKerja > 0) $labels[] = 'Uang Penghargaan Masa Kerja';
-            if ($nominalKompensasi > 0) $labels[] = 'Kompensasi';
-            if ($nominalUangPisah > 0) $labels[] = 'Uang Pisah';
-            $si->setCellValue('A21', implode(' / ', $labels));
-            $si->setCellValueExplicit('D21', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('E21', $totalPenghargaan);
-        } elseif ($uangPhk && $uangPhk->lain > 0) {
-            $si->setCellValue('A21', 'Lain-lain' . ($uangPhk->ket_lain ? ' (' . $uangPhk->ket_lain . ')' : ''));
-            $si->setCellValueExplicit('D21', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('E21', $uangPhk->lain);
-        } else {
-            $si->setCellValue('A21', 'Uang Penghargaan Masa Kerja');
-            $si->setCellValueExplicit('D21', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('E21', 0);
+        foreach ($itemsLeft as $idx => $item) {
+            if ($idx > 0) {
+                $bar++; // 1 baris kosong pemisah
+                $si->getRowDimension($bar)->setRowHeight(14.0);
+            }
+
+            $bar++;
+            $si->setCellValue('A' . $bar, $item['label']);
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, $item['nominal']);
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            if (!$potLainRendered) {
+                $si->setCellValue('G' . $bar, $potLainLabel);
+                $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+                $si->setCellValue('I' . $bar, $potLainVal);
+                $potLainRendered = true;
+            }
+
+            if ($item['subtext']) {
+                $bar++;
+                $si->setCellValue('A' . $bar, $item['subtext']);
+                $si->getRowDimension($bar)->setRowHeight(14.0);
+            }
         }
 
-        if ($uangPhk && $uangPhk->pot_lain > 0) {
-            $si->setCellValue('G21', 'Lain-lain (' . $uangPhk->ket_pot_lain . ')');
-            $si->setCellValueExplicit('H21', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('I21', $uangPhk->pot_lain);
-        } else {
-            $si->setCellValue('G21', 'Lain-lain');
-            $si->setCellValueExplicit('H21', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->setCellValue('I21', 0);
-        }
+        $lastDataBar = $bar;
+        $si->getStyle('E' . $lastDataBar)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->getStyle('I' . $lastDataBar)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        // Row 23: Uang Penggantian Hak
-        $si->setCellValue('A23', 'Uang Penggantian Hak');
-        $si->setCellValueExplicit('D23', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->setCellValue('E23', ($uangPhk && $uangPhk->sisa_cuti_jumlah > 0) ? $uangPhk->sisa_cuti_jumlah : 0);
+        // Row Total A & Total B
+        $totalBar = $lastDataBar + 1;
+        $si->setCellValue('C' . $totalBar, 'Total A');
+        $si->getStyle('C' . $totalBar)->getAlignment()->setHorizontal('right');
+        $si->setCellValueExplicit('D' . $totalBar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('D' . $totalBar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('E' . $totalBar, '=SUM(E13:E' . $lastDataBar . ')');
 
-        // Row 24: Sub-text Penggantian Hak
-        if ($uangPhk && $uangPhk->sisa_cuti_hari > 0) {
-            $si->setCellValue('A24', '(Sisa Cuti = ' . $uangPhk->sisa_cuti_hari . ' hari)');
-        }
-        $si->getStyle('E24')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-        $si->getStyle('I24')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->setCellValue('G' . $totalBar, 'Total B');
+        $si->getStyle('G' . $totalBar)->getAlignment()->setHorizontal('right');
+        $si->setCellValueExplicit('H' . $totalBar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('H' . $totalBar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('I' . $totalBar, '=SUM(I13:I' . $lastDataBar . ')');
+        $si->getRowDimension($totalBar)->setRowHeight(14.0);
 
-        // Row 25: Total A & Total B
-        $si->setCellValue('C25', 'Total A');
-        $si->getStyle('C25')->getAlignment()->setHorizontal('right');
-        $si->setCellValueExplicit('D25', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('D25')->getAlignment()->setHorizontal('center');
-        $si->setCellValue('E25', '=SUM(E13:E24)');
+        // Separator line before Penerimaan Bersih
+        $sepBar = $totalBar + 1;
+        $si->getStyle('A' . $sepBar . ':I' . $sepBar)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->getRowDimension($sepBar)->setRowHeight(14.0);
 
-        $si->setCellValue('G25', 'Total B');
-        $si->getStyle('G25')->getAlignment()->setHorizontal('right');
-        $si->setCellValueExplicit('H25', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('H25')->getAlignment()->setHorizontal('center');
-        $si->setCellValue('I25', '=SUM(I13:I24)');
+        // Row PENERIMAAN BERSIH (A-B)
+        $bersihBar = $sepBar + 1;
+        $si->setCellValue('G' . $bersihBar, 'PENERIMAAN BERSIH (A-B)');
+        $si->getStyle('G' . $bersihBar)->getFont()->setName('Ebrima')->setSize(11)->setBold(true);
+        $si->getStyle('G' . $bersihBar)->getAlignment()->setHorizontal('right');
 
-        // Row 26: Bottom line before Penerimaan Bersih
-        $si->getStyle('A26:I26')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->setCellValueExplicit('H' . $bersihBar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('H' . $bersihBar)->getFont()->setName('Ebrima')->setSize(11)->setBold(true);
+        $si->getStyle('H' . $bersihBar)->getAlignment()->setHorizontal('center');
 
-        // Row 27: PENERIMAAN BERSIH (A-B) (Background #BFBFBF)
-        $si->setCellValue('G27', 'PENERIMAAN BERSIH (A-B)');
-        $si->getStyle('G27')->getFont()->setName('Ebrima')->setSize(11)->setBold(true);
-        $si->getStyle('G27')->getAlignment()->setHorizontal('right');
+        $si->setCellValue('I' . $bersihBar, '=E' . $totalBar . '-I' . $totalBar);
+        $si->getStyle('I' . $bersihBar)->getFont()->setName('Ebrima')->setSize(11)->setBold(true)->getColor()->setARGB('FF0000');
 
-        $si->setCellValueExplicit('H27', '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('H27')->getFont()->setName('Ebrima')->setSize(11)->setBold(true);
-        $si->getStyle('H27')->getAlignment()->setHorizontal('center');
+        $si->getStyle('A' . $bersihBar . ':I' . $bersihBar)->getFill()->setFillType('solid')->getStartColor()->setARGB('BFBFBF');
+        $si->getStyle('A' . $bersihBar . ':I' . $bersihBar)->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
+        $si->getStyle('A' . $bersihBar . ':I' . $bersihBar)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->getRowDimension($bersihBar)->setRowHeight(16.0);
 
-        $si->setCellValue('I27', '=E25-I25');
-        $si->getStyle('I27')->getFont()->setName('Ebrima')->setSize(11)->setBold(true)->getColor()->setARGB('FF0000');
+        // Note & Signatures
+        $noteBar = $bersihBar + 1;
+        $si->setCellValue('A' . $noteBar, 'Note :');
+        $si->getStyle('A' . $noteBar)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true)->setUnderline(true);
 
-        $si->getStyle('A27:I27')->getFill()->setFillType('solid')->getStartColor()->setARGB('BFBFBF');
-        $si->getStyle('A27:I27')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
-        $si->getStyle('A27:I27')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
+        $si->setCellValue('I' . $noteBar, 'Head of HR Dept.');
+        $si->getStyle('I' . $noteBar)->getFont()->setName('Gisha')->setSize(10)->setBold(true);
+        $si->getStyle('I' . $noteBar)->getAlignment()->setHorizontal('center');
+        $si->getRowDimension($noteBar)->setRowHeight(16.75);
 
-        // Row 28-31: Note & Signatures
-        $si->setCellValue('A28', 'Note :');
-        $si->getStyle('A28')->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true)->setUnderline(true);
+        $si->setCellValue('A' . ($noteBar + 1), 'Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &');
+        $si->getStyle('A' . ($noteBar + 1))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->getRowDimension($noteBar + 1)->setRowHeight(15.0);
 
-        $si->setCellValue('I28', 'Head of HR Dept.');
-        $si->getStyle('I28')->getFont()->setName('Gisha')->setSize(10)->setBold(true);
-        $si->getStyle('I28')->getAlignment()->setHorizontal('center');
+        $si->setCellValue('A' . ($noteBar + 2), 'tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan');
+        $si->getStyle('A' . ($noteBar + 2))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->getRowDimension($noteBar + 2)->setRowHeight(15.0);
 
-        $si->setCellValue('A29', 'Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &');
-        $si->getStyle('A29')->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->setCellValue('A' . ($noteBar + 3), 'serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI');
+        $si->getStyle('A' . ($noteBar + 3))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
 
-        $si->setCellValue('A30', 'tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan');
-        $si->getStyle('A30')->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->setCellValue('I' . ($noteBar + 3), 'Sri Erni.S');
+        $si->getStyle('I' . ($noteBar + 3))->getFont()->setName('Gisha')->setSize(10)->setBold(true);
+        $si->getStyle('I' . ($noteBar + 3))->getAlignment()->setHorizontal('center');
+        $si->getRowDimension($noteBar + 3)->setRowHeight(15.0);
 
-        $si->setCellValue('A31', 'serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI');
-        $si->getStyle('A31')->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $lastBoxRow = $noteBar + 4;
+        $si->getRowDimension($lastBoxRow)->setRowHeight(15.0);
+        $si->getStyle('A' . $lastBoxRow . ':I' . $lastBoxRow)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        $si->setCellValue('I31', 'Sri Erni.S');
-        $si->getStyle('I31')->getFont()->setName('Gisha')->setSize(10)->setBold(true);
-        $si->getStyle('I31')->getAlignment()->setHorizontal('center');
-
-        // Outer borders for the table box (Col A left, Col I right, Row 3 top, Row 5 bottom, Row 11 bottom, Row 32 bottom)
+        // Outer borders for the table box
         $si->getStyle('A3:I3')->getBorders()->getTop()->setBorderStyle(Border::BORDER_THIN);
         $si->getStyle('A5:I5')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
         $si->getStyle('A11:I11')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
-        $si->getStyle('A32:I32')->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
-        for ($r = 3; $r <= 32; $r++) {
+        for ($r = 3; $r <= $lastBoxRow; $r++) {
             $si->getStyle('A'.$r)->getBorders()->getLeft()->setBorderStyle(Border::BORDER_THIN);
             $si->getStyle('I'.$r)->getBorders()->getRight()->setBorderStyle(Border::BORDER_THIN);
         }
 
-        // Center equal signs
-        foreach ([13, 15, 18, 21, 23] as $r) {
-            $si->getStyle('D'.$r)->getAlignment()->setHorizontal('center');
-        }
-        foreach ([13, 15, 18, 21] as $r) {
-            $si->getStyle('H'.$r)->getAlignment()->setHorizontal('center');
-        }
-
         // Number Formats
-        $si->getStyle('E13:E25')->getNumberFormat()->setFormatCode('#,##0');
-        $si->getStyle('I13:I27')->getNumberFormat()->setFormatCode('#,##0');
+        $si->getStyle('E13:E' . $totalBar)->getNumberFormat()->setFormatCode('#,##0');
+        $si->getStyle('I13:I' . $bersihBar)->getNumberFormat()->setFormatCode('#,##0');
 
         // Drawings
         if (file_exists(public_path('images/logo_fjg.jpg'))) {
@@ -332,7 +418,7 @@ class SpreadSlipPhkController extends Controller
             $drawing2 = new Drawing();
             $drawing2->setPath(public_path('images/stempel_fjg.png'));
             $drawing2->setHeight(61.44);
-            $drawing2->setCoordinates('I28');
+            $drawing2->setCoordinates('I' . $noteBar);
             $drawing2->setOffsetX(40);
             $drawing2->setOffsetY(15);
             $drawing2->setWorksheet($si);
@@ -342,7 +428,7 @@ class SpreadSlipPhkController extends Controller
             $drawing3 = new Drawing();
             $drawing3->setPath(public_path('images/stempel_ttd.png'));
             $drawing3->setHeight(74.88);
-            $drawing3->setCoordinates('I28');
+            $drawing3->setCoordinates('I' . $noteBar);
             $drawing3->setOffsetX(-15);
             $drawing3->setOffsetY(7);
             $drawing3->setWorksheet($si);
