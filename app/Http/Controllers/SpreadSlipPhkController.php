@@ -101,29 +101,12 @@ class SpreadSlipPhkController extends Controller
             $drawing1 = new Drawing();
             $drawing1->setPath(public_path('images/logo_fjg.jpg'));
             $drawing1->setHeight(44.16);
-            $drawing1->setCoordinates('H2');
+            $drawing1->setCoordinates('H3');
             $drawing1->setOffsetX(8);
             $drawing1->setOffsetY(16);
             $drawing1->setWorksheet($si);
         }
-        if(file_exists(public_path('images/stempel_fjg.png'))) {
-            $drawing2 = new Drawing();
-            $drawing2->setPath(public_path('images/stempel_fjg.png'));
-            $drawing2->setHeight(61.44);
-            $drawing2->setCoordinates('I29');
-            $drawing2->setOffsetX(31);
-            $drawing2->setOffsetY(15);
-            $drawing2->setWorksheet($si);
-        }
-        if(file_exists(public_path('images/stempel_ttd.png'))) {
-            $drawing3 = new Drawing();
-            $drawing3->setPath(public_path('images/stempel_ttd.png'));
-            $drawing3->setHeight(74.88);
-            $drawing3->setCoordinates('I29');
-            $drawing3->setOffsetX(-27);
-            $drawing3->setOffsetY(7);
-            $drawing3->setWorksheet($si);
-        }
+
 
         // Map values
         $si->setCellValue('B3', 'PT.FRATEKINDO JAYA GEMILANG');
@@ -297,12 +280,49 @@ class SpreadSlipPhkController extends Controller
         $si->getStyle('I'.$rowBersih)->getFont()->getColor()->setARGB('FF0000');
         
         $rowNote = $rowBersih + 1;
+        
+        // Define row heights for the signature block to match slip gaji
+        $si->getRowDimension($rowNote)->setRowHeight(17);
+        $si->getRowDimension($rowNote+1)->setRowHeight(17);
+        $si->getRowDimension($rowNote+2)->setRowHeight(17);
+        $si->getRowDimension($rowNote+3)->setRowHeight(17);
+
         $si->setCellValue('A'.$rowNote, 'Note :');
+        
+        // HR Dept in column I
         $si->setCellValue('I'.$rowNote, 'Head of HR Dept.');
+        $si->getStyle('I'.$rowNote)->getAlignment()->setHorizontal('center');
+        $si->getStyle('I'.$rowNote)->getFont()->setName('Gisha')->setBold(true);
+        
         $si->setCellValue('A'.($rowNote+1), 'Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &');
         $si->setCellValue('A'.($rowNote+2), 'tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan');
         $si->setCellValue('A'.($rowNote+3), 'serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI');
+        
         $si->setCellValue('I'.($rowNote+3), 'Sri Erni.S');
+        $si->getStyle('I'.($rowNote+3))->getAlignment()->setHorizontal('center');
+        $si->getStyle('I'.($rowNote+3))->getFont()->setName('Gisha')->setBold(true);
+        
+        // Add images with correct offsets relative to column I
+        if(file_exists(public_path('images/stempel_fjg.png'))) {
+            $drawing2 = new Drawing();
+            $drawing2->setPath(public_path('images/stempel_fjg.png'));
+            $drawing2->setHeight(61.44);
+            // Put it slightly to the right of the center of column I
+            $drawing2->setCoordinates('I'.$rowNote);
+            $drawing2->setOffsetX(40);
+            $drawing2->setOffsetY(15);
+            $drawing2->setWorksheet($si);
+        }
+        if(file_exists(public_path('images/stempel_ttd.png'))) {
+            $drawing3 = new Drawing();
+            $drawing3->setPath(public_path('images/stempel_ttd.png'));
+            $drawing3->setHeight(74.88);
+            // Put it on the left of column I (spilling into H)
+            $drawing3->setCoordinates('I'.$rowNote);
+            $drawing3->setOffsetX(-15);
+            $drawing3->setOffsetY(7);
+            $drawing3->setWorksheet($si);
+        }
         
         for ($i = 13; $i <= $rowTotal; $i++) {
             $si->getStyle('E'.$i)->getNumberFormat()->setFormatCode('#,##0');
