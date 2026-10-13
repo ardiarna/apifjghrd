@@ -44,6 +44,9 @@ class PhkController extends Controller
         $inputs['karyawan_id'] = $karyawan_id;
         $inputs['status_kerja_id'] = $req->input('status_kerja_id');
         $inputs['keterangan'] = $req->input('keterangan');
+        if ($req->has('uang_phk_id')) {
+            $inputs['uang_phk_id'] = $req->input('uang_phk_id');
+        }
         $phk = $this->repo->create($inputs);
         $this->karyawanRepo->setNonAktif($karyawan_id, $phk->id, $inputs['tanggal_akhir']);
         return $this->createdResponse($phk, 'PHK berhasil dibuat');
@@ -60,6 +63,9 @@ class PhkController extends Controller
         $inputs['status_kerja_id'] = $req->input('status_kerja_id');
         $inputs['status_phk_id'] = $req->input('status_phk_id');
         $inputs['keterangan'] = $req->input('keterangan');
+        if ($req->has('uang_phk_id')) {
+            $inputs['uang_phk_id'] = $req->input('uang_phk_id');
+        }
         $phk = $this->repo->update($id, $inputs);
         $this->karyawanRepo->setNonAktif($karyawan_id, $id, $inputs['tanggal_akhir']);
         return $this->successResponse($phk, 'PHK berhasil diubah');

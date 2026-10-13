@@ -70,7 +70,14 @@ class UangPhkController extends Controller
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->create($inputs);
-        $this->karyawanRepo->setUangPhk($data->karyawan_id, $data->id);
+        if ($req->has('phk_id') && $req->input('phk_id')) {
+            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['uang_phk_id' => $data->id]);
+        } else {
+            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+            if ($karyawan && $karyawan->phk_id) {
+                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['uang_phk_id' => $data->id]);
+            }
+        }
         return $this->createdResponse($data, 'Uang PHK berhasil dibuat');
     }
 
@@ -110,11 +117,19 @@ class UangPhkController extends Controller
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->update($id, $inputs);
-        $this->karyawanRepo->setUangPhk($data->karyawan_id, $id);
+        if ($req->has('phk_id') && $req->input('phk_id')) {
+            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['uang_phk_id' => $id]);
+        } else {
+            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+            if ($karyawan && $karyawan->phk_id) {
+                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['uang_phk_id' => $id]);
+            }
+        }
         return $this->successResponse($data, 'Uang PHK berhasil diubah');
     }
 
     public function delete($id) {
+        \App\Models\Phk::where('uang_phk_id', $id)->update(['uang_phk_id' => null]);
         $data = $this->repo->delete($id);
         if($data == 0) {
             return $this->failRespNotFound('Uang PHK dengan id '.$id.' tidak ditemukan');

@@ -19,7 +19,7 @@ class UangPhkImplement implements UangPhkRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan']);
+        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'phk']);
         if(isset($inputs['tahun']) && $inputs['tahun'] != '') {
             $hasil->where('uang_phks.tahun', $inputs['tahun']);
         }

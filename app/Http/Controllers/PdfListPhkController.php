@@ -113,8 +113,12 @@ class PdfListPhkController extends Controller
                     foreach ($karyawan_ids as $karyawan_id => $uangPhk) {
                         $dkaryawan = $dataKaryawan[$karyawan_id];
                         
-                        $tgl_masuk = $dkaryawan->tanggal_masuk ? date('d-m-Y', strtotime($dkaryawan->tanggal_masuk)) : '';
-                        $tgl_keluar = $dkaryawan->tanggal_keluar ? date('d-m-Y', strtotime($dkaryawan->tanggal_keluar)) : '';
+                        $tgl_masuk = ($uangPhk->phk && $uangPhk->phk->tanggal_awal)
+                            ? date('d-m-Y', strtotime($uangPhk->phk->tanggal_awal))
+                            : ($dkaryawan->tanggal_masuk ? date('d-m-Y', strtotime($dkaryawan->tanggal_masuk)) : '');
+                        $tgl_keluar = ($uangPhk->phk && $uangPhk->phk->tanggal_akhir)
+                            ? date('d-m-Y', strtotime($uangPhk->phk->tanggal_akhir))
+                            : ($dkaryawan->tanggal_keluar ? date('d-m-Y', strtotime($dkaryawan->tanggal_keluar)) : '');
                         $masa_kerja_str = $tgl_masuk . ' s/d ' . $tgl_keluar;
                         $tgl_lahir = $dkaryawan->tanggal_lahir ? date('d-m-y', strtotime($dkaryawan->tanggal_lahir)) : '';
                         

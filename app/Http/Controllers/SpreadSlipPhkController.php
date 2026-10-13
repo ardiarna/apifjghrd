@@ -19,17 +19,22 @@ use Illuminate\Http\Request;
 class SpreadSlipPhkController extends Controller
 {
     public function cetak($karyawan_id) {
-        $karyawan = Karyawan::with(['phk', 'uangPhk', 'divisi', 'jabatan', 'area'])->find($karyawan_id);
+        $karyawan = Karyawan::with(['phk.uangPhk', 'divisi', 'jabatan', 'area'])->find($karyawan_id);
         if (!$karyawan) {
             return response()->json(['status' => false, 'message' => 'Data Karyawan tidak ditemukan']);
         }
 
-        $uangPhk = UangPhk::where('karyawan_id', $karyawan_id)->first();
+        if (!$karyawan->phk_id) {
+            return response()->json(['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif']);
+        }
+
+        $phk = Phk::with('uangPhk')->find($karyawan->phk_id);
+        $uangPhk = ($phk && $phk->uangPhk) ? $phk->uangPhk : null;
+
         $payrollPhk = PayrollPhk::where('karyawan_id', $karyawan_id)
             ->orderBy('tahun', 'desc')
             ->orderBy('bulan', 'desc')
             ->first();
-        $phk = Phk::where('karyawan_id', $karyawan_id)->first();
 
         if (!$uangPhk) {
             return response()->json(['status' => false, 'message' => 'Data Uang PHK tidak ditemukan']);

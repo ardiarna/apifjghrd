@@ -1015,8 +1015,12 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('A'.$bar, $nomor);
                         $si->setCellValue('B'.$bar, $this->afAbbreviateName($dkaryawan->nama));
 
-                        $tgl_masuk = $dkaryawan->tanggal_masuk ? date('d-m-Y', strtotime($dkaryawan->tanggal_masuk)) : '';
-                        $tgl_keluar = $dkaryawan->tanggal_keluar ? date('d-m-Y', strtotime($dkaryawan->tanggal_keluar)) : '';
+                        $tgl_masuk = ($uangPhk->phk && $uangPhk->phk->tanggal_awal)
+                            ? date('d-m-Y', strtotime($uangPhk->phk->tanggal_awal))
+                            : ($dkaryawan->tanggal_masuk ? date('d-m-Y', strtotime($dkaryawan->tanggal_masuk)) : '');
+                        $tgl_keluar = ($uangPhk->phk && $uangPhk->phk->tanggal_akhir)
+                            ? date('d-m-Y', strtotime($uangPhk->phk->tanggal_akhir))
+                            : ($dkaryawan->tanggal_keluar ? date('d-m-Y', strtotime($dkaryawan->tanggal_keluar)) : '');
                         $si->setCellValue('C'.$bar, $tgl_masuk . ' s/d ' . $tgl_keluar);
 
                         $si->setCellValue('D'.$bar, Date::PHPToExcel(strtotime($dkaryawan->tanggal_lahir)));
