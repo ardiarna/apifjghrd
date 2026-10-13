@@ -80,6 +80,9 @@ class UangPhkImplement implements UangPhkRepository {
         if(isset($inputs['pot_kas'])) {
             $model->pot_kas = $inputs['pot_kas'];
         }
+        if(isset($inputs['pot_cicilan'])) {
+            $model->pot_cicilan = $inputs['pot_cicilan'];
+        }
         if(isset($inputs['pot_cuti_hari'])) {
             $model->pot_cuti_hari = $inputs['pot_cuti_hari'];
         }

@@ -53,19 +53,19 @@ class PdfListPhkController extends Controller
             $html .= "<table>
             <thead>
                 <tr>
-                    <td colspan=\"17\" class=\"title ac\" style=\"border: none;\">LIST PHK PT.FRATEKINDO JAYA GEMILANG</td>
+                    <td colspan=\"18\" class=\"title ac\" style=\"border: none;\">LIST PHK PT.FRATEKINDO JAYA GEMILANG</td>
                 </tr>
                 <tr>
-                    <td colspan=\"17\" class=\"title ac\" style=\"border: none;\">PERIODE : TAHUN ".$tahun."</td>
+                    <td colspan=\"18\" class=\"title ac\" style=\"border: none;\">PERIODE : TAHUN ".$tahun."</td>
                 </tr>
-                <tr><td colspan=\"17\" class=\"no-border\"></td></tr>
+                <tr><td colspan=\"18\" class=\"no-border\"></td></tr>
                 <tr class=\"header\">
                     <th rowspan=\"3\">NO</th>
                     <th rowspan=\"3\">NAMA KARYAWAN</th>
                     <th rowspan=\"3\">MASA KERJA</th>
                     <th rowspan=\"3\">TANGGAL LAHIR</th>
                     <th colspan=\"7\">K A L K U L A S I</th>
-                    <th colspan=\"4\" class=\"text-red\">P O T O N G A N</th>
+                    <th colspan=\"5\" class=\"text-red\">P O T O N G A N</th>
                     <th rowspan=\"3\">JUMLAH IDR</th>
                     <th rowspan=\"3\">KETERANGAN</th>
                 </tr>
@@ -76,7 +76,8 @@ class PdfListPhkController extends Controller
                     <th rowspan=\"2\">UANG PISAH</th>
                     <th colspan=\"2\">SISA CUTI</th>
                     <th rowspan=\"2\">LAIN-LAIN</th>
-                    <th rowspan=\"2\" class=\"text-red\">KAS/CICILAN</th>
+                    <th rowspan=\"2\" class=\"text-red\">KAS</th>
+                    <th rowspan=\"2\" class=\"text-red\">CICILAN</th>
                     <th colspan=\"2\" class=\"text-red\">UNPAID LEAVE</th>
                     <th rowspan=\"2\" class=\"text-red\">LAIN-LAIN</th>
                 </tr>
@@ -94,19 +95,19 @@ class PdfListPhkController extends Controller
             $sum = array_fill_keys([
                 "kompensasi", "pesangon", "masa_kerja", "uang_pisah", 
                 "sisa_cuti_hari", "sisa_cuti_jumlah", "lain",
-                "pot_kas", "pot_cuti_hari", "pot_cuti_jumlah", "pot_lain", "jumlah"
+                "pot_kas", "pot_cicilan", "pot_cuti_hari", "pot_cuti_jumlah", "pot_lain", "jumlah"
             ], 0);
 
             foreach ($stafs as $staf => $areas) {
                 if($staf == 'N') {
                     $html .= "<tr><td></td><td class=\"al text-blue bold\" colspan=\"3\" style=\"text-align: left;\">NON STAF :</td>";
-                    for ($c = 4; $c < 17; $c++) { $html .= "<td></td>"; }
+                    for ($c = 4; $c < 18; $c++) { $html .= "<td></td>"; }
                     $html .= "</tr>";
                 }
                 foreach ($areas as $area => $karyawan_ids) {
                     if($staf == 'Y') {
                         $html .= "<tr><td></td><td class=\"al text-blue bold\" colspan=\"3\" style=\"text-align: left;\">".$area." :</td>";
-                        for ($c = 4; $c < 17; $c++) { $html .= "<td></td>"; }
+                        for ($c = 4; $c < 18; $c++) { $html .= "<td></td>"; }
                         $html .= "</tr>";
                     }
                     foreach ($karyawan_ids as $karyawan_id => $uangPhk) {
@@ -125,10 +126,11 @@ class PdfListPhkController extends Controller
                         $valJ = $uangPhk->sisa_cuti_jumlah > 0 ? $uangPhk->sisa_cuti_jumlah : 0;
                         $valK = $uangPhk->lain > 0 ? $uangPhk->lain : 0;
                         $valL = $uangPhk->pot_kas > 0 ? $uangPhk->pot_kas : 0;
-                        $valM = $uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari : 0;
-                        $valN = $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : 0;
-                        $valO = $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : 0;
-                        $valP = ($valE + $valF + $valG + $valH + $valJ + $valK) - ($valL + $valN + $valO);
+                        $valM = $uangPhk->pot_cicilan > 0 ? $uangPhk->pot_cicilan : 0;
+                        $valN = $uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari : 0;
+                        $valO = $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : 0;
+                        $valP = $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : 0;
+                        $valQ = ($valE + $valF + $valG + $valH + $valJ + $valK) - ($valL + $valM + $valO + $valP);
 
                         $sum["kompensasi"] += $valE;
                         $sum["pesangon"] += $valF;
@@ -138,10 +140,11 @@ class PdfListPhkController extends Controller
                         $sum["sisa_cuti_jumlah"] += $valJ;
                         $sum["lain"] += $valK;
                         $sum["pot_kas"] += $valL;
-                        $sum["pot_cuti_hari"] += $valM;
-                        $sum["pot_cuti_jumlah"] += $valN;
-                        $sum["pot_lain"] += $valO;
-                        $sum["jumlah"] += $valP;
+                        $sum["pot_cicilan"] += $valM;
+                        $sum["pot_cuti_hari"] += $valN;
+                        $sum["pot_cuti_jumlah"] += $valO;
+                        $sum["pot_lain"] += $valP;
+                        $sum["jumlah"] += $valQ;
 
                         $kets = [];
                         if (!empty($uangPhk->keterangan)) $kets[] = $uangPhk->keterangan;
@@ -162,10 +165,11 @@ class PdfListPhkController extends Controller
                         $html .= "<td class=\"ar\">".($valJ > 0 ? number_format($valJ, 0, ",", ".") : "")."</td>";
                         $html .= "<td class=\"ar\">".($valK > 0 ? number_format($valK, 0, ",", ".") : "")."</td>";
                         $html .= "<td class=\"ar text-red\">".($valL > 0 ? number_format($valL, 0, ",", ".") : "")."</td>";
-                        $html .= "<td class=\"ac text-red\">".($valM > 0 ? $valM : "")."</td>";
-                        $html .= "<td class=\"ar text-red\">".($valN > 0 ? number_format($valN, 0, ",", ".") : "")."</td>";
+                        $html .= "<td class=\"ar text-red\">".($valM > 0 ? number_format($valM, 0, ",", ".") : "")."</td>";
+                        $html .= "<td class=\"ac text-red\">".($valN > 0 ? $valN : "")."</td>";
                         $html .= "<td class=\"ar text-red\">".($valO > 0 ? number_format($valO, 0, ",", ".") : "")."</td>";
-                        $html .= "<td class=\"ar\">".($valP != 0 ? number_format($valP, 0, ",", ".") : "")."</td>";
+                        $html .= "<td class=\"ar text-red\">".($valP > 0 ? number_format($valP, 0, ",", ".") : "")."</td>";
+                        $html .= "<td class=\"ar\">".($valQ != 0 ? number_format($valQ, 0, ",", ".") : "")."</td>";
                         $html .= "<td class=\"al\">".$keterangan."</td>";
                         $html .= "</tr>";
                         
@@ -185,6 +189,7 @@ class PdfListPhkController extends Controller
             $html .= "<td class=\"ar\">".($sum["sisa_cuti_jumlah"] > 0 ? number_format($sum["sisa_cuti_jumlah"], 0, ",", ".") : "")."</td>";
             $html .= "<td class=\"ar\">".($sum["lain"] > 0 ? number_format($sum["lain"], 0, ",", ".") : "")."</td>";
             $html .= "<td class=\"ar text-red\">".($sum["pot_kas"] > 0 ? number_format($sum["pot_kas"], 0, ",", ".") : "")."</td>";
+            $html .= "<td class=\"ar text-red\">".($sum["pot_cicilan"] > 0 ? number_format($sum["pot_cicilan"], 0, ",", ".") : "")."</td>";
             $html .= "<td class=\"ac text-red\">".($sum["pot_cuti_hari"] > 0 ? $sum["pot_cuti_hari"] : "")."</td>";
             $html .= "<td class=\"ar text-red\">".($sum["pot_cuti_jumlah"] > 0 ? number_format($sum["pot_cuti_jumlah"], 0, ",", ".") : "")."</td>";
             $html .= "<td class=\"ar text-red\">".($sum["pot_lain"] > 0 ? number_format($sum["pot_lain"], 0, ",", ".") : "")."</td>";

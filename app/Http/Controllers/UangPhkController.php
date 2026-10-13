@@ -47,6 +47,7 @@ class UangPhkController extends Controller
             'sisa_cuti_jumlah' => 'numeric',
             'lain' => 'numeric',
             'pot_kas' => 'numeric',
+            'pot_cicilan' => 'numeric',
             'pot_cuti_hari' => 'numeric',
             'pot_cuti_jumlah' => 'numeric',
             'pot_lain' => 'numeric'
@@ -61,6 +62,7 @@ class UangPhkController extends Controller
         $inputs['sisa_cuti_jumlah'] = $req->input('sisa_cuti_jumlah');
         $inputs['lain'] = $req->input('lain');
         $inputs['pot_kas'] = $req->input('pot_kas');
+        $inputs['pot_cicilan'] = $req->input('pot_cicilan');
         $inputs['pot_cuti_hari'] = $req->input('pot_cuti_hari');
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
@@ -85,6 +87,7 @@ class UangPhkController extends Controller
             'sisa_cuti_jumlah' => 'numeric',
             'lain' => 'numeric',
             'pot_kas' => 'numeric',
+            'pot_cicilan' => 'numeric',
             'pot_cuti_hari' => 'numeric',
             'pot_cuti_jumlah' => 'numeric',
             'pot_lain' => 'numeric'
@@ -99,6 +102,7 @@ class UangPhkController extends Controller
         $inputs['sisa_cuti_jumlah'] = $req->input('sisa_cuti_jumlah');
         $inputs['lain'] = $req->input('lain');
         $inputs['pot_kas'] = $req->input('pot_kas');
+        $inputs['pot_cicilan'] = $req->input('pot_cicilan');
         $inputs['pot_cuti_hari'] = $req->input('pot_cuti_hari');
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');

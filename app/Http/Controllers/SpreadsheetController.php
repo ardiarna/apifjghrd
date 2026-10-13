@@ -920,7 +920,7 @@ class SpreadsheetController extends Controller
 
     public function listPHK($tahun_awal, $tahun_akhir) {
         $kol = array("A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","AA","AB","AC","AD","AE","AF","AG","AH","AI","AJ","AK","AL","AM","AN","AO","AP","AQ","AR","AS","AT","AU","AV","AW","AX","AY","AZ","BA","BB","BC","BD","BE","BF","BG","BH","BI","BJ","BK","BL","BM","BN","BO","BP","BQ","BR","BS","BT","BU","BV","BW","BX","BY","BZ","CA","CB","CC","CD","CE","CF","CG","CH","CI","CJ","CK","CL","CM","CN","CO","CP","CQ","CR","CS","CT","CU","CV","CW","CX","CY","CZ","DA","DB","DC","DD","DE","DF","DG","DH","DI","DJ","DK","DL","DM","DN","DO","DP","DQ","DR","DS","DT","DU","DV","DW","DX","DY","DZ");
-        $kol_akhir = 'Q';
+        $kol_akhir = 'R';
 
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setSize(10)->setBold(TRUE);
@@ -963,11 +963,11 @@ class SpreadsheetController extends Controller
             $si->setCellValue('E'.$bar, 'K A L K U L A S I');
             $si->mergeCells('E'.$bar.':K'.$bar);
             $si->setCellValue('L'.$bar, 'P O T O N G A N');
-            $si->mergeCells('L'.$bar.':O'.$bar);
-            $si->setCellValue('P'.$bar, 'JUMLAH IDR');
-            $si->mergeCells('P'.$bar.':P'.($bar+2));
-            $si->setCellValue('Q'.$bar, 'KETERANGAN');
+            $si->mergeCells('L'.$bar.':P'.$bar);
+            $si->setCellValue('Q'.$bar, 'JUMLAH IDR');
             $si->mergeCells('Q'.$bar.':Q'.($bar+2));
+            $si->setCellValue('R'.$bar, 'KETERANGAN');
+            $si->mergeCells('R'.$bar.':R'.($bar+2));
             $bar++;
             $si->setCellValue('E'.$bar, 'KOMPENSASI');
             $si->mergeCells('E'.$bar.':E'.($bar+1));
@@ -981,17 +981,19 @@ class SpreadsheetController extends Controller
             $si->mergeCells('I'.$bar.':J'.$bar);
             $si->setCellValue('K'.$bar, 'LAIN-LAIN');
             $si->mergeCells('K'.$bar.':K'.($bar+1));
-            $si->setCellValue('L'.$bar, 'KAS/CICILAN');
+            $si->setCellValue('L'.$bar, 'KAS');
             $si->mergeCells('L'.$bar.':L'.($bar+1));
-            $si->setCellValue('M'.$bar, 'UNPAID LEAVE');
-            $si->mergeCells('M'.$bar.':N'.$bar);
-            $si->setCellValue('O'.$bar, 'LAIN-LAIN');
-            $si->mergeCells('O'.$bar.':O'.($bar+1));
+            $si->setCellValue('M'.$bar, 'CICILAN');
+            $si->mergeCells('M'.$bar.':M'.($bar+1));
+            $si->setCellValue('N'.$bar, 'UNPAID LEAVE');
+            $si->mergeCells('N'.$bar.':O'.$bar);
+            $si->setCellValue('P'.$bar, 'LAIN-LAIN');
+            $si->mergeCells('P'.$bar.':P'.($bar+1));
             $bar++;
             $si->setCellValue('I'.$bar, 'HARI');
             $si->setCellValue('J'.$bar, 'IDR');
-            $si->setCellValue('M'.$bar, 'HARI');
-            $si->setCellValue('N'.$bar, 'IDR');
+            $si->setCellValue('N'.$bar, 'HARI');
+            $si->setCellValue('O'.$bar, 'IDR');
             $bar++;
             $nomor = 1;
             foreach ($stafs as $staf => $areas) {
@@ -1026,15 +1028,16 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('J'.$bar, $uangPhk->sisa_cuti_jumlah > 0 ? $uangPhk->sisa_cuti_jumlah : '');
                         $si->setCellValue('K'.$bar, $uangPhk->lain > 0 ? $uangPhk->lain : '');
                         $si->setCellValue('L'.$bar, $uangPhk->pot_kas > 0 ? $uangPhk->pot_kas : '');
-                        $si->setCellValue('M'.$bar, $uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari : '');
-                        $si->setCellValue('N'.$bar, $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : '');
-                        $si->setCellValue('O'.$bar, $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : '');
-                        $si->setCellValue('P'.$bar, '=(E'.$bar.'+F'.$bar.'+G'.$bar.'+H'.$bar.'+J'.$bar.'+K'.$bar.')-(L'.$bar.'+N'.$bar.'+O'.$bar.')');
+                        $si->setCellValue('M'.$bar, $uangPhk->pot_cicilan > 0 ? $uangPhk->pot_cicilan : '');
+                        $si->setCellValue('N'.$bar, $uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari : '');
+                        $si->setCellValue('O'.$bar, $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : '');
+                        $si->setCellValue('P'.$bar, $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : '');
+                        $si->setCellValue('Q'.$bar, '=(E'.$bar.'+F'.$bar.'+G'.$bar.'+H'.$bar.'+J'.$bar.'+K'.$bar.')-(L'.$bar.'+M'.$bar.'+O'.$bar.'+P'.$bar.')');
                         $kets = [];
                         if (!empty($uangPhk->keterangan)) $kets[] = $uangPhk->keterangan;
                         if (!empty($uangPhk->ket_lain)) $kets[] = $uangPhk->ket_lain;
                         if (!empty($uangPhk->ket_pot_lain)) $kets[] = $uangPhk->ket_pot_lain;
-                        $si->setCellValue('Q'.$bar, implode('; ', $kets));
+                        $si->setCellValue('R'.$bar, implode('; ', $kets));
                         $bar++;
                         $nomor++;
                     }
@@ -1044,7 +1047,7 @@ class SpreadsheetController extends Controller
 
             $si->setCellValue('A'.$bar, 'TOTAL');
             $si->mergeCells('A'.$bar.':D'.$bar);
-            for ($k = 4; $k <= 15; $k++) { // E s/d P
+            for ($k = 4; $k <= 16; $k++) { // E s/d Q
                 $si->setCellValue($kol[$k].$bar, '=SUM('.$kol[$k].'8:'.$kol[$k].($bar-1).')');
             }
 
@@ -1058,20 +1061,20 @@ class SpreadsheetController extends Controller
             $si->getStyle('A8:'.$kol_akhir.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
             $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM);
             $si->getStyle('A'.$bar.':'.$kol_akhir.$bar)->getFont()->getColor()->setARGB('0000FF');
-            $si->getStyle('L5:O'.$bar)->getFont()->getColor()->setARGB('FF0000');
+            $si->getStyle('L5:P'.$bar)->getFont()->getColor()->setARGB('FF0000');
             $si->getStyle('C8:D'.$bar)->getAlignment()->setHorizontal('center');
             $si->getStyle('D8:D'.$bar)->getNumberFormat()->setFormatCode('dd-mm-yy');
-            $si->getStyle('E8:P'.$bar)->getNumberFormat()->setFormatCode('#,##0');
+            $si->getStyle('E8:Q'.$bar)->getNumberFormat()->setFormatCode('#,##0');
 
             $si->getColumnDimension('A')->setWidth(40, Dimension::UOM_PIXELS);
             $si->getColumnDimension('B')->setWidth(210, Dimension::UOM_PIXELS);
             $si->getColumnDimension('C')->setWidth(176, Dimension::UOM_PIXELS);
             $si->getColumnDimension('D')->setWidth(80, Dimension::UOM_PIXELS);
-            for ($k = 4; $k <= 14; $k++) { // E s/d O
+            for ($k = 4; $k <= 15; $k++) { // E s/d P
                 $si->getColumnDimension($kol[$k])->setWidth(100, Dimension::UOM_PIXELS);
             }
-            $si->getColumnDimension('P')->setWidth(130, Dimension::UOM_PIXELS);
-            $si->getColumnDimension('Q')->setWidth(350, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('Q')->setWidth(130, Dimension::UOM_PIXELS);
+            $si->getColumnDimension('R')->setWidth(350, Dimension::UOM_PIXELS);
             $i++;
         }
 
