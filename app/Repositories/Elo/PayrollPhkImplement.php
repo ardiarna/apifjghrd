@@ -230,6 +230,13 @@ class PayrollPhkImplement implements PayrollPhkRepository {
     }
 
     public function updateOrCreate(array $inputs) {
+        if (isset($inputs['id']) && !empty($inputs['id'])) {
+            $model = $this->model->find($inputs['id']);
+            if ($model) {
+                $model->update($inputs);
+                return $model;
+            }
+        }
         $model = $this->model->updateOrCreate(
             [
                 'karyawan_id' => $inputs['karyawan_id'],

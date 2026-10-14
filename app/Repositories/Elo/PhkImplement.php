@@ -15,7 +15,7 @@ class PhkImplement implements PhkRepository {
     }
 
     public function findById($karyawan_id, $id) {
-        $model = $this->model->with(['statusKerja','statusPhk','uangPhk'])->findOrFail($id);
+        $model = $this->model->with(['statusKerja','statusPhk','uangPhk','payrollPhk'])->findOrFail($id);
         if($model->karyawan_id != $karyawan_id) {
             throw new HttpException(403, 'Karyawan dan PHK tidak sesuai');
         }
@@ -23,7 +23,7 @@ class PhkImplement implements PhkRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['statusKerja','statusPhk','uangPhk']);
+        $hasil = $this->model->query()->with(['statusKerja','statusPhk','uangPhk','payrollPhk']);
         $hasil->where('karyawan_id', $inputs['karyawan_id']);
         if($inputs['search_by'] && $inputs['value']) {
             $value = $inputs['value'];
@@ -61,6 +61,9 @@ class PhkImplement implements PhkRepository {
         }
         if(array_key_exists('uang_phk_id', $inputs)) {
             $model->uang_phk_id = $inputs['uang_phk_id'];
+        }
+        if(array_key_exists('payroll_phk_id', $inputs)) {
+            $model->payroll_phk_id = $inputs['payroll_phk_id'];
         }
         if($inputs['keterangan'] != null) {
             $model->keterangan = $inputs['keterangan'];

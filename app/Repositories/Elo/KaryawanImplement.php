@@ -15,12 +15,12 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findById($id) {
-        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.statusPhk','phk.statusKerja','ptkp'])
+        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp'])
             ->find($id);
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.statusPhk','phk.statusKerja','ptkp'])
+        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp'])
             ->select('karyawans.*')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')

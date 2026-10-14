@@ -99,6 +99,14 @@ class PayrollPhkController extends Controller
         ]);
         $inputs['keterangan'] = $req->input('keterangan');
         $data = $this->repo->create($inputs);
+        if ($req->has('phk_id') && $req->input('phk_id')) {
+            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $data->id]);
+        } else {
+            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+            if ($karyawan && $karyawan->phk_id) {
+                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['payroll_phk_id' => $data->id]);
+            }
+        }
         return $this->createdResponse($data, 'Payroll PHK berhasil dibuat');
     }
 
@@ -171,10 +179,19 @@ class PayrollPhkController extends Controller
         $inputs['total_diterima']        = $req->input('total_diterima');
         $inputs['keterangan']            = $req->input('keterangan');
         $data = $this->repo->update($id, $inputs);
+        if ($req->has('phk_id') && $req->input('phk_id')) {
+            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $id]);
+        } else {
+            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+            if ($karyawan && $karyawan->phk_id) {
+                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['payroll_phk_id' => $id]);
+            }
+        }
         return $this->successResponse($data, 'Payroll PHK berhasil diubah');
     }
 
     public function delete($id) {
+        \App\Models\Phk::where('payroll_phk_id', $id)->update(['payroll_phk_id' => null]);
         $data = $this->repo->delete($id);
         if($data == 0) {
             return $this->failRespNotFound('Payroll PHK tidak ditemukan');
@@ -225,7 +242,18 @@ class PayrollPhkController extends Controller
             'pot_lain', 'total_diterima', 'keterangan'
         ]);
         $inputs['karyawan_id'] = $karyawan_id;
+        if ($req->has('id') && $req->input('id')) {
+            $inputs['id'] = $req->input('id');
+        }
         $data = $this->repo->updateOrCreate($inputs);
+        if ($req->has('phk_id') && $req->input('phk_id')) {
+            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $data->id]);
+        } else {
+            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+            if ($karyawan && $karyawan->phk_id) {
+                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['payroll_phk_id' => $data->id]);
+            }
+        }
         return $this->successResponse($data, 'Payroll PHK berhasil disimpan');
     }
 

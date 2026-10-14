@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Karyawan extends Model
 {
@@ -17,7 +18,7 @@ class Karyawan extends Model
         'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'kelamin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'staf', 'manajemen', 'nomor_kk', 'nomor_paspor', 'nomor_pwp', 'phk_id', 'ptkp_id'
     ];
 
-    protected $appends = ['uang_phk'];
+    protected $appends = ['uang_phk', 'payroll_phk'];
 
     public function agama(): BelongsTo {
         return $this->belongsTo(Agama::class);
@@ -49,6 +50,14 @@ class Karyawan extends Model
 
     public function getUangPhkAttribute() {
         return $this->phk ? $this->phk->uangPhk : null;
+    }
+
+    public function getPayrollPhkAttribute() {
+        return $this->phk ? $this->phk->payrollPhk : null;
+    }
+
+    public function upah(): HasOne {
+        return $this->hasOne(Upah::class);
     }
 
     public function ptkp(): BelongsTo {

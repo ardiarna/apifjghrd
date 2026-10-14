@@ -6,6 +6,7 @@ use App\Models\Karyawan;
 use App\Models\Phk;
 use App\Models\UangPhk;
 use App\Models\PayrollPhk;
+use App\Models\Upah;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -19,7 +20,7 @@ use Illuminate\Http\Request;
 class SpreadSlipPhkController extends Controller
 {
     public function cetak($karyawan_id) {
-        $karyawan = Karyawan::with(['phk.uangPhk', 'divisi', 'jabatan', 'area'])->find($karyawan_id);
+        $karyawan = Karyawan::with(['phk.uangPhk', 'phk.payrollPhk', 'divisi', 'jabatan', 'area', 'upah'])->find($karyawan_id);
         if (!$karyawan) {
             return response()->json(['status' => false, 'message' => 'Data Karyawan tidak ditemukan']);
         }
@@ -28,13 +29,15 @@ class SpreadSlipPhkController extends Controller
             return response()->json(['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif']);
         }
 
-        $phk = Phk::with('uangPhk')->find($karyawan->phk_id);
+        $phk = Phk::with(['uangPhk', 'payrollPhk'])->find($karyawan->phk_id);
         $uangPhk = ($phk && $phk->uangPhk) ? $phk->uangPhk : null;
 
-        $payrollPhk = PayrollPhk::where('karyawan_id', $karyawan_id)
-            ->orderBy('tahun', 'desc')
-            ->orderBy('bulan', 'desc')
-            ->first();
+        $payrollPhk = ($phk && $phk->payrollPhk)
+            ? $phk->payrollPhk
+            : PayrollPhk::where('karyawan_id', $karyawan_id)
+                ->orderBy('tahun', 'desc')
+                ->orderBy('bulan', 'desc')
+                ->first();
 
         if (!$uangPhk) {
             return response()->json(['status' => false, 'message' => 'Data Uang PHK tidak ditemukan']);
@@ -144,7 +147,14 @@ class SpreadSlipPhkController extends Controller
         $si->setCellValue('A10', 'Divisi');
         $si->setCellValue('C10', ': ' . ($karyawan->divisi ? $karyawan->divisi->nama : ''));
 
-        $gajiTunjangan = ($payrollPhk ? $payrollPhk->gaji : 0);
+        $upah = $karyawan->upah ?: Upah::where('karyawan_id', $karyawan_id)->first();
+        $gajiTunjangan = 0;
+        if ($upah) {
+            $gajiTunjangan = (strtoupper((string)$upah->makan_harian) === 'N')
+                ? ($upah->gaji + $upah->uang_makan)
+                : $upah->gaji;
+        }
+
         $si->setCellValue('A11', 'Gaji & Tunjangan');
         $si->setCellValue('C11', ': Rp. ' . number_format($gajiTunjangan, 0, ',', '.'));
 
@@ -165,7 +175,7 @@ class SpreadSlipPhkController extends Controller
             $tahun = (int)date('Y', strtotime($rawDate));
         }
 
-        $arrBulan = array("", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember");
+        $arrBulan = array("", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des");
         $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
         $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
 
