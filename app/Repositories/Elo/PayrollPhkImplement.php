@@ -210,6 +210,12 @@ class PayrollPhkImplement implements PayrollPhkRepository {
         if(isset($inputs['keterangan'])) {
             $model->keterangan = $inputs['keterangan'];
         }
+        if(isset($inputs['tgl_gaji_awal'])) {
+            $model->tgl_gaji_awal = !empty($inputs['tgl_gaji_awal']) ? $inputs['tgl_gaji_awal'] : null;
+        }
+        if(isset($inputs['tgl_gaji_akhir'])) {
+            $model->tgl_gaji_akhir = !empty($inputs['tgl_gaji_akhir']) ? $inputs['tgl_gaji_akhir'] : null;
+        }
         $model->save();
         return $model;
     }

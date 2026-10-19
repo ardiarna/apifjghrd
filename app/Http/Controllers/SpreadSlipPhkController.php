@@ -179,7 +179,13 @@ class SpreadSlipPhkController extends Controller
         $prevBulan = $bulan == 1 ? 12 : $bulan - 1;
         $prevTahun = $bulan == 1 ? $tahun - 1 : $tahun;
 
-        $labelGaji = "Gaji Pokok Per : 26 " . $arrBulan[$prevBulan] . "'" . substr((string)$prevTahun, -2) . " - 25 " . $arrBulan[$bulan] . "'" . substr((string)$tahun, -2);
+        if ($payrollPhk && $payrollPhk->tgl_gaji_awal && $payrollPhk->tgl_gaji_akhir) {
+            $tg1 = explode('-', date('Y-m-d', strtotime($payrollPhk->tgl_gaji_awal)));
+            $tg2 = explode('-', date('Y-m-d', strtotime($payrollPhk->tgl_gaji_akhir)));
+            $labelGaji = "Gaji Pokok Per : " . $tg1[2] . " " . $arrBulan[intval($tg1[1])] . "'" . substr($tg1[0], -2) . " - " . $tg2[2] . " " . $arrBulan[intval($tg2[1])] . "'" . substr($tg2[0], -2);
+        } else {
+            $labelGaji = "Gaji Pokok Per : 26 " . $arrBulan[$prevBulan] . "'" . substr((string)$prevTahun, -2) . " - 25 " . $arrBulan[$bulan] . "'" . substr((string)$tahun, -2);
+        }
 
         if ($payrollPhk && $payrollPhk->tanggal_awal && $payrollPhk->tanggal_akhir) {
             $ttgl = explode('-', date('Y-m-d', strtotime($payrollPhk->tanggal_awal)));

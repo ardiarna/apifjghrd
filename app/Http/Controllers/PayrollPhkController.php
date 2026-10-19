@@ -98,6 +98,8 @@ class PayrollPhkController extends Controller
             'pot_lain', 'total_diterima',
         ]);
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['tgl_gaji_awal'] = $req->filled('tgl_gaji_awal') ? $req->input('tgl_gaji_awal') : null;
+        $inputs['tgl_gaji_akhir'] = $req->filled('tgl_gaji_akhir') ? $req->input('tgl_gaji_akhir') : null;
         $data = $this->repo->create($inputs);
         if ($req->has('phk_id') && $req->input('phk_id')) {
             \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $data->id]);
@@ -178,6 +180,8 @@ class PayrollPhkController extends Controller
         $inputs['pot_lain']              = $req->input('pot_lain');
         $inputs['total_diterima']        = $req->input('total_diterima');
         $inputs['keterangan']            = $req->input('keterangan');
+        $inputs['tgl_gaji_awal']         = $req->filled('tgl_gaji_awal') ? $req->input('tgl_gaji_awal') : null;
+        $inputs['tgl_gaji_akhir']        = $req->filled('tgl_gaji_akhir') ? $req->input('tgl_gaji_akhir') : null;
         $data = $this->repo->update($id, $inputs);
         if ($req->has('phk_id') && $req->input('phk_id')) {
             \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $id]);
@@ -200,7 +204,7 @@ class PayrollPhkController extends Controller
     }
 
     public function updateOrCreate(Request $req, $karyawan_id) {
-        $this->validate($req, [
+        $validationRules = [
             'tanggal_awal'          => 'date',
             'tanggal_akhir'         => 'date',
             'tahun'                 => 'required|integer',
@@ -232,7 +236,14 @@ class PayrollPhkController extends Controller
             'pot_kompensasi_jumlah' => 'numeric',
             'pot_lain'              => 'numeric',
             'total_diterima'        => 'numeric',
-        ]);
+        ];
+        if ($req->filled('tgl_gaji_awal')) {
+            $validationRules['tgl_gaji_awal'] = 'date';
+        }
+        if ($req->filled('tgl_gaji_akhir')) {
+            $validationRules['tgl_gaji_akhir'] = 'date';
+        }
+        $this->validate($req, $validationRules);
         $inputs = $req->only([
             'tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan', 'gaji', 'kenaikan_gaji', 'makan_harian',
             'hari_makan', 'uang_makan_harian', 'uang_makan_jumlah', 'overtime_fjg', 'overtime_cus',
@@ -241,6 +252,8 @@ class PayrollPhkController extends Controller
             'pot_cuti_hari', 'pot_cuti_jumlah', 'pot_kompensasi_jam', 'pot_kompensasi_jumlah',
             'pot_lain', 'total_diterima', 'keterangan'
         ]);
+        $inputs['tgl_gaji_awal'] = $req->filled('tgl_gaji_awal') ? $req->input('tgl_gaji_awal') : null;
+        $inputs['tgl_gaji_akhir'] = $req->filled('tgl_gaji_akhir') ? $req->input('tgl_gaji_akhir') : null;
         $inputs['karyawan_id'] = $karyawan_id;
         if ($req->has('id') && $req->input('id')) {
             $inputs['id'] = $req->input('id');
