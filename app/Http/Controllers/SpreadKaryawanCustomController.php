@@ -452,10 +452,10 @@ class SpreadKaryawanCustomController extends Controller
 
         // Title Rows
         $si->setCellValue('A2', 'DATA KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $si->mergeCells('A2:C2');
+        $si->mergeCells('A2:E2');
         $bulanStr = $bulanMap[(int)date('n')] . ' ' . date('Y');
         $si->setCellValue('A3', 'UPDATE : ' . $bulanStr);
-        $si->mergeCells('A3:C3');
+        $si->mergeCells('A3:E3');
 
         $styleJudul = [
             'font' => [
@@ -470,7 +470,7 @@ class SpreadKaryawanCustomController extends Controller
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ]
         ];
-        $si->getStyle('A2:C3')->applyFromArray($styleJudul);
+        $si->getStyle('A2:E3')->applyFromArray($styleJudul);
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
@@ -478,15 +478,17 @@ class SpreadKaryawanCustomController extends Controller
         $si->setCellValue('A5', 'NO'); $si->mergeCells('A5:A6');
         $si->setCellValue('B5', 'N A M A'); $si->mergeCells('B5:B6');
         $si->setCellValue('C5', 'J A B A T A N'); $si->mergeCells('C5:C6');
+        $si->setCellValue('D5', 'TANGGAL GABUNG'); $si->mergeCells('D5:D6');
+        $si->setCellValue('E5', 'YEARS OF SERVICE'); $si->mergeCells('E5:E6');
 
-        $si->getStyle('A5:C6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $si->getStyle('A5:C6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
-        $si->getStyle('A5:C6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $si->getStyle('A5:E6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:E6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:E6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $si->getRowDimension(5)->setRowHeight(18);
         $si->getRowDimension(6)->setRowHeight(15);
 
         // Column Widths
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>45.00];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>45.00, 'D'=>16.00, 'E'=>16.00];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
@@ -525,10 +527,20 @@ class SpreadKaryawanCustomController extends Controller
                     $si->setCellValue('A'.$bar, $nomor);
                     $si->setCellValue('B'.$bar, $d->nama);
                     $si->setCellValue('C'.$bar, $d->jabatan ? $d->jabatan->nama : '');
+                    $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
+                    $si->setCellValue('D'.$bar, $tgl_masuk);
+                    $service = '';
+                    if ($d->tanggal_masuk) {
+                        $dt1 = date_create($d->tanggal_masuk);
+                        $dt2 = date_create('today');
+                        $service = date_diff($dt1, $dt2)->y;
+                    }
+                    $si->setCellValue('E'.$bar, $service);
 
-                    $si->getStyle('A'.$bar.':C'.$bar)->getAlignment()->setVertical('top');
+                    $si->getStyle('A'.$bar.':E'.$bar)->getAlignment()->setVertical('top');
                     $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                     $si->getStyle('C'.$bar)->getAlignment()->setWrapText(true);
+                    $si->getStyle('D'.$bar.':E'.$bar)->getAlignment()->setHorizontal('center');
 
                     $bar++;
                     $nomor++;
@@ -540,9 +552,9 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         if ($bar > 7) {
-            $si->getStyle('A7:C'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:C'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:C'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle('A7:E'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:E'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:E'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

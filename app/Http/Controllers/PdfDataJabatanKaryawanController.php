@@ -56,9 +56,8 @@ class PdfDataJabatanKaryawanController extends Controller
 
         $html .= "<table>";
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
-        // A=4.55, B=38, C=45
-        // Proportions: ~10%, ~40%, ~50%
-        $widths = [15, 75, 100];
+        // NO=10mm, NAMA=65mm, JABATAN=65mm, TANGGAL GABUNG=25mm, YEARS OF SERVICE=25mm (Total 190mm)
+        $widths = [10, 65, 65, 25, 25];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
         $html .= "</tr>";
 
@@ -66,24 +65,35 @@ class PdfDataJabatanKaryawanController extends Controller
         $html .= "<th>NO</th>";
         $html .= "<th>N A M A</th>";
         $html .= "<th>J A B A T A N</th>";
+        $html .= "<th>TANGGAL GABUNG</th>";
+        $html .= "<th>YEARS OF SERVICE</th>";
         $html .= "</tr>";
 
         $nomor = 1;
         krsort($details);
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
-                $html .= "<tr><td></td><td colspan=\"2\" class=\"al text-blue\">NON STAF :</td></tr>";
+                $html .= "<tr><td></td><td colspan=\"4\" class=\"al text-blue\">NON STAF :</td></tr>";
             }
             foreach ($areas as $area => $karyawans) {
                 if($staf == 'Y') {
-                    $html .= "<tr><td></td><td colspan=\"2\" class=\"al text-blue\">".$area." :</td></tr>";
+                    $html .= "<tr><td></td><td colspan=\"4\" class=\"al text-blue\">".$area." :</td></tr>";
                 }
 
                 foreach ($karyawans as $d) {
+                    $tglMasuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
+                    $service = '';
+                    if ($d->tanggal_masuk) {
+                        $dt1 = date_create($d->tanggal_masuk);
+                        $dt2 = date_create('today');
+                        $service = date_diff($dt1, $dt2)->y;
+                    }
                     $html .= "<tr>";
                     $html .= "<td class=\"ac\">".$nomor."</td>";
                     $html .= "<td class=\"al\">".$d->nama."</td>";
                     $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
+                    $html .= "<td class=\"ac\">".$tglMasuk."</td>";
+                    $html .= "<td class=\"ac\">".$service."</td>";
                     $html .= "</tr>";
 
                     $nomor++;
