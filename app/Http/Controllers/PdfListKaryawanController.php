@@ -159,9 +159,20 @@ class PdfListKaryawanController extends Controller
                         $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
                     }
 
+                    $teleponArr = [];
+                    if (!empty($d->telepon)) {
+                        $rawTelepon = explode(',', $d->telepon);
+                        foreach ($rawTelepon as $t) {
+                            $t = trim($t);
+                            if ($t !== '') {
+                                $teleponArr[] = $t;
+                            }
+                        }
+                    }
+
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -265,8 +276,8 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td></td>";
                         }
 
-                        if ($i == 0) {
-                            $html .= "<td class=\"ac\">".($d->telepon ? "".$d->telepon : '')."</td>";
+                        if (isset($teleponArr[$i])) {
+                            $html .= "<td class=\"ac\">".$teleponArr[$i]."</td>";
                         } else {
                             $html .= "<td></td>";
                         }

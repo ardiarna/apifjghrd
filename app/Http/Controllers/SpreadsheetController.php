@@ -1586,9 +1586,20 @@ class SpreadsheetController extends Controller
                         $kontakArr[] = $k_kontak->nama ? $k_kontak->nama : '';
                     }
 
+                    $teleponArr = [];
+                    if (!empty($d->telepon)) {
+                        $rawTelepon = explode(',', $d->telepon);
+                        foreach ($rawTelepon as $t) {
+                            $t = trim($t);
+                            if ($t !== '') {
+                                $teleponArr[] = "'" . $t;
+                            }
+                        }
+                    }
+
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -1646,8 +1657,6 @@ class SpreadsheetController extends Controller
 
                             $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                             $si->setCellValue('L'.$bar, $ttl);
-
-                            $si->setCellValue('O'.$bar, $d->telepon ? "'".$d->telepon : '');
 
                             $kawinStatus = $d->kawin == 'Y' ? 'Kawin' : ($d->kawin == 'N' ? 'Single' : 'Single Parent');
                             $jumlahAnak = $d->jumlahAnak();
@@ -1724,6 +1733,11 @@ class SpreadsheetController extends Controller
                         }
                         if (isset($alamatTinggalArr[$i])) {
                             $si->setCellValue('N'.$bar, $alamatTinggalArr[$i]);
+                        }
+
+                        // No. Telepon
+                        if (isset($teleponArr[$i])) {
+                            $si->setCellValue('O'.$bar, $teleponArr[$i]);
                         }
 
                         // Kontak Darurat
