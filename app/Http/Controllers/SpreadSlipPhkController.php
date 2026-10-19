@@ -195,75 +195,7 @@ class SpreadSlipPhkController extends Controller
             $labelMakan = "(Per: 18 " . $arrBulan[$prevBulan] . "'" . substr((string)$prevTahun, -2) . " s/d 17 " . $arrBulan[$bulan] . "'" . substr((string)$tahun, -2) . ")";
         }
 
-        $bar = 13;
-        // Row 13: Gaji Pokok & Pinjaman Kas
-        $si->setCellValue('A' . $bar, $labelGaji);
-        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
-        $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->gaji > 0) ? $payrollPhk->gaji : 0);
-
-        $si->setCellValue('G' . $bar, 'Pinjaman Kas');
-        $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
-        $si->setCellValue('I' . $bar, ($uangPhk && $uangPhk->pot_kas > 0) ? $uangPhk->pot_kas : 0);
-        $si->getRowDimension($bar)->setRowHeight(16.75);
-
-        $bar++; // 14
-        $si->getRowDimension($bar)->setRowHeight(16.75);
-
-        $bar++; // 15: U/Makan & Transportasi & Pinjaman Cicilan
-        $si->setCellValue('A' . $bar, 'U/Makan & Transportasi');
-        if ($payrollPhk && $payrollPhk->hari_makan > 0) {
-            $harianFormatted = number_format($payrollPhk->uang_makan_harian, 0, ',', '.');
-            $si->setCellValue('C' . $bar, $harianFormatted . ' x ' . $payrollPhk->hari_makan . ' HR');
-            $si->getStyle('C' . $bar)->getAlignment()->setHorizontal('right');
-        }
-        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
-        $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->uang_makan_jumlah > 0) ? $payrollPhk->uang_makan_jumlah : 0);
-
-        $si->setCellValue('G' . $bar, 'Pinjaman Cicilan');
-        $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
-        $si->setCellValue('I' . $bar, ($uangPhk && $uangPhk->pot_cicilan > 0) ? $uangPhk->pot_cicilan : 0);
-        $si->getRowDimension($bar)->setRowHeight(19.75);
-
-        $bar++; // 16: Sub-text U/Makan
-        $si->setCellValue('A' . $bar, $labelMakan);
-        $si->getRowDimension($bar)->setRowHeight(14.0);
-
-        $bar++; // 17: spacer
-        $si->getRowDimension($bar)->setRowHeight(14.0);
-
-        $bar++; // 18: Uang Pesangon & Potongan Kehadiran / Cuti
-        $si->setCellValue('A' . $bar, 'Uang Pesangon');
-        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
-        $si->setCellValue('E' . $bar, ($uangPhk && $uangPhk->pesangon > 0) ? $uangPhk->pesangon : 0);
-
-        if ($uangPhk && $uangPhk->pot_cuti_jumlah > 0) {
-            $si->setCellValue('G' . $bar, 'Potongan Cuti ' . ($uangPhk->pot_cuti_hari > 0 ? $uangPhk->pot_cuti_hari . ' HR' : ''));
-            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
-            $si->setCellValue('I' . $bar, $uangPhk->pot_cuti_jumlah);
-        } else {
-            $si->setCellValue('G' . $bar, 'Keterlambatan Kehadiran');
-            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
-            $si->setCellValue('I' . $bar, 0);
-        }
-        $si->getRowDimension($bar)->setRowHeight(14.0);
-
-        $bar++; // 19: Sub-text Pesangon
-        if ($uangPhk && $uangPhk->keterangan) {
-            $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
-        }
-        $si->getRowDimension($bar)->setRowHeight(14.0);
-
-        $bar++; // 20: spacer
-        $si->getRowDimension($bar)->setRowHeight(14.0);
-
-        // Slot 4 onwards: Penghargaan Masa Kerja, Kompensasi, UANG PISAH, Penggantian Hak, Lain-lain
+        // Slot lanjutan A. Penghasilan: Penghargaan Masa Kerja, Kompensasi, UANG PISAH, Penggantian Hak, Lembur, Medical, THR, Bonus, Insentif, Telkomsel & Lain-lain
         $itemsLeft = [];
         if ($uangPhk && $uangPhk->masa_kerja > 0) {
             $itemsLeft[] = [
@@ -286,55 +218,324 @@ class SpreadSlipPhkController extends Controller
                 'subtext' => null,
             ];
         }
-        // Uang Penggantian Hak
-        $subtextCuti = ($uangPhk && $uangPhk->sisa_cuti_hari > 0) ? '(Sisa Cuti = ' . $uangPhk->sisa_cuti_hari . ' hari)' : null;
-        $itemsLeft[] = [
-            'label' => 'Uang Penggantian Hak',
-            'nominal' => ($uangPhk && $uangPhk->sisa_cuti_jumlah > 0) ? $uangPhk->sisa_cuti_jumlah : 0,
-            'subtext' => $subtextCuti,
-        ];
-        // Lain-lain di bawah Uang Penggantian Hak (sembunyikan jika nilainya 0)
-        if ($uangPhk && $uangPhk->lain > 0) {
-            $ketLainStr = !empty($uangPhk->ket_lain) ? ' (' . $uangPhk->ket_lain . ')' : '';
+        // Uang Penggantian Hak (muncul jika memiliki nilai > 0)
+        $nominalPenggantianHak = ($uangPhk && $uangPhk->sisa_cuti_jumlah > 0)
+            ? $uangPhk->sisa_cuti_jumlah
+            : (($uangPhk && $uangPhk->penggantian_hak > 0) ? $uangPhk->penggantian_hak : 0);
+        if ($nominalPenggantianHak > 0) {
+            $subtextCuti = ($uangPhk && $uangPhk->sisa_cuti_hari > 0) ? '(Sisa Cuti = ' . $uangPhk->sisa_cuti_hari . ' hari)' : null;
             $itemsLeft[] = [
-                'label' => 'Lain-lain' . $ketLainStr,
-                'nominal' => $uangPhk->lain,
+                'label' => 'Uang Penggantian Hak',
+                'nominal' => $nominalPenggantianHak,
+                'subtext' => $subtextCuti,
+            ];
+        }
+
+        // Lembur/Overtime (di bawah Uang Penggantian Hak)
+        $valOvertime = $payrollPhk ? ((float)$payrollPhk->overtime_fjg + (float)$payrollPhk->overtime_cus) : 0;
+        if ($valOvertime > 0) {
+            $itemsLeft[] = [
+                'label' => 'Lembur/Overtime',
+                'nominal' => $valOvertime,
                 'subtext' => null,
             ];
         }
 
+        // Reimbursement Medical
+        $valMedical = $payrollPhk ? (float)$payrollPhk->medical : 0;
+        if ($valMedical > 0) {
+            $itemsLeft[] = [
+                'label' => 'Reimbursement Medical',
+                'nominal' => $valMedical,
+                'subtext' => null,
+            ];
+        }
+
+        // Tunjangan Hari Raya
+        $valThr = $payrollPhk ? (float)$payrollPhk->thr : 0;
+        if ($valThr > 0) {
+            $itemsLeft[] = [
+                'label' => 'Tunjangan Hari Raya',
+                'nominal' => $valThr,
+                'subtext' => null,
+            ];
+        }
+
+        // Bonus & Insentif
+        $valBonus = $payrollPhk ? (float)$payrollPhk->bonus : 0;
+        $valInsentif = $payrollPhk ? (float)$payrollPhk->insentif : 0;
+        if ($valBonus > 0 && $valInsentif > 0) {
+            $itemsLeft[] = [
+                'label' => 'Bonus & Insentif',
+                'nominal' => $valBonus + $valInsentif,
+                'subtext' => null,
+            ];
+        } elseif ($valBonus > 0) {
+            $itemsLeft[] = [
+                'label' => 'Bonus',
+                'nominal' => $valBonus,
+                'subtext' => null,
+            ];
+        } elseif ($valInsentif > 0) {
+            $itemsLeft[] = [
+                'label' => 'Insentif',
+                'nominal' => $valInsentif,
+                'subtext' => null,
+            ];
+        }
+
+        // Padukan Lain-Lain ($keterangan) dengan Telkomsel
+        $valTelkomsel = $payrollPhk ? (float)$payrollPhk->telkomsel : 0;
+        $valLain = ($uangPhk && (float)$uangPhk->lain > 0) ? (float)$uangPhk->lain : (($payrollPhk && (float)$payrollPhk->lain > 0) ? (float)$payrollPhk->lain : 0);
+        $ketLain = ($uangPhk && !empty($uangPhk->ket_lain)) ? $uangPhk->ket_lain : (($payrollPhk && !empty($payrollPhk->keterangan)) ? $payrollPhk->keterangan : '');
+        $ketLainStr = !empty($ketLain) ? ' (' . $ketLain . ')' : '';
+
+        if ($valTelkomsel > 0 && $valLain > 0) {
+            $itemsLeft[] = [
+                'label' => 'Telkomsel & Lain-lain' . $ketLainStr,
+                'nominal' => $valTelkomsel + $valLain,
+                'subtext' => null,
+            ];
+        } elseif ($valTelkomsel > 0) {
+            $itemsLeft[] = [
+                'label' => 'Telkomsel',
+                'nominal' => $valTelkomsel,
+                'subtext' => null,
+            ];
+        } elseif ($valLain > 0) {
+            $itemsLeft[] = [
+                'label' => 'Lain-lain' . $ketLainStr,
+                'nominal' => $valLain,
+                'subtext' => null,
+            ];
+        }
+
+        // Slot lanjutan B. Potongan: Keterlambatan Kehadiran 25%, Pemakaian Telepon/Telkomsel, BPJS Kesehatan, Pemakaian Bensin, Kompensasi Hadir, Lain-lain
+        $itemsRight = [];
+
+        // Keterlambatan Kehadiran 25%
+        $valPot25Jumlah = $payrollPhk ? (float)$payrollPhk->pot_25_jumlah : 0;
+        $valPot25Hari = $payrollPhk ? (float)$payrollPhk->pot_25_hari : 0;
+        if ($valPot25Jumlah > 0) {
+            $hari25Str = ((float)$valPot25Hari == (int)$valPot25Hari) ? (int)$valPot25Hari : (float)$valPot25Hari;
+            $itemsRight[] = [
+                'label' => 'Keterlambatan Kehadiran 25%' . ($valPot25Hari > 0 ? ' x ' . $hari25Str . ' HR' : ''),
+                'nominal' => $valPot25Jumlah,
+            ];
+        }
+
+        // Pemakaian Telepon/Telkomsel
+        $valPotTelepon = $payrollPhk ? (float)$payrollPhk->pot_telepon : 0;
+        if ($valPotTelepon > 0) {
+            $itemsRight[] = [
+                'label' => 'Pemakaian Telepon/Telkomsel',
+                'nominal' => $valPotTelepon,
+            ];
+        }
+
+        // BPJS Kesehatan
+        $valPotBpjs = $payrollPhk ? (float)$payrollPhk->pot_bpjs : 0;
+        if ($valPotBpjs > 0) {
+            $itemsRight[] = [
+                'label' => 'BPJS Kesehatan',
+                'nominal' => $valPotBpjs,
+            ];
+        }
+
+        // Pemakaian Bensin
+        $valPotBensin = $payrollPhk ? (float)$payrollPhk->pot_bensin : 0;
+        if ($valPotBensin > 0) {
+            $itemsRight[] = [
+                'label' => 'Pemakaian Bensin',
+                'nominal' => $valPotBensin,
+            ];
+        }
+
+        // Kompensasi Hadir
+        $valPotKompensasiJumlah = $payrollPhk ? (float)$payrollPhk->pot_kompensasi_jumlah : 0;
+        $valPotKompensasiJam = $payrollPhk ? (float)$payrollPhk->pot_kompensasi_jam : 0;
+        if ($valPotKompensasiJumlah > 0) {
+            $jamStr = ((float)$valPotKompensasiJam == (int)$valPotKompensasiJam) ? (int)$valPotKompensasiJam : (float)$valPotKompensasiJam;
+            $itemsRight[] = [
+                'label' => 'Kompensasi Hadir' . ($valPotKompensasiJam > 0 ? ' x ' . $jamStr . ' Jam' : ''),
+                'nominal' => $valPotKompensasiJumlah,
+            ];
+        }
+
         // Potongan Lain-lain
-        $potLainLabel = ($uangPhk && $uangPhk->pot_lain > 0 && !empty($uangPhk->ket_pot_lain))
-            ? 'Lain-lain (' . $uangPhk->ket_pot_lain . ')'
-            : 'Lain-lain';
-        $potLainVal = ($uangPhk && $uangPhk->pot_lain > 0) ? $uangPhk->pot_lain : 0;
-        $potLainRendered = false;
+        $valPotLain = ($uangPhk && (float)$uangPhk->pot_lain > 0) ? (float)$uangPhk->pot_lain : (($payrollPhk && (float)$payrollPhk->pot_lain > 0) ? (float)$payrollPhk->pot_lain : 0);
+        $ketPotLain = ($uangPhk && !empty($uangPhk->ket_pot_lain)) ? $uangPhk->ket_pot_lain : '';
+        if ($valPotLain > 0) {
+            $potLainLabel = !empty($ketPotLain) ? 'Lain-lain (' . $ketPotLain . ')' : 'Lain-lain';
+            $itemsRight[] = [
+                'label' => $potLainLabel,
+                'nominal' => $valPotLain,
+            ];
+        }
 
-        foreach ($itemsLeft as $idx => $item) {
-            if ($idx > 0) {
-                $bar++; // 1 baris kosong pemisah
-                $si->getRowDimension($bar)->setRowHeight(14.0);
-            }
+        $valPotKas = ($uangPhk && (float)$uangPhk->pot_kas > 0) ? (float)$uangPhk->pot_kas : (($payrollPhk && (float)$payrollPhk->pot_kas > 0) ? (float)$payrollPhk->pot_kas : 0);
+        $valPotCicilan = ($uangPhk && (float)$uangPhk->pot_cicilan > 0) ? (float)$uangPhk->pot_cicilan : (($payrollPhk && (float)$payrollPhk->pot_cicilan > 0) ? (float)$payrollPhk->pot_cicilan : 0);
+        $valPotCutiHari = ($uangPhk && (float)$uangPhk->pot_cuti_hari > 0) ? (float)$uangPhk->pot_cuti_hari : (($payrollPhk && (float)$payrollPhk->pot_cuti_hari > 0) ? (float)$payrollPhk->pot_cuti_hari : 0);
+        $valPotCutiJumlah = ($uangPhk && (float)$uangPhk->pot_cuti_jumlah > 0) ? (float)$uangPhk->pot_cuti_jumlah : (($payrollPhk && (float)$payrollPhk->pot_cuti_jumlah > 0) ? (float)$payrollPhk->pot_cuti_jumlah : 0);
+        $hariCutiStr = ((float)$valPotCutiHari == (int)$valPotCutiHari) ? (int)$valPotCutiHari : (float)$valPotCutiHari;
+        $labelUnpaidLeave = 'Unpaid Leave / Cuti Bersama' . ($valPotCutiHari > 0 ? ' x ' . $hariCutiStr . ' HR' : '');
 
-            $bar++;
-            $si->setCellValue('A' . $bar, $item['label']);
-            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
-            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
-            $si->setCellValue('E' . $bar, $item['nominal']);
+        $bar = 13;
+        // Row 13: Gaji Pokok & Pinjaman Kas
+        $si->setCellValue('A' . $bar, $labelGaji);
+        $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->gaji > 0) ? $payrollPhk->gaji : 0);
+
+        $si->setCellValue('G' . $bar, 'Pinjaman Kas');
+        $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+        $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+        $si->setCellValue('I' . $bar, $valPotKas > 0 ? $valPotKas : 0);
+        $si->getRowDimension($bar)->setRowHeight(16.75);
+
+        // Kenaikan Gaji (dibawah Gaji Pokok, muncul jika memiliki nilai > 0)
+        $valKenaikanGaji = $payrollPhk ? (float)$payrollPhk->kenaikan_gaji : 0;
+        if ($valKenaikanGaji > 0) {
+            $bar++; // space kosong antara Gaji Pokok dan Kenaikan Gaji (Row 14)
             $si->getRowDimension($bar)->setRowHeight(14.0);
 
-            if (!$potLainRendered) {
-                $si->setCellValue('G' . $bar, $potLainLabel);
+            $bar++; // Row 15: Kenaikan Gaji & Pinjaman Cicilan
+            $si->setCellValue('A' . $bar, 'Kenaikan Gaji');
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, $valKenaikanGaji);
+
+            $si->setCellValue('G' . $bar, 'Pinjaman Cicilan');
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, $valPotCicilan > 0 ? $valPotCicilan : 0);
+            $si->getRowDimension($bar)->setRowHeight(16.75);
+
+            $bar++; // space kosong sebelum U/Makan & Transportasi (Row 16)
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // Row 17: U/Makan & Transportasi & Unpaid Leave / Cuti Bersama
+            $si->setCellValue('A' . $bar, 'U/Makan & Transportasi');
+            if ($payrollPhk && $payrollPhk->hari_makan > 0) {
+                $harianFormatted = number_format($payrollPhk->uang_makan_harian, 0, ',', '.');
+                $si->setCellValue('C' . $bar, $harianFormatted . ' x ' . $payrollPhk->hari_makan . ' HR');
+                $si->getStyle('C' . $bar)->getAlignment()->setHorizontal('right');
+            }
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->uang_makan_jumlah > 0) ? $payrollPhk->uang_makan_jumlah : 0);
+
+            $si->setCellValue('G' . $bar, $labelUnpaidLeave);
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, $valPotCutiJumlah > 0 ? $valPotCutiJumlah : 0);
+            $si->getRowDimension($bar)->setRowHeight(19.75);
+
+            $bar++; // Sub-text U/Makan (Row 18)
+            $si->setCellValue('A' . $bar, $labelMakan);
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // spacer (Row 19)
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // Row 20: Uang Pesangon & potongan lanjutan pertama
+            $si->setCellValue('A' . $bar, 'Uang Pesangon');
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, ($uangPhk && $uangPhk->pesangon > 0) ? $uangPhk->pesangon : 0);
+
+            if (count($itemsRight) > 0) {
+                $firstR = array_shift($itemsRight);
+                $si->setCellValue('G' . $bar, $firstR['label']);
                 $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
                 $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
-                $si->setCellValue('I' . $bar, $potLainVal);
-                $potLainRendered = true;
+                $si->setCellValue('I' . $bar, $firstR['nominal']);
             }
+            $si->getRowDimension($bar)->setRowHeight(14.0);
 
-            if ($item['subtext']) {
-                $bar++;
-                $si->setCellValue('A' . $bar, $item['subtext']);
+            if ($uangPhk && $uangPhk->keterangan) {
+                $bar++; // Sub-text Pesangon
+                $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
                 $si->getRowDimension($bar)->setRowHeight(14.0);
+            }
+        } else {
+            // Tanpa Kenaikan Gaji
+            $bar++; // space kosong sebelum U/Makan & Transportasi (Row 14)
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // Row 15: U/Makan & Transportasi & Pinjaman Cicilan
+            $si->setCellValue('A' . $bar, 'U/Makan & Transportasi');
+            if ($payrollPhk && $payrollPhk->hari_makan > 0) {
+                $harianFormatted = number_format($payrollPhk->uang_makan_harian, 0, ',', '.');
+                $si->setCellValue('C' . $bar, $harianFormatted . ' x ' . $payrollPhk->hari_makan . ' HR');
+                $si->getStyle('C' . $bar)->getAlignment()->setHorizontal('right');
+            }
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, ($payrollPhk && $payrollPhk->uang_makan_jumlah > 0) ? $payrollPhk->uang_makan_jumlah : 0);
+
+            $si->setCellValue('G' . $bar, 'Pinjaman Cicilan');
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, $valPotCicilan > 0 ? $valPotCicilan : 0);
+            $si->getRowDimension($bar)->setRowHeight(19.75);
+
+            $bar++; // Sub-text U/Makan (Row 16)
+            $si->setCellValue('A' . $bar, $labelMakan);
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // spacer (Row 17)
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            $bar++; // Row 18: Uang Pesangon & Unpaid Leave / Cuti Bersama
+            $si->setCellValue('A' . $bar, 'Uang Pesangon');
+            $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('E' . $bar, ($uangPhk && $uangPhk->pesangon > 0) ? $uangPhk->pesangon : 0);
+
+            $si->setCellValue('G' . $bar, $labelUnpaidLeave);
+            $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+            $si->setCellValue('I' . $bar, $valPotCutiJumlah > 0 ? $valPotCutiJumlah : 0);
+            $si->getRowDimension($bar)->setRowHeight(14.0);
+
+            if ($uangPhk && $uangPhk->keterangan) {
+                $bar++; // Sub-text Pesangon
+                $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
+                $si->getRowDimension($bar)->setRowHeight(14.0);
+            }
+        }
+
+        $numSlots = max(count($itemsLeft), count($itemsRight));
+        if ($numSlots > 0) {
+            for ($idx = 0; $idx < $numSlots; $idx++) {
+                $bar++; // 1 baris kosong pemisah antar item
+                $si->getRowDimension($bar)->setRowHeight(14.0);
+
+                $bar++;
+                $si->getRowDimension($bar)->setRowHeight(14.0);
+
+                if (isset($itemsLeft[$idx])) {
+                    $itemL = $itemsLeft[$idx];
+                    $si->setCellValue('A' . $bar, $itemL['label']);
+                    $si->setCellValueExplicit('D' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $si->getStyle('D' . $bar)->getAlignment()->setHorizontal('center');
+                    $si->setCellValue('E' . $bar, $itemL['nominal']);
+                }
+
+                if (isset($itemsRight[$idx])) {
+                    $itemR = $itemsRight[$idx];
+                    $si->setCellValue('G' . $bar, $itemR['label']);
+                    $si->setCellValueExplicit('H' . $bar, '=', \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+                    $si->getStyle('H' . $bar)->getAlignment()->setHorizontal('center');
+                    $si->setCellValue('I' . $bar, $itemR['nominal']);
+                }
+
+                if (isset($itemsLeft[$idx]) && !empty($itemsLeft[$idx]['subtext'])) {
+                    $bar++;
+                    $si->setCellValue('A' . $bar, $itemsLeft[$idx]['subtext']);
+                    $si->getRowDimension($bar)->setRowHeight(14.0);
+                }
             }
         }
 
