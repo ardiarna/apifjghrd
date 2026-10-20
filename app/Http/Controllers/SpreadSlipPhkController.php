@@ -60,13 +60,13 @@ class SpreadSlipPhkController extends Controller
         // Column Dimensions (exact pixels requested)
         $si->getColumnDimension('A')->setWidth(12);
         $si->getColumnDimension('B')->setWidth(9.196875);
-        $si->getColumnDimension('C')->setWidth(18.3984375);
-        $si->getColumnDimension('D')->setWidth(3.196875);
-        $si->getColumnDimension('E')->setWidth(15.796875);
-        $si->getColumnDimension('F')->setWidth(8.596875);
-        $si->getColumnDimension('G')->setWidth(40.2);
-        $si->getColumnDimension('H')->setWidth(3.9984375);
-        $si->getColumnDimension('I')->setWidth(21.796875);
+        $si->getColumnDimension('C')->setWidth(15.33203125);
+        $si->getColumnDimension('D')->setWidth(3.33203125);
+        $si->getColumnDimension('E')->setWidth(18.1640625);
+        $si->getColumnDimension('F')->setWidth(7.1640625);
+        $si->getColumnDimension('G')->setWidth(33.5);
+        $si->getColumnDimension('H')->setWidth(3.33203125);
+        $si->getColumnDimension('I')->setWidth(18.1640625);
 
         // Row Heights
         $rowHeights = [
