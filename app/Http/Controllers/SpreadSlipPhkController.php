@@ -20,14 +20,14 @@ use Illuminate\Http\Request;
 
 class SpreadSlipPhkController extends Controller
 {
-    public function cetak($karyawan_id) {
+    public function buildSpreadsheet($karyawan_id) {
         $karyawan = Karyawan::with(['phk.uangPhk', 'phk.payrollPhk', 'divisi', 'jabatan', 'area', 'upah'])->find($karyawan_id);
         if (!$karyawan) {
-            return response()->json(['status' => false, 'message' => 'Data Karyawan tidak ditemukan']);
+            return ['status' => false, 'message' => 'Data Karyawan tidak ditemukan'];
         }
 
         if (!$karyawan->phk_id) {
-            return response()->json(['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif']);
+            return ['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif'];
         }
 
         $phk = Phk::with(['uangPhk', 'payrollPhk'])->find($karyawan->phk_id);
@@ -41,7 +41,7 @@ class SpreadSlipPhkController extends Controller
                 ->first();
 
         if (!$uangPhk) {
-            return response()->json(['status' => false, 'message' => 'Data Uang PHK tidak ditemukan']);
+            return ['status' => false, 'message' => 'Data Uang PHK tidak ditemukan'];
         }
 
         $spreadsheet = new Spreadsheet();
@@ -53,6 +53,11 @@ class SpreadSlipPhkController extends Controller
         $si->getPageSetup()->setFitToPage(true);
         $si->getPageSetup()->setFitToWidth(1);
         $si->getPageSetup()->setFitToHeight(0);
+
+        $si->getPageMargins()->setTop(0.15748);
+        $si->getPageMargins()->setBottom(0.15748);
+        $si->getPageMargins()->setLeft(0.3937);
+        $si->getPageMargins()->setRight(0.3937);
 
         // Default Font: Ebrima 10 Bold
         $spreadsheet->getDefaultStyle()->getFont()->setName('Ebrima')->setSize(10)->setBold(true);
@@ -84,6 +89,10 @@ class SpreadSlipPhkController extends Controller
         $si->mergeCells('B5:G5');
         $si->mergeCells('A6:I6');
         $si->mergeCells('A7:I7');
+        $si->mergeCells('A8:B8');
+        $si->mergeCells('A9:B9');
+        $si->mergeCells('A10:B10');
+        $si->mergeCells('A11:B11');
 
         // Header Company Info
         $si->setCellValue('B3', 'PT.FRATEKINDO JAYA GEMILANG');
@@ -585,7 +594,7 @@ class SpreadSlipPhkController extends Controller
         // Note & Signatures
         $noteBar = $bersihBar + 1;
         $si->setCellValue('A' . $noteBar, 'Note :');
-        $si->getStyle('A' . $noteBar)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true)->setUnderline(true);
+        $si->getStyle('A' . $noteBar)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true)->setUnderline(true)->getColor()->setARGB('0070C0');
 
         $si->setCellValue('I' . $noteBar, 'Head of HR Dept.');
         $si->getStyle('I' . $noteBar)->getFont()->setName('Gisha')->setSize(10)->setBold(true);
@@ -604,7 +613,7 @@ class SpreadSlipPhkController extends Controller
 
         $si->mergeCells('A' . $startNoteRow . ':G' . $endNoteRow);
         $si->setCellValue('A' . $startNoteRow, $noteContent);
-        $si->getStyle('A' . $startNoteRow)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->getStyle('A' . $startNoteRow)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true)->getColor()->setARGB('0070C0');
         $si->getStyle('A' . $startNoteRow)->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_LEFT)
             ->setVertical(Alignment::VERTICAL_TOP)
@@ -634,6 +643,25 @@ class SpreadSlipPhkController extends Controller
         // Number Formats
         $si->getStyle('E13:E' . $totalBar)->getNumberFormat()->setFormatCode('#,##0');
         $si->getStyle('I13:I' . $bersihBar)->getNumberFormat()->setFormatCode('#,##0');
+
+        // Merge cells for clean rendering in both Excel and PDF
+        $si->mergeCells('C8:I8');
+        $si->mergeCells('C9:I9');
+        $si->mergeCells('C10:I10');
+        $si->mergeCells('C11:I11');
+        $si->mergeCells('A12:E12');
+        $si->mergeCells('G12:I12');
+
+        for ($r = 13; $r < $totalBar; $r++) {
+            $valA = $si->getCell('A' . $r)->getValue();
+            $valC = $si->getCell('C' . $r)->getValue();
+            $valD = $si->getCell('D' . $r)->getValue();
+            if (!empty($valA) && empty($valC) && ($valD === '=' || empty($valD))) {
+                $si->mergeCells('A' . $r . ':C' . $r);
+            } elseif (!empty($valA) && !empty($valC)) {
+                $si->mergeCells('A' . $r . ':B' . $r);
+            }
+        }
 
         // Drawings
         if (file_exists(public_path('images/logo_fjg.jpg'))) {
@@ -665,6 +693,22 @@ class SpreadSlipPhkController extends Controller
             $drawing3->setOffsetY(7);
             $drawing3->setWorksheet($si);
         }
+
+        return [
+            'status' => true,
+            'spreadsheet' => $spreadsheet,
+            'karyawan' => $karyawan
+        ];
+    }
+
+    public function cetak($karyawan_id) {
+        $result = $this->buildSpreadsheet($karyawan_id);
+        if (!$result['status']) {
+            return response()->json(['status' => false, 'message' => $result['message']]);
+        }
+
+        $karyawan = $result['karyawan'];
+        $spreadsheet = $result['spreadsheet'];
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         header('Content-Disposition: attachment;filename="SLIP_PHK_'.str_replace(' ', '_', $karyawan->nama). '.xlsx"');
