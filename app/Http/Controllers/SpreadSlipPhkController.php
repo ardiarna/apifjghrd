@@ -7,6 +7,7 @@ use App\Models\Phk;
 use App\Models\UangPhk;
 use App\Models\PayrollPhk;
 use App\Models\Upah;
+use App\Models\Note;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
@@ -591,24 +592,33 @@ class SpreadSlipPhkController extends Controller
         $si->getStyle('I' . $noteBar)->getAlignment()->setHorizontal('center');
         $si->getRowDimension($noteBar)->setRowHeight(16.75);
 
-        $si->setCellValue('A' . ($noteBar + 1), 'Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &');
-        $si->getStyle('A' . ($noteBar + 1))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
-        $si->getRowDimension($noteBar + 1)->setRowHeight(15.0);
+        $startNoteRow = $noteBar + 1;
+        $endNoteRow = $noteBar + 4;
+        $lastBoxRow = $endNoteRow;
 
-        $si->setCellValue('A' . ($noteBar + 2), 'tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan');
-        $si->getStyle('A' . ($noteBar + 2))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
-        $si->getRowDimension($noteBar + 2)->setRowHeight(15.0);
+        $dbNote = Note::where('kode', 'NOTE_SLIP_PHK')->first();
+        $defaultNote = "Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &\n" .
+            "tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan\n" .
+            "serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI";
+        $noteContent = ($dbNote && !empty($dbNote->teks)) ? $dbNote->teks : $defaultNote;
 
-        $si->setCellValue('A' . ($noteBar + 3), 'serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI');
-        $si->getStyle('A' . ($noteBar + 3))->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->mergeCells('A' . $startNoteRow . ':G' . $endNoteRow);
+        $si->setCellValue('A' . $startNoteRow, $noteContent);
+        $si->getStyle('A' . $startNoteRow)->getFont()->setName('Malgun Gothic')->setSize(10)->setBold(true);
+        $si->getStyle('A' . $startNoteRow)->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_LEFT)
+            ->setVertical(Alignment::VERTICAL_TOP)
+            ->setWrapText(true);
+
+        $si->getRowDimension($startNoteRow)->setRowHeight(15.0);
+        $si->getRowDimension($startNoteRow + 1)->setRowHeight(15.0);
+        $si->getRowDimension($startNoteRow + 2)->setRowHeight(15.0);
+        $si->getRowDimension($startNoteRow + 3)->setRowHeight(15.0);
 
         $si->setCellValue('I' . ($noteBar + 3), 'Sri Erni.S');
         $si->getStyle('I' . ($noteBar + 3))->getFont()->setName('Gisha')->setSize(10)->setBold(true);
         $si->getStyle('I' . ($noteBar + 3))->getAlignment()->setHorizontal('center');
-        $si->getRowDimension($noteBar + 3)->setRowHeight(15.0);
 
-        $lastBoxRow = $noteBar + 4;
-        $si->getRowDimension($lastBoxRow)->setRowHeight(15.0);
         $si->getStyle('A' . $lastBoxRow . ':I' . $lastBoxRow)->getBorders()->getBottom()->setBorderStyle(Border::BORDER_THIN);
 
         // Outer borders for the table box

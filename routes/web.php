@@ -125,6 +125,13 @@ $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function ()
     $router->delete('{karyawan_id}/upah', 'UpahController@deleteByKaryawanId');
 });
 
+$router->group(['prefix' => 'note', 'middleware' => 'auth:api'], function () use ($router) {
+    $router->get('/', 'NoteController@findAll');
+    $router->get('{id}', 'NoteController@findById');
+    $router->get('kode/{kode}', 'NoteController@findByKode');
+    $router->put('{id}', 'NoteController@update');
+});
+
 $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'MedicalController@findAll');
     $router->get('{id}', 'MedicalController@findById');

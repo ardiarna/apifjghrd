@@ -60,5 +60,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('App\Repositories\CicJatahCutiTahunanRepository', 'App\Repositories\Elo\CicJatahCutiTahunanImplement');
         $this->app->bind('App\Repositories\JenisCutiKhususRepository', 'App\Repositories\Elo\JenisCutiKhususImplement');
         $this->app->bind('App\Repositories\CicJenisCutiKhususRepository', 'App\Repositories\Elo\CicJenisCutiKhususImplement');
+        $this->app->bind('App\Repositories\NoteRepository', 'App\Repositories\Elo\NoteImplement');
     }
 }
