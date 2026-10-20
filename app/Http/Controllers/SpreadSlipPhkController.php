@@ -453,9 +453,9 @@ class SpreadSlipPhkController extends Controller
             }
             $si->getRowDimension($bar)->setRowHeight(14.0);
 
-            if ($uangPhk && $uangPhk->keterangan) {
+            if ($uangPhk && !empty(trim($uangPhk->ket_pesangon ?? ''))) {
                 $bar++; // Sub-text Pesangon
-                $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
+                $si->setCellValue('A' . $bar, '(' . trim($uangPhk->ket_pesangon) . ')');
                 $si->getRowDimension($bar)->setRowHeight(14.0);
             }
         } else {
@@ -499,9 +499,9 @@ class SpreadSlipPhkController extends Controller
             $si->setCellValue('I' . $bar, $valPotCutiJumlah > 0 ? $valPotCutiJumlah : 0);
             $si->getRowDimension($bar)->setRowHeight(14.0);
 
-            if ($uangPhk && $uangPhk->keterangan) {
+            if ($uangPhk && !empty(trim($uangPhk->ket_pesangon ?? ''))) {
                 $bar++; // Sub-text Pesangon
-                $si->setCellValue('A' . $bar, '(' . $uangPhk->keterangan . ')');
+                $si->setCellValue('A' . $bar, '(' . trim($uangPhk->ket_pesangon) . ')');
                 $si->getRowDimension($bar)->setRowHeight(14.0);
             }
         }

@@ -10,7 +10,7 @@ class UangPhk extends Model
 {
 
     protected $fillable = [
-        'karyawan_id', 'tahun', 'kompensasi', 'uang_pisah', 'pesangon', 'masa_kerja', 'penggantian_hak', 'sisa_cuti_hari', 'sisa_cuti_jumlah', 'lain', 'pot_kas', 'pot_cicilan', 'pot_cuti_hari', 'pot_cuti_jumlah', 'pot_lain', 'keterangan', 'ket_lain', 'ket_pot_lain'
+        'karyawan_id', 'tahun', 'kompensasi', 'uang_pisah', 'pesangon', 'masa_kerja', 'penggantian_hak', 'sisa_cuti_hari', 'sisa_cuti_jumlah', 'lain', 'pot_kas', 'pot_cicilan', 'pot_cuti_hari', 'pot_cuti_jumlah', 'pot_lain', 'keterangan', 'ket_pesangon', 'ket_lain', 'ket_pot_lain'
     ];
 
     public function karyawan(): BelongsTo {

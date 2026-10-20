@@ -67,6 +67,7 @@ class UangPhkController extends Controller
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['ket_pesangon'] = $req->input('ket_pesangon');
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->create($inputs);
@@ -114,6 +115,7 @@ class UangPhkController extends Controller
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['ket_pesangon'] = $req->input('ket_pesangon');
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->update($id, $inputs);
