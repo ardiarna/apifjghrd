@@ -200,10 +200,10 @@ class PdfSlipPhkController extends Controller
             ];
         }
 
-        // Padukan Lain-Lain ($keterangan) dengan Telkomsel
+        // Padukan Lain-Lain ($ketLain) dengan Telkomsel
         $valTelkomsel = $payrollPhk ? (float)$payrollPhk->telkomsel : 0;
         $valLain = ($uangPhk && (float)$uangPhk->lain > 0) ? (float)$uangPhk->lain : (($payrollPhk && (float)$payrollPhk->lain > 0) ? (float)$payrollPhk->lain : 0);
-        $ketLain = ($uangPhk && !empty($uangPhk->ket_lain)) ? $uangPhk->ket_lain : (($payrollPhk && !empty($payrollPhk->keterangan)) ? $payrollPhk->keterangan : '');
+        $ketLain = ($uangPhk && !empty($uangPhk->ket_lain)) ? $uangPhk->ket_lain : '';
         $ketLainStr = !empty($ketLain) ? ' (' . $ketLain . ')' : '';
 
         if ($valTelkomsel > 0 && $valLain > 0) {
