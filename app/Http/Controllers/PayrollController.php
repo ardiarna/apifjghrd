@@ -123,6 +123,8 @@ class PayrollController extends Controller
             'payrolls.*.pot_kompensasi_jumlah' => 'required|numeric',
             'payrolls.*.pot_lain' => 'required|numeric',
             'payrolls.*.total_diterima' => 'required|numeric',
+            'payrolls.*.keterangan' => 'nullable|string',
+            'payrolls.*.note' => 'nullable|string',
         ]);
         $inputs = $req->only(['tanggal_awal', 'tanggal_akhir', 'tahun', 'bulan']);
         $inputs['keterangan'] = $req->input('keterangan');
@@ -198,6 +200,8 @@ class PayrollController extends Controller
             'pot_kompensasi_jumlah' => 'numeric',
             'pot_lain' => 'numeric',
             'total_diterima' => 'numeric',
+            'keterangan' => 'nullable|string',
+            'note' => 'nullable|string',
         ]);
         $inputs['payroll_header_id'] = $header_id;
         $inputs['karyawan_id'] = $req->input('karyawan_id');
@@ -230,6 +234,7 @@ class PayrollController extends Controller
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['total_diterima'] = $req->input('total_diterima');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['note'] = $req->input('note');
         $inputs['makan_tgl_awal'] = $req->input('makan_tgl_awal') ?: null;
         $inputs['makan_tgl_akhir'] = $req->input('makan_tgl_akhir') ?: null;
         $data = $this->repo->update($id, $inputs);

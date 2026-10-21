@@ -342,6 +342,34 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('K'.$bar.':O'.$bar)->getAlignment()->setHorizontal('center');
             $si->getRowDimension($bar)->setRowHeight(17);
 
+            $headBar = $bar;
+            $note = !empty($d->note) ? trim($d->note) : '';
+            $noteRowHeight = 17;
+            if (!empty($note)) {
+                $si->setCellValue('A' . $headBar, 'Note :');
+                $si->getStyle('A' . $headBar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
+
+                $startNoteRow = $headBar + 1;
+                $endNoteRow = $headBar + 4;
+                $si->mergeCells('A' . $startNoteRow . ':J' . $endNoteRow);
+                $si->setCellValue('A' . $startNoteRow, $note);
+                $si->getStyle('A' . $startNoteRow)->getFont()->setSize(8.5)->getColor()->setARGB('0070C0');
+                $si->getStyle('A' . $startNoteRow)->getAlignment()
+                    ->setHorizontal('left')
+                    ->setVertical('top')
+                    ->setWrapText(TRUE);
+
+                $rawLines = explode("\n", str_replace(["\r\n", "\r"], "\n", $note));
+                $totalVisualLines = 0;
+                $maxCharsPerLine = 75;
+                foreach ($rawLines as $l) {
+                    $len = mb_strlen($l);
+                    $totalVisualLines += ($len > 0) ? (int)ceil($len / $maxCharsPerLine) : 1;
+                }
+                $neededTotalHeight = max(68, ($totalVisualLines * 12.5) + 6);
+                $noteRowHeight = max(17, $neededTotalHeight / 4);
+            }
+
             $drawing = new Drawing();
             $drawing->setPath(public_path('images/stempel_fjg.png'));
             $drawing->setHeight(61.44);
@@ -359,18 +387,18 @@ class SpreadSlipGajiController extends Controller
             $drawing->setWorksheet($si);
 
             $bar++;
-            $si->getRowDimension($bar)->setRowHeight(17);
+            $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
             $bar++;
-            $si->getRowDimension($bar)->setRowHeight(17);
+            $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
             $bar++;
             $si->setCellValue('K'.$bar, 'Sri Erni.S');
             $si->mergeCells('K'.$bar.':O'.$bar);
             $si->getStyle('K'.$bar.':O'.$bar)->getFont()->setName('Gisha');
             $si->getStyle('K'.$bar.':O'.$bar)->getAlignment()->setHorizontal('center');
-            $si->getRowDimension($bar)->setRowHeight(17);
+            $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
             $bar++;
             $si->getStyle('A'.($bar-26).':P'.$bar)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getRowDimension($bar)->setRowHeight(17);
+            $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
             $bar++;
             $si->getStyle('C1:C'.$bar)->getNumberFormat()->setFormatCode('#,##0');
             $si->getStyle('H1:H'.$bar)->getNumberFormat()->setFormatCode('#,##0');
@@ -694,6 +722,34 @@ class SpreadSlipGajiController extends Controller
                 $si->getStyle('K'.$bar.':O'.$bar)->getAlignment()->setHorizontal('center');
                 $si->getRowDimension($bar)->setRowHeight(17);
 
+                $headBar = $bar;
+                $note = !empty($d->note) ? trim($d->note) : '';
+                $noteRowHeight = 17;
+                if (!empty($note)) {
+                    $si->setCellValue('A' . $headBar, 'Note :');
+                    $si->getStyle('A' . $headBar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
+
+                    $startNoteRow = $headBar + 1;
+                    $endNoteRow = $headBar + 4;
+                    $si->mergeCells('A' . $startNoteRow . ':J' . $endNoteRow);
+                    $si->setCellValue('A' . $startNoteRow, $note);
+                    $si->getStyle('A' . $startNoteRow)->getFont()->setSize(8.5)->getColor()->setARGB('0070C0');
+                    $si->getStyle('A' . $startNoteRow)->getAlignment()
+                        ->setHorizontal('left')
+                        ->setVertical('top')
+                        ->setWrapText(TRUE);
+
+                    $rawLines = explode("\n", str_replace(["\r\n", "\r"], "\n", $note));
+                    $totalVisualLines = 0;
+                    $maxCharsPerLine = 75;
+                    foreach ($rawLines as $l) {
+                        $len = mb_strlen($l);
+                        $totalVisualLines += ($len > 0) ? (int)ceil($len / $maxCharsPerLine) : 1;
+                    }
+                    $neededTotalHeight = max(68, ($totalVisualLines * 12.5) + 6);
+                    $noteRowHeight = max(17, $neededTotalHeight / 4);
+                }
+
                 $drawing = new Drawing();
                 $drawing->setPath(public_path('images/stempel_fjg.png'));
                 $drawing->setHeight(61.44);
@@ -711,18 +767,18 @@ class SpreadSlipGajiController extends Controller
                 $drawing->setWorksheet($si);
 
                 $bar++;
-                $si->getRowDimension($bar)->setRowHeight(17);
+                $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
                 $bar++;
-                $si->getRowDimension($bar)->setRowHeight(17);
+                $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
                 $bar++;
                 $si->setCellValue('K'.$bar, 'Sri Erni.S');
                 $si->mergeCells('K'.$bar.':O'.$bar);
                 $si->getStyle('K'.$bar.':O'.$bar)->getFont()->setName('Gisha');
                 $si->getStyle('K'.$bar.':O'.$bar)->getAlignment()->setHorizontal('center');
-                $si->getRowDimension($bar)->setRowHeight(17);
+                $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
                 $bar++;
                 $si->getStyle('A'.($bar-26).':P'.$bar)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-                $si->getRowDimension($bar)->setRowHeight(17);
+                $si->getRowDimension($bar)->setRowHeight($noteRowHeight);
                 $bar += 8;
             }
             $sheetIndex++;

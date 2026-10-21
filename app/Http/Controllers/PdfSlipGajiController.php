@@ -125,7 +125,8 @@ class PdfSlipGajiController extends Controller
             }
             foreach ($pair as $slipIdx => $d) {
                 if ($slipIdx > 0) {
-                    $htmlChunk .= '<div style="height:13mm;"></div>';
+                    $gapMm = (!empty($pair[0]->note) || !empty($pair[1]->note)) ? '6mm' : '13mm';
+                    $htmlChunk .= '<div style="height:'.$gapMm.';"></div>';
                 }
 
                 $tahunAwal    = ($bulanInt == 1) ? $tahun - 1 : $tahun;
@@ -348,19 +349,32 @@ class PdfSlipGajiController extends Controller
                 <td class="ac cred bb">Rp</td>
                 <td colspan="4" class="ac cred bb">'.$this->n($bersih).'</td>
                 <td colspan="3" class="bb"></td>
-                </tr>
+                </tr>';
+
+                $noteVal = !empty($d->note) ? trim($d->note) : '';
+                if (!empty($noteVal)) {
+                    $noteTd1 = '<td colspan="10" class="cblue ul" style="vertical-align:bottom; padding-left:2mm;">Note :</td>';
+                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . nl2br(htmlspecialchars($noteVal)) . '</td>';
+                    $noteTd3 = '';
+                } else {
+                    $noteTd1 = '<td colspan="10"></td>';
+                    $noteTd2 = '<td colspan="10"></td>';
+                    $noteTd3 = '<td colspan="10"></td>';
+                }
+
+                $htmlChunk .= '
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd1 . '
                 <td colspan="5" class="ac">Head of HR Dept.</td>
                 <td></td>
                 </tr>
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd2 . '
                 <td colspan="5">'.$stempelImg.'</td>
                 <td></td>
                 </tr>
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd3 . '
                 <td colspan="5" class="ac">Sri Erni.S</td>
                 <td></td>
                 </tr>
@@ -478,7 +492,8 @@ class PdfSlipGajiController extends Controller
 
                 // Gap antara slip pertama dan kedua di halaman yang sama
                 if ($slipIdx > 0) {
-                    $htmlChunk .= '<div style="height:13mm;"></div>';
+                    $gapMm = (!empty($pair[0]->note) || !empty($pair[1]->note)) ? '6mm' : '13mm';
+                    $htmlChunk .= '<div style="height:'.$gapMm.';"></div>';
                 }
 
                 $bulanInt = (int)$d->bulan;
@@ -735,26 +750,35 @@ class PdfSlipGajiController extends Controller
                 <td class="ac cred bb">Rp</td>
                 <td colspan="4" class="ac cred bb">'.$this->n($bersih).'</td>
                 <td colspan="3" class="bb"></td>
-                </tr>
+                </tr>';
 
+                $noteVal = !empty($d->note) ? trim($d->note) : '';
+                if (!empty($noteVal)) {
+                    $noteTd1 = '<td colspan="10" class="cblue ul" style="vertical-align:bottom; padding-left:2mm;">Note :</td>';
+                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . nl2br(htmlspecialchars($noteVal)) . '</td>';
+                    $noteTd3 = '';
+                } else {
+                    $noteTd1 = '<td colspan="10"></td>';
+                    $noteTd2 = '<td colspan="10"></td>';
+                    $noteTd3 = '<td colspan="10"></td>';
+                }
+
+                $htmlChunk .= '
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd1 . '
                 <td colspan="5" class="ac">Head of HR Dept.</td>
                 <td></td>
                 </tr>
-
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd2 . '
                 <td colspan="5">'.$stempelImg.'</td>
                 <td></td>
                 </tr>
-
                 <tr>
-                <td colspan="10"></td>
+                ' . $noteTd3 . '
                 <td colspan="5" class="ac">Sri Erni.S</td>
                 <td></td>
                 </tr>
-
                 </table>';
             } // end foreach pair
             $mpdf->WriteHTML($htmlChunk);

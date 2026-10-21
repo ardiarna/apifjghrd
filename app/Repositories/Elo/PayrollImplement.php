@@ -120,6 +120,7 @@ class PayrollImplement implements PayrollRepository {
                 $inputs['payroll_header_id'] = $header_id;
                 if(empty($inputs['makan_tgl_awal'])) $inputs['makan_tgl_awal'] = null;
                 if(empty($inputs['makan_tgl_akhir'])) $inputs['makan_tgl_akhir'] = null;
+                if(empty($inputs['note'])) $inputs['note'] = null;
                 $model = $this->model->create($inputs);
                 if($model) {
                     $listHasil[] = [
@@ -229,6 +230,9 @@ class PayrollImplement implements PayrollRepository {
         }
         if(isset($inputs['keterangan'])) {
             $model->keterangan = $inputs['keterangan'];
+        }
+        if(array_key_exists('note', $inputs)) {
+            $model->note = empty($inputs['note']) ? null : $inputs['note'];
         }
         $model->save();
         $listHasil = [
