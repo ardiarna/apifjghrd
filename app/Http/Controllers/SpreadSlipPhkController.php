@@ -40,8 +40,8 @@ class SpreadSlipPhkController extends Controller
                 ->orderBy('bulan', 'desc')
                 ->first();
 
-        if (!$uangPhk) {
-            return ['status' => false, 'message' => 'Data Uang PHK tidak ditemukan'];
+        if (!$uangPhk && !$payrollPhk) {
+            return ['status' => false, 'message' => 'Data Uang PHK / Payroll PHK tidak ditemukan'];
         }
 
         $spreadsheet = new Spreadsheet();

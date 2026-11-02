@@ -46,8 +46,8 @@ class PdfSlipPhkController extends Controller
                 ->orderBy('bulan', 'desc')
                 ->first();
 
-        if (!$uangPhk) {
-            return response()->json(['status' => false, 'message' => 'Data Uang PHK tidak ditemukan']);
+        if (!$uangPhk && !$payrollPhk) {
+            return response()->json(['status' => false, 'message' => 'Data Uang PHK / Payroll PHK tidak ditemukan']);
         }
 
         $upah = $karyawan->upah ?: Upah::where('karyawan_id', $karyawan_id)->first();
