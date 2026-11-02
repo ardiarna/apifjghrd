@@ -231,7 +231,7 @@ class SpreadSlipPhkController extends Controller
         // Uang Penggantian Hak (muncul jika memiliki nilai > 0)
         $nominalPenggantianHak = ($uangPhk && $uangPhk->sisa_cuti_jumlah > 0)
             ? $uangPhk->sisa_cuti_jumlah
-            : (($uangPhk && $uangPhk->penggantian_hak > 0) ? $uangPhk->penggantian_hak : 0);
+            : 0;
         if ($nominalPenggantianHak > 0) {
             $subtextCuti = ($uangPhk && $uangPhk->sisa_cuti_hari > 0) ? '(Sisa Cuti = ' . $uangPhk->sisa_cuti_hari . ' hari)' : null;
             $itemsLeft[] = [

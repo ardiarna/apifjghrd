@@ -65,9 +65,6 @@ class UangPhkImplement implements UangPhkRepository {
         if(isset($inputs['masa_kerja'])) {
             $model->masa_kerja = $inputs['masa_kerja'];
         }
-        if(isset($inputs['penggantian_hak'])) {
-            $model->penggantian_hak = $inputs['penggantian_hak'];
-        }
         if(isset($inputs['sisa_cuti_hari'])) {
             $model->sisa_cuti_hari = $inputs['sisa_cuti_hari'];
         }

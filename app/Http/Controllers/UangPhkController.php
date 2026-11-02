@@ -42,7 +42,6 @@ class UangPhkController extends Controller
             'uang_pisah' => 'numeric',
             'pesangon' => 'numeric',
             'masa_kerja' => 'numeric',
-            'penggantian_hak' => 'numeric',
             'sisa_cuti_hari' => 'numeric',
             'sisa_cuti_jumlah' => 'numeric',
             'lain' => 'numeric',
@@ -57,7 +56,6 @@ class UangPhkController extends Controller
         $inputs['uang_pisah'] = $req->input('uang_pisah');
         $inputs['pesangon'] = $req->input('pesangon');
         $inputs['masa_kerja'] = $req->input('masa_kerja');
-        $inputs['penggantian_hak'] = $req->input('penggantian_hak');
         $inputs['sisa_cuti_hari'] = $req->input('sisa_cuti_hari');
         $inputs['sisa_cuti_jumlah'] = $req->input('sisa_cuti_jumlah');
         $inputs['lain'] = $req->input('lain');
@@ -93,7 +91,6 @@ class UangPhkController extends Controller
             'uang_pisah' => 'numeric',
             'pesangon' => 'numeric',
             'masa_kerja' => 'numeric',
-            'penggantian_hak' => 'numeric',
             'sisa_cuti_hari' => 'numeric',
             'sisa_cuti_jumlah' => 'numeric',
             'lain' => 'numeric',
@@ -108,7 +105,6 @@ class UangPhkController extends Controller
         $inputs['uang_pisah'] = $req->input('uang_pisah');
         $inputs['pesangon'] = $req->input('pesangon');
         $inputs['masa_kerja'] = $req->input('masa_kerja');
-        $inputs['penggantian_hak'] = $req->input('penggantian_hak');
         $inputs['sisa_cuti_hari'] = $req->input('sisa_cuti_hari');
         $inputs['sisa_cuti_jumlah'] = $req->input('sisa_cuti_jumlah');
         $inputs['lain'] = $req->input('lain');
