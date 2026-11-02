@@ -67,7 +67,10 @@ class UangPhkController extends Controller
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['ket_kompensasi'] = $req->input('ket_kompensasi');
+        $inputs['ket_uang_pisah'] = $req->input('ket_uang_pisah');
         $inputs['ket_pesangon'] = $req->input('ket_pesangon');
+        $inputs['ket_masa_kerja'] = $req->input('ket_masa_kerja');
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->create($inputs);
@@ -115,7 +118,10 @@ class UangPhkController extends Controller
         $inputs['pot_cuti_jumlah'] = $req->input('pot_cuti_jumlah');
         $inputs['pot_lain'] = $req->input('pot_lain');
         $inputs['keterangan'] = $req->input('keterangan');
+        $inputs['ket_kompensasi'] = $req->input('ket_kompensasi');
+        $inputs['ket_uang_pisah'] = $req->input('ket_uang_pisah');
         $inputs['ket_pesangon'] = $req->input('ket_pesangon');
+        $inputs['ket_masa_kerja'] = $req->input('ket_masa_kerja');
         $inputs['ket_lain'] = $req->input('ket_lain');
         $inputs['ket_pot_lain'] = $req->input('ket_pot_lain');
         $data = $this->repo->update($id, $inputs);

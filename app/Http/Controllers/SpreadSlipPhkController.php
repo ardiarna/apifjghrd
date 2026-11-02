@@ -211,21 +211,21 @@ class SpreadSlipPhkController extends Controller
             $itemsLeft[] = [
                 'label' => 'Uang Penghargaan Masa Kerja',
                 'nominal' => $uangPhk->masa_kerja,
-                'subtext' => null,
+                'subtext' => ($uangPhk && !empty(trim($uangPhk->ket_masa_kerja ?? ''))) ? '(' . trim($uangPhk->ket_masa_kerja) . ')' : null,
             ];
         }
         if ($uangPhk && $uangPhk->kompensasi > 0) {
             $itemsLeft[] = [
                 'label' => 'Uang Kompensasi',
                 'nominal' => $uangPhk->kompensasi,
-                'subtext' => null,
+                'subtext' => ($uangPhk && !empty(trim($uangPhk->ket_kompensasi ?? ''))) ? '(' . trim($uangPhk->ket_kompensasi) . ')' : null,
             ];
         }
         if ($uangPhk && $uangPhk->uang_pisah > 0) {
             $itemsLeft[] = [
                 'label' => 'Uang Pisah',
                 'nominal' => $uangPhk->uang_pisah,
-                'subtext' => null,
+                'subtext' => ($uangPhk && !empty(trim($uangPhk->ket_uang_pisah ?? ''))) ? '(' . trim($uangPhk->ket_uang_pisah) . ')' : null,
             ];
         }
         // Uang Penggantian Hak (muncul jika memiliki nilai > 0)
