@@ -39,18 +39,7 @@ class PayrollPhkController extends Controller
     }
 
     public function findByKaryawanId(Request $req, $karyawan_id) {
-        if (!$req->query('tahun') && !$req->query('bulan')) {
-            $data = $this->repo->findByKaryawanId($karyawan_id);
-            return $this->successResponse($data);
-        }
-        $data = $this->repo->findAll([
-            'karyawan_id' => $karyawan_id,
-            'tahun'       => $req->query('tahun'),
-            'bulan'       => $req->query('bulan'),
-            'pph21'       => $req->query('pph21'),
-            'sort_by'     => $req->query('sort_by'),
-            'sort_order'  => $req->query('sort_order'),
-        ]);
+        $data = $this->repo->findByKaryawanId($karyawan_id);
         return $this->successResponse($data);
     }
 

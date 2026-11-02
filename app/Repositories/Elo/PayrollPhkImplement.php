@@ -3,6 +3,8 @@
 namespace App\Repositories\Elo;
 
 use App\Models\PayrollPhk;
+use App\Models\Karyawan;
+use App\Models\Phk;
 use App\Repositories\PayrollPhkRepository;
 use App\Repositories\TarifEfektifRepository;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -229,10 +231,14 @@ class PayrollPhkImplement implements PayrollPhkRepository {
     }
 
     public function findByKaryawanId($karyawan_id) {
-        return $this->model->where('karyawan_id', $karyawan_id)
-            ->orderBy('tahun', 'desc')
-            ->orderBy('bulan', 'desc')
-            ->get();
+        $karyawan = Karyawan::find($karyawan_id);
+        if ($karyawan && $karyawan->phk_id) {
+            $phk = Phk::with('payrollPhk')->find($karyawan->phk_id);
+            if ($phk && $phk->payrollPhk) {
+                return $phk->payrollPhk;
+            }
+        }
+        return null;
     }
 
     public function updateOrCreate(array $inputs) {
@@ -243,15 +249,7 @@ class PayrollPhkImplement implements PayrollPhkRepository {
                 return $model;
             }
         }
-        $model = $this->model->updateOrCreate(
-            [
-                'karyawan_id' => $inputs['karyawan_id'],
-                'tahun' => $inputs['tahun'],
-                'bulan' => $inputs['bulan']
-            ],
-            $inputs
-        );
-        return $model;
+        return $this->model->create($inputs);
     }
 
 }
