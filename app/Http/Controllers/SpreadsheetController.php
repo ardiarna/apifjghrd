@@ -1037,11 +1037,7 @@ class SpreadsheetController extends Controller
                         $si->setCellValue('O'.$bar, $uangPhk->pot_cuti_jumlah > 0 ? $uangPhk->pot_cuti_jumlah : '');
                         $si->setCellValue('P'.$bar, $uangPhk->pot_lain > 0 ? $uangPhk->pot_lain : '');
                         $si->setCellValue('Q'.$bar, '=(E'.$bar.'+F'.$bar.'+G'.$bar.'+H'.$bar.'+J'.$bar.'+K'.$bar.')-(L'.$bar.'+M'.$bar.'+O'.$bar.'+P'.$bar.')');
-                        $kets = [];
-                        if (!empty($uangPhk->keterangan)) $kets[] = $uangPhk->keterangan;
-                        if (!empty($uangPhk->ket_lain)) $kets[] = $uangPhk->ket_lain;
-                        if (!empty($uangPhk->ket_pot_lain)) $kets[] = $uangPhk->ket_pot_lain;
-                        $si->setCellValue('R'.$bar, implode('; ', $kets));
+                        $si->setCellValue('R'.$bar, $uangPhk->keterangan ?? '');
                         $bar++;
                         $nomor++;
                     }

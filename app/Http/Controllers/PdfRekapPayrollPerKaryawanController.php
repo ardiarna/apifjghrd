@@ -8,6 +8,7 @@ use App\Repositories\PayrollPhkRepository;
 use App\Repositories\AreaRepository;
 use Mpdf\Mpdf;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use App\Models\UangPhk;
 
 class PdfRekapPayrollPerKaryawanController extends Controller
 {
@@ -173,10 +174,12 @@ class PdfRekapPayrollPerKaryawanController extends Controller
 
                 for ($k = 1; $k <= 13; $k++) {
                     $d = null;
+                    $isPhk = false;
                     if (isset($bulans[$k])) {
                         $d = $bulans[$k];
                     } elseif (isset($detailsPhk[$keyTahun][$karyawan_id][$k])) {
                         $d = $detailsPhk[$keyTahun][$karyawan_id][$k];
+                        $isPhk = true;
                     }
 
                     if ($d) {
@@ -217,7 +220,26 @@ class PdfRekapPayrollPerKaryawanController extends Controller
                         $html .= "<td class=\"ar text-red\">".($d->pot_kompensasi_jumlah > 0 ? number_format($d->pot_kompensasi_jumlah) : '')."</td>";
                         $html .= "<td class=\"ar text-red\">".($d->pot_lain > 0 ? number_format($d->pot_lain) : '')."</td>";
                         $html .= "<td class=\"ar text-blue\">".($d->total_diterima > 0 ? number_format($d->total_diterima) : '')."</td>";
-                        $html .= "<td class=\"al\">".$d->keterangan."</td>";
+                        $ketText = $d->keterangan;
+                        if ($isPhk) {
+                            $ketsPhk = [];
+                            if (!empty($d->keterangan)) {
+                                $ketsPhk[] = trim($d->keterangan);
+                            }
+                            $uangPhk = ($d->phk && $d->phk->uangPhk)
+                                ? $d->phk->uangPhk
+                                : UangPhk::where('karyawan_id', $d->karyawan_id)->where('tahun', $d->tahun)->first();
+                            if ($uangPhk) {
+                                if (!empty($uangPhk->ket_lain)) {
+                                    $ketsPhk[] = trim($uangPhk->ket_lain);
+                                }
+                                if (!empty($uangPhk->ket_pot_lain)) {
+                                    $ketsPhk[] = trim($uangPhk->ket_pot_lain);
+                                }
+                            }
+                            $ketText = implode('; ', $ketsPhk);
+                        }
+                        $html .= "<td class=\"al\">".$ketText."</td>";
                         
                         $bulanText = ($k == 13) ? 'THR' : $arrBulan[$k]."'".substr($keyTahun, -2);
                         $html .= "<td class=\"ac\">".$bulanText."</td>";

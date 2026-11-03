@@ -150,11 +150,7 @@ class PdfListPhkController extends Controller
                         $sum["pot_lain"] += $valP;
                         $sum["jumlah"] += $valQ;
 
-                        $kets = [];
-                        if (!empty($uangPhk->keterangan)) $kets[] = $uangPhk->keterangan;
-                        if (!empty($uangPhk->ket_lain)) $kets[] = $uangPhk->ket_lain;
-                        if (!empty($uangPhk->ket_pot_lain)) $kets[] = $uangPhk->ket_pot_lain;
-                        $keterangan = implode('; ', $kets);
+                        $keterangan = $uangPhk->keterangan ?? '';
 
                         $html .= "<tr>";
                         $html .= "<td class=\"ac\">".$nomor."</td>";

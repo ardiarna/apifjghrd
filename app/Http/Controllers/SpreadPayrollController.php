@@ -6,6 +6,7 @@ use App\Repositories\AreaRepository;
 use App\Repositories\PayrollHeaderRepository;
 use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PayrollRepository;
+use App\Models\UangPhk;
 use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -229,7 +230,22 @@ class SpreadPayrollController extends Controller
                         $si->setCellValue('Y'.$bar, $dp->pot_kompensasi_jumlah > 0 ? $dp->pot_kompensasi_jumlah : ' ');
                         $si->setCellValue('Z'.$bar, $dp->pot_lain > 0 ? $dp->pot_lain : ' ');
                         $si->setCellValue('AA'.$bar, $dp->total_diterima > 0 ? $dp->total_diterima : ' ');
-                        $si->setCellValue('AB'.$bar, $dp->keterangan);
+                        $ketsPhk = [];
+                        if (!empty($dp->keterangan)) {
+                            $ketsPhk[] = trim($dp->keterangan);
+                        }
+                        $uangPhk = ($dp->phk && $dp->phk->uangPhk)
+                            ? $dp->phk->uangPhk
+                            : UangPhk::where('karyawan_id', $dp->karyawan_id)->where('tahun', $dp->tahun)->first();
+                        if ($uangPhk) {
+                            if (!empty($uangPhk->ket_lain)) {
+                                $ketsPhk[] = trim($uangPhk->ket_lain);
+                            }
+                            if (!empty($uangPhk->ket_pot_lain)) {
+                                $ketsPhk[] = trim($uangPhk->ket_pot_lain);
+                            }
+                        }
+                        $si->setCellValue('AB'.$bar, implode('; ', $ketsPhk));
                     } else {
                         // Skip row if no data
                         continue;
