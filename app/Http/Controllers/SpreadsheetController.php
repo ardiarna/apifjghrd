@@ -1597,9 +1597,20 @@ class SpreadsheetController extends Controller
                         }
                     }
 
+                    $emailArr = [];
+                    if (!empty($d->email)) {
+                        $rawEmail = explode(',', $d->email);
+                        foreach ($rawEmail as $em) {
+                            $em = trim($em);
+                            if ($em !== '') {
+                                $emailArr[] = $em;
+                            }
+                        }
+                    }
+
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -1664,8 +1675,6 @@ class SpreadsheetController extends Controller
                             $si->setCellValue('Q'.$bar, $kawinFormat);
 
                             $si->setCellValue('R'.$bar, $pendidikanFormat);
-
-                            $si->setCellValue('S'.$bar, $d->email);
 
                             $statusId = $d->status_kerja_id;
                             $bgColor = null;
@@ -1743,6 +1752,11 @@ class SpreadsheetController extends Controller
                         // Kontak Darurat
                         if (isset($kontakArr[$i])) {
                             $si->setCellValue('P'.$bar, $kontakArr[$i]);
+                        }
+
+                        // Email Pribadi
+                        if (isset($emailArr[$i])) {
+                            $si->setCellValue('S'.$bar, $emailArr[$i]);
                         }
 
                         $si->getStyle('A'.$bar.':U'.$bar)->getAlignment()->setVertical('top');

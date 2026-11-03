@@ -46,7 +46,21 @@ class KaryawanController extends Controller
             'tanggal_lahir' => 'required|date',
             'alamat_ktp' => 'required',
             'telepon' => 'required|string',
-            'email' => 'email',
+            'email' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value)) {
+                        $emails = explode(',', $value);
+                        foreach ($emails as $email) {
+                            $email = trim($email);
+                            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                $fail('Setiap alamat email harus berupa alamat email yang valid.');
+                            }
+                        }
+                    }
+                }
+            ],
             'kawin' => 'in:Y,N,P',
             'aktif' => 'required|in:Y,N,P',
             'kelamin' => 'required|in:L,P',
@@ -81,7 +95,21 @@ class KaryawanController extends Controller
             'tanggal_masuk' => 'date',
             'tanggal_lahir' => 'date',
             'telepon' => 'nullable|string',
-            'email' => 'email',
+            'email' => [
+                'nullable',
+                'string',
+                function ($attribute, $value, $fail) {
+                    if (!empty($value)) {
+                        $emails = explode(',', $value);
+                        foreach ($emails as $email) {
+                            $email = trim($email);
+                            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                $fail('Setiap alamat email harus berupa alamat email yang valid.');
+                            }
+                        }
+                    }
+                }
+            ],
             'kawin' => 'in:Y,N,P',
             'aktif' => 'in:Y,N,P',
             'kelamin' => 'in:L,P',

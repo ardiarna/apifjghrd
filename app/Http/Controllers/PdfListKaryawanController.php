@@ -170,9 +170,20 @@ class PdfListKaryawanController extends Controller
                         }
                     }
 
+                    $emailArr = [];
+                    if (!empty($d->email)) {
+                        $rawEmail = explode(',', $d->email);
+                        foreach ($rawEmail as $em) {
+                            $em = trim($em);
+                            if ($em !== '') {
+                                $emailArr[] = $em;
+                            }
+                        }
+                    }
+
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr));
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -308,8 +319,8 @@ class PdfListKaryawanController extends Controller
                         }
 
                         // Q (Email Pribadi)
-                        if ($i == 0) {
-                            $html .= "<td class=\"al\">".$d->email."</td>";
+                        if (isset($emailArr[$i])) {
+                            $html .= "<td class=\"al\">".$emailArr[$i]."</td>";
                         } else {
                             $html .= "<td></td>";
                         }
