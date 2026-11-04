@@ -143,6 +143,7 @@ $router->group(['prefix' => 'medical', 'middleware' => 'auth:api'], function () 
 
 $router->group(['prefix' => 'cuti', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'CutiController@findAll');
+    $router->get('hari-ini', 'CutiController@hariIni');
     $router->get('info', 'CutiController@info');
     $router->get('info-masal', 'CutiController@infoMasal');
     $router->post('submit-masal', 'CutiController@submitMasal');

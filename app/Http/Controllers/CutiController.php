@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Cuti;
 use App\Models\CutiDetail;
 use App\Models\CutiDate;
+use App\Models\CutiMasal;
+use App\Models\CutiMasalDate;
+use App\Models\CicCutiDate;
+use App\Models\CicCutiMasalDate;
 use App\Models\Karyawan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +33,7 @@ class CutiController extends Controller
         $query->where('jenis_form', '!=', 'CUTI_MASAL');
         $cutis = $query->get();
             
-        $masals = \App\Models\CutiMasal::where('tahun', $tahun)
+        $masals = CutiMasal::where('tahun', $tahun)
             ->orderBy('created_at', 'desc')->get();
             
         $data = [];
@@ -71,6 +75,155 @@ class CutiController extends Controller
             return strtotime($dateB) - strtotime($dateA);
         });
         
+        return response()->json(['status' => 'success', 'message' => 'success', 'data' => $data], 200);
+    }
+
+    public function hariIni(Request $request)
+    {
+        $tanggal = $request->tanggal ?? date('Y-m-d');
+
+        $cutiDates = CutiDate::with([
+            'cutiDetail.cuti.karyawan.divisi',
+            'cutiDetail.cuti.karyawan.jabatan',
+            'cutiDetail.jenisKhusus'
+        ])
+        ->whereDate('tanggal', $tanggal)
+        ->get();
+
+        $data = [];
+        $seen = [];
+        foreach ($cutiDates as $cd) {
+            $detail = $cd->cutiDetail;
+            if (!$detail || !$detail->cuti || !$detail->cuti->karyawan) {
+                continue;
+            }
+            $karyawan = $detail->cuti->karyawan;
+            $key = $karyawan->id;
+
+            $kategori = $detail->kategori;
+            if ($kategori === 'KHUSUS' && $detail->jenisKhusus) {
+                $kategori = 'KHUSUS (' . $detail->jenisKhusus->nama . ')';
+            }
+
+            if (isset($seen[$key])) {
+                $idx = $seen[$key];
+                if (strpos($data[$idx]['kategori'], $kategori) === false) {
+                    $data[$idx]['kategori'] .= ', ' . $kategori;
+                }
+                continue;
+            }
+
+            $seen[$key] = count($data);
+
+            $data[] = [
+                'id' => $karyawan->id,
+                'nama' => $karyawan->nama,
+                'nik' => $karyawan->nik,
+                'divisi' => $karyawan->divisi ? $karyawan->divisi->nama : '',
+                'jabatan' => $karyawan->jabatan ? $karyawan->jabatan->nama : '',
+                'kategori' => $kategori,
+                'keterangan' => $detail->keterangan ?? '',
+            ];
+        }
+
+        if (class_exists(CutiMasalDate::class)) {
+            $masalDates = CutiMasalDate::with(['cutiMasal.cutis.karyawan.divisi', 'cutiMasal.cutis.karyawan.jabatan'])
+                ->whereDate('tanggal', $tanggal)
+                ->get();
+
+            foreach ($masalDates as $md) {
+                if (!$md->cutiMasal || !$md->cutiMasal->cutis) continue;
+                foreach ($md->cutiMasal->cutis as $c) {
+                    if (!$c->karyawan) continue;
+                    $karyawan = $c->karyawan;
+                    $key = $karyawan->id;
+                    if (isset($seen[$key])) continue;
+                    $seen[$key] = count($data);
+
+                    $data[] = [
+                        'id' => $karyawan->id,
+                        'nama' => $karyawan->nama,
+                        'nik' => $karyawan->nik,
+                        'divisi' => $karyawan->divisi ? $karyawan->divisi->nama : '',
+                        'jabatan' => $karyawan->jabatan ? $karyawan->jabatan->nama : '',
+                        'kategori' => 'CUTI_MASAL',
+                        'keterangan' => $md->cutiMasal->keterangan ?? '',
+                    ];
+                }
+            }
+        }
+
+        if (class_exists(CicCutiDate::class)) {
+            $cicDates = CicCutiDate::with([
+                'cicCutiDetail.cicCuti.cicKaryawan.divisi',
+                'cicCutiDetail.cicCuti.cicKaryawan.jabatan',
+                'cicCutiDetail.cicJenisCutiKhusus'
+            ])
+            ->whereDate('tanggal', $tanggal)
+            ->get();
+
+            foreach ($cicDates as $cd) {
+                $detail = $cd->cicCutiDetail;
+                if (!$detail || !$detail->cicCuti || !$detail->cicCuti->cicKaryawan) {
+                    continue;
+                }
+                $karyawan = $detail->cicCuti->cicKaryawan;
+                $key = 'cic_' . $karyawan->id;
+
+                $kategori = $detail->kategori;
+                if ($kategori === 'KHUSUS' && $detail->cicJenisCutiKhusus) {
+                    $kategori = 'KHUSUS (' . $detail->cicJenisCutiKhusus->nama . ')';
+                }
+
+                if (isset($seen[$key])) {
+                    $idx = $seen[$key];
+                    if (strpos($data[$idx]['kategori'], $kategori) === false) {
+                        $data[$idx]['kategori'] .= ', ' . $kategori;
+                    }
+                    continue;
+                }
+
+                $seen[$key] = count($data);
+
+                $data[] = [
+                    'id' => $karyawan->id,
+                    'nama' => $karyawan->nama,
+                    'nik' => $karyawan->nik,
+                    'divisi' => $karyawan->divisi ? $karyawan->divisi->nama : '',
+                    'jabatan' => $karyawan->jabatan ? $karyawan->jabatan->nama : '',
+                    'kategori' => $kategori,
+                    'keterangan' => $detail->keterangan ?? '',
+                ];
+            }
+        }
+
+        if (class_exists(CicCutiMasalDate::class)) {
+            $cicMasalDates = CicCutiMasalDate::with(['cicCutiMasal.cutis.cicKaryawan.divisi', 'cicCutiMasal.cutis.cicKaryawan.jabatan'])
+                ->whereDate('tanggal', $tanggal)
+                ->get();
+
+            foreach ($cicMasalDates as $md) {
+                if (!$md->cicCutiMasal || !$md->cicCutiMasal->cutis) continue;
+                foreach ($md->cicCutiMasal->cutis as $c) {
+                    if (!$c->cicKaryawan) continue;
+                    $karyawan = $c->cicKaryawan;
+                    $key = 'cic_' . $karyawan->id;
+                    if (isset($seen[$key])) continue;
+                    $seen[$key] = count($data);
+
+                    $data[] = [
+                        'id' => $karyawan->id,
+                        'nama' => $karyawan->nama,
+                        'nik' => $karyawan->nik,
+                        'divisi' => $karyawan->divisi ? $karyawan->divisi->nama : '',
+                        'jabatan' => $karyawan->jabatan ? $karyawan->jabatan->nama : '',
+                        'kategori' => 'CUTI_MASAL',
+                        'keterangan' => $md->cicCutiMasal->keterangan ?? '',
+                    ];
+                }
+            }
+        }
+
         return response()->json(['status' => 'success', 'message' => 'success', 'data' => $data], 200);
     }
 
@@ -324,7 +477,7 @@ class CutiController extends Controller
 
         DB::beginTransaction();
         try {
-            $cutiMasalModel = \App\Models\CutiMasal::create([
+            $cutiMasalModel = CutiMasal::create([
                 'tahun' => $request->tahun,
                 'keterangan' => $request->keterangan,
                 'tanggal_kembali' => $request->tanggal_kembali ?? null,
@@ -333,7 +486,7 @@ class CutiController extends Controller
 
             if (!empty($request->global_dates)) {
                 foreach($request->global_dates as $dt) {
-                    \App\Models\CutiMasalDate::create([
+                    CutiMasalDate::create([
                         'cuti_masal_id' => $cutiMasalModel->id,
                         'tanggal' => $dt,
                     ]);
@@ -407,14 +560,14 @@ class CutiController extends Controller
 
     public function detailMasal($id)
     {
-        $masal = \App\Models\CutiMasal::with(['dates', 'cutis.karyawan.jabatan', 'cutis.karyawan.divisi', 'cutis.karyawan.statusKerja', 'cutis.karyawan.area', 'cutis.details.dates', 'cutis.details.jenisKhusus'])->find($id);
+        $masal = CutiMasal::with(['dates', 'cutis.karyawan.jabatan', 'cutis.karyawan.divisi', 'cutis.karyawan.statusKerja', 'cutis.karyawan.area', 'cutis.details.dates', 'cutis.details.jenisKhusus'])->find($id);
         if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
         return response()->json(['status' => 'success', 'data' => $masal]);
     }
 
     public function updateKeteranganMasal(Request $request, $id)
     {
-        $masal = \App\Models\CutiMasal::find($id);
+        $masal = CutiMasal::find($id);
         if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
         $masal->keterangan = $request->keterangan;
         $masal->save();
@@ -423,7 +576,7 @@ class CutiController extends Controller
 
     public function deleteMasal($id)
     {
-        $masal = \App\Models\CutiMasal::find($id);
+        $masal = CutiMasal::find($id);
         if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
         $cutis = Cuti::where('cuti_masal_id', $id)->get();
         foreach($cutis as $c) {
@@ -435,7 +588,7 @@ class CutiController extends Controller
 
     public function updateKeteranganDetail(Request $request, $id)
     {
-        $detail = \App\Models\CutiDetail::find($id);
+        $detail = CutiDetail::find($id);
         if (!$detail) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
         $detail->keterangan = $request->keterangan;
         $detail->save();
@@ -447,7 +600,7 @@ class CutiController extends Controller
             'karyawans' => 'required|array'
         ]);
 
-        $masal = \App\Models\CutiMasal::find($id);
+        $masal = CutiMasal::find($id);
         if (!$masal) return response()->json(['status' => 'error', 'message' => 'Not found'], 404);
 
         DB::beginTransaction();
