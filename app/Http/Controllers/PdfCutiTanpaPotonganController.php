@@ -98,6 +98,16 @@ class PdfCutiTanpaPotonganController extends Controller
             }
             $html .= "</tr>";
 
+            $allDetailsKhusus = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
+                ->where('kategori', 'KHUSUS')
+                ->whereHas('cuti', function($q) use ($tahun) {
+                    $q->where('tahun', $tahun);
+                })
+                ->get()
+                ->groupBy(function($det) {
+                    return $det->cuti->karyawan_id;
+                });
+
             $idx = 1;
             foreach ($details as $staf => $areas) {
                 if ($staf == 'N') {
@@ -109,12 +119,7 @@ class PdfCutiTanpaPotonganController extends Controller
                     }
 
                     foreach ($karyawans as $k) {
-                        $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
-                            ->where('kategori', 'KHUSUS')
-                            ->whereHas('cuti', function($q) use ($k, $tahun) {
-                                $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                            })
-                            ->get();
+                        $detailsKet = $allDetailsKhusus->get($k->id, collect());
 
                         $lines = [];
                         foreach ($detailsKet as $det) {
@@ -123,6 +128,7 @@ class PdfCutiTanpaPotonganController extends Controller
                             $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
                             $lama = (int) $det->lama_hari;
 
+                            $sortedDates = $det->dates->sortBy('tanggal');
                             if ($lama > 5 || $satuan == 'bulan') {
                                 $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                 $formatDate = function($tanggal) use ($months) {
@@ -131,15 +137,14 @@ class PdfCutiTanpaPotonganController extends Controller
                                     return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
                                 };
 
-                                $dates = $det->dates()->orderBy('tanggal')->get();
-                                if ($dates->count() == 1) {
-                                    $dateStr = $formatDate($dates->first()->tanggal);
+                                if ($sortedDates->count() == 1) {
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal);
                                 } else {
-                                    $dateStr = $formatDate($dates->first()->tanggal) . ' s/d ' . $formatDate($dates->last()->tanggal);
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal) . ' s/d ' . $formatDate($sortedDates->last()->tanggal);
                                 }
                             } else {
                                 $groupedDates = [];
-                                foreach ($det->dates()->orderBy('tanggal')->get() as $d) {
+                                foreach ($sortedDates as $d) {
                                     $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                     $engMon = date('M', strtotime($d->tanggal));
                                     $indMon = $months[$engMon] ?? $engMon;

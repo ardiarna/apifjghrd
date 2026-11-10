@@ -6,6 +6,7 @@ use App\Models\Karyawan;
 use App\Models\CutiDate;
 use App\Models\CutiDetail;
 use App\Models\JatahCutiTahunan;
+use Illuminate\Support\Facades\DB;
 use App\Traits\AFhelper;
 use Mpdf\Mpdf;
 
@@ -105,6 +106,31 @@ class PdfListCutiController extends Controller
             }
             $html .= "</tr>";
 
+            $allJatahs = JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
+
+            $cutiCounts = DB::table('cuti_dates')
+                ->join('cuti_details', 'cuti_dates.cuti_detail_id', '=', 'cuti_details.id')
+                ->join('cutis', 'cuti_details.cuti_id', '=', 'cutis.id')
+                ->where('cutis.tahun', $tahun)
+                ->selectRaw('cutis.karyawan_id, cuti_details.kategori, MONTH(cuti_dates.tanggal) as bulan, COUNT(*) as total')
+                ->groupBy('cutis.karyawan_id', 'cuti_details.kategori', DB::raw('MONTH(cuti_dates.tanggal)'))
+                ->get();
+
+            $rekapMap = [];
+            foreach ($cutiCounts as $cRow) {
+                $rekapMap[$cRow->karyawan_id][$cRow->kategori][(int)$cRow->bulan] = (int)$cRow->total;
+            }
+
+            $allDetailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
+                ->whereIn('kategori', ['IJIN', 'CUTI_MASAL', 'GANTI_HARI_LIBUR'])
+                ->whereHas('cuti', function($q) use ($tahun) {
+                    $q->where('tahun', $tahun);
+                })
+                ->get()
+                ->groupBy(function($det) {
+                    return $det->cuti->karyawan_id;
+                });
+
             $idx = 1;
             foreach ($details as $staf => $areas) {
                 if ($staf == 'N') {
@@ -116,12 +142,7 @@ class PdfListCutiController extends Controller
                     }
 
                     foreach ($karyawans as $k) {
-                        $detailsKet = CutiDetail::with(['dates', 'cuti', 'jenisKhusus'])
-                            ->whereIn('kategori', ['IJIN', 'CUTI_MASAL', 'GANTI_HARI_LIBUR'])
-                            ->whereHas('cuti', function($q) use ($k, $tahun) {
-                                $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                            })
-                            ->get();
+                        $detailsKet = $allDetailsKet->get($k->id, collect());
 
                         $lines = [];
                         foreach ($detailsKet as $det) {
@@ -130,6 +151,7 @@ class PdfListCutiController extends Controller
                             $satuan = $det->jenisKhusus ? strtolower($det->jenisKhusus->satuan) : 'hari';
                             $lama = (int) $det->lama_hari;
 
+                            $sortedDates = $det->dates->sortBy('tanggal');
                             if ($lama > 5 || $satuan == 'bulan') {
                                 $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                 $formatDate = function($tanggal) use ($months) {
@@ -138,15 +160,14 @@ class PdfListCutiController extends Controller
                                     return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
                                 };
 
-                                $dates = $det->dates()->orderBy('tanggal')->get();
-                                if ($dates->count() == 1) {
-                                    $dateStr = $formatDate($dates->first()->tanggal);
+                                if ($sortedDates->count() == 1) {
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal);
                                 } else {
-                                    $dateStr = $formatDate($dates->first()->tanggal) . ' s/d ' . $formatDate($dates->last()->tanggal);
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal) . ' s/d ' . $formatDate($sortedDates->last()->tanggal);
                                 }
                             } else {
                                 $groupedDates = [];
-                                foreach ($det->dates()->orderBy('tanggal')->get() as $d) {
+                                foreach ($sortedDates as $d) {
                                     $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                     $engMon = date('M', strtotime($d->tanggal));
                                     $indMon = $months[$engMon] ?? $engMon;
@@ -175,7 +196,7 @@ class PdfListCutiController extends Controller
                                 $tgl_masuk = $k->tanggal_masuk ? date('d-m-Y', strtotime($k->tanggal_masuk)) : '';
                                 $html .= "<td class=\"ac border-thin\" style=\"white-space:nowrap;\">".$tgl_masuk."</td>";
 
-                                $jatah = JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                                $jatah = $allJatahs->get($k->id);
                                 $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                                 $plus = $jatah ? $jatah->plus_tahun_lalu : 0;
                                 $min = $jatah ? $jatah->min_tahun_lalu : 0;
@@ -188,12 +209,7 @@ class PdfListCutiController extends Controller
 
                                 $totalDiambilTahunan = 0;
                                 for ($m = 1; $m <= 12; $m++) {
-                                    $diambilBulan = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                                        $q->where('kategori', 'TAHUNAN')
-                                          ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                                              $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                          });
-                                    })->whereMonth('tanggal', $m)->count();
+                                    $diambilBulan = $rekapMap[$k->id]['TAHUNAN'][$m] ?? 0;
                                     $totalDiambilTahunan += $diambilBulan;
                                     $html .= "<td class=\"ac border-thin\">".($diambilBulan != 0 ? $diambilBulan : '')."</td>";
                                 }
@@ -202,20 +218,16 @@ class PdfListCutiController extends Controller
                                 $valSisaTahunan = $jatah ? $sisaTahunan : ($sisaTahunan != 0 ? $sisaTahunan : '');
                                 $html .= "<td class=\"ac border-thin text-red\">".$valSisaTahunan."</td>";
 
-                                $cutiBersama = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                                    $q->where('kategori', 'CUTI_MASAL')
-                                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                      });
-                                })->count();
+                                $cutiBersama = 0;
+                                if (isset($rekapMap[$k->id]['CUTI_MASAL'])) {
+                                    $cutiBersama = array_sum($rekapMap[$k->id]['CUTI_MASAL']);
+                                }
                                 $html .= "<td class=\"ac border-thin\">".($cutiBersama != 0 ? $cutiBersama : '')."</td>";
 
-                                $jmlIjin = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                                    $q->where('kategori', 'IJIN')
-                                      ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                                          $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                      });
-                                })->count();
+                                $jmlIjin = 0;
+                                if (isset($rekapMap[$k->id]['IJIN'])) {
+                                    $jmlIjin = array_sum($rekapMap[$k->id]['IJIN']);
+                                }
                                 $html .= "<td class=\"ac border-thin\">".($jmlIjin != 0 ? $jmlIjin : '')."</td>";
 
                                 $sisaCuti = $sisaTahunan - $cutiBersama - $jmlIjin;

@@ -58,6 +58,30 @@ class PdfJadwalCutiController extends Controller
         $html = $css;
         $firstPage = true;
 
+        $allJatahs = JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
+        $allCutiDatesForYear = CutiDate::with('cutiDetail.cuti')
+            ->whereHas('cutiDetail.cuti', function($q) use ($tahun) {
+                $q->where('tahun', $tahun);
+            })
+            ->get();
+
+        $datesByKaryawanAndMonth = [];
+        $cutiDiambilCumulative = [];
+
+        foreach ($allCutiDatesForYear as $cd) {
+            if (!$cd->cutiDetail || !$cd->cutiDetail->cuti) continue;
+            $kId = $cd->cutiDetail->cuti->karyawan_id;
+            $month = (int)date('m', strtotime($cd->tanggal));
+            $datesByKaryawanAndMonth[$kId][$month][] = $cd;
+
+            $kat = $cd->cutiDetail->kategori ?? '';
+            if (in_array($kat, ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])) {
+                for ($afterM = $month; $afterM <= 12; $afterM++) {
+                    $cutiDiambilCumulative[$kId][$afterM] = ($cutiDiambilCumulative[$kId][$afterM] ?? 0) + 1;
+                }
+            }
+        }
+
         for ($m = 1; $m <= 12; $m++) {
             if (!$firstPage) { $html .= "<pagebreak />"; }
             $firstPage = false;
@@ -149,13 +173,9 @@ class PdfJadwalCutiController extends Controller
                             if ($isManajemen && $man != 'Y') continue;
                             if (!$isManajemen && $man == 'Y') continue;
 
-                            $cutiDatesMonth = CutiDate::with('cutiDetail')
-                                ->whereMonth('tanggal', $m)
-                                ->whereHas('cutiDetail.cuti', function ($q) use ($k, $tahun) {
-                                    $q->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                })->get();
+                            $cutiDatesMonth = $datesByKaryawanAndMonth[$k->id][$m] ?? [];
 
-                            if (!$isManajemen && $cutiDatesMonth->count() == 0) continue;
+                            if (!$isManajemen && count($cutiDatesMonth) == 0) continue;
 
                             // Print area/staf label
                             if ($staf == 'N' && !$hasPrintedStafLabel) {
@@ -192,16 +212,11 @@ class PdfJadwalCutiController extends Controller
                             $ketKhususStr = implode(', ', $ketKhususArr);
 
                             // Sisa cuti
-                            $jatah = JatahCutiTahunan::where('karyawan_id', $k->id)->where('tahun', $tahun)->first();
+                            $jatah = $allJatahs->get($k->id);
                             $jmlCuti = $jatah ? $jatah->jumlah_cuti : 0;
                             $sisaTahunLalu = $jatah ? ($jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
                             $totalHak = $jmlCuti + $sisaTahunLalu;
-                            $diambil  = CutiDate::whereHas('cutiDetail', function ($q) use ($k, $tahun) {
-                                $q->whereIn('kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
-                                  ->whereHas('cuti', function ($q2) use ($k, $tahun) {
-                                      $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                                  });
-                            })->whereMonth('tanggal', '<=', $m)->count();
+                            $diambil = $cutiDiambilCumulative[$k->id][$m] ?? 0;
                             $sisaCuti = $totalHak - $diambil;
 
                             $html .= "<tr>";

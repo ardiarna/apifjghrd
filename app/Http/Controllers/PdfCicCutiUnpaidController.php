@@ -6,6 +6,7 @@ use App\Models\CicKaryawan;
 use App\Models\CicCutiDate;
 use App\Models\CicCutiDetail;
 use App\Traits\AFhelper;
+use Illuminate\Support\Facades\DB;
 use Mpdf\Mpdf;
 
 class PdfCicCutiUnpaidController extends Controller
@@ -94,6 +95,30 @@ class PdfCicCutiUnpaidController extends Controller
             }
             $html .= "</tr>";
 
+            $allDetailsUnpaid = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
+                ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
+                ->whereHas('cicCuti', function($q) use ($tahun) {
+                    $q->where('tahun', $tahun);
+                })
+                ->get()
+                ->groupBy(function($det) {
+                    return $det->cicCuti->cic_karyawan_id;
+                });
+
+            $unpaidCounts = DB::table('cic_cuti_dates')
+                ->join('cic_cuti_details', 'cic_cuti_dates.cic_cuti_detail_id', '=', 'cic_cuti_details.id')
+                ->join('cic_cutis', 'cic_cuti_details.cic_cuti_id', '=', 'cic_cutis.id')
+                ->where('cic_cutis.tahun', $tahun)
+                ->whereIn('cic_cuti_details.kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
+                ->selectRaw('cic_cutis.cic_karyawan_id, MONTH(cic_cuti_dates.tanggal) as bulan, COUNT(*) as total')
+                ->groupBy('cic_cutis.cic_karyawan_id', DB::raw('MONTH(cic_cuti_dates.tanggal)'))
+                ->get();
+
+            $unpaidMap = [];
+            foreach ($unpaidCounts as $uRow) {
+                $unpaidMap[$uRow->cic_karyawan_id][(int)$uRow->bulan] = (int)$uRow->total;
+            }
+
             $idx = 1;
             foreach ($details as $staf => $areas) {
                 if ($staf == 'N') {
@@ -105,12 +130,7 @@ class PdfCicCutiUnpaidController extends Controller
                     }
 
                     foreach ($karyawans as $k) {
-                        $detailsKet = CicCutiDetail::with(['dates', 'cicCuti', 'cicJenisCutiKhusus'])
-                            ->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
-                            ->whereHas('cicCuti', function($q) use ($k, $tahun) {
-                                $q->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
-                            })
-                            ->get();
+                        $detailsKet = $allDetailsUnpaid->get($k->id, collect());
 
                         $lines = [];
                         foreach ($detailsKet as $det) {
@@ -119,6 +139,7 @@ class PdfCicCutiUnpaidController extends Controller
                             $satuan = $det->cicJenisCutiKhusus ? strtolower($det->cicJenisCutiKhusus->satuan) : 'hari';
                             $lama = (int) $det->lama_hari;
 
+                            $sortedDates = $det->dates->sortBy('tanggal');
                             if ($lama > 5 || $satuan == 'bulan') {
                                 $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                 $formatDate = function($tanggal) use ($months) {
@@ -127,15 +148,14 @@ class PdfCicCutiUnpaidController extends Controller
                                     return ltrim(date('d', strtotime($tanggal)), '0') . ' ' . $indMon . ' \'' . date('y', strtotime($tanggal));
                                 };
 
-                                $dates = $det->dates()->orderBy('tanggal')->get();
-                                if ($dates->count() == 1) {
-                                    $dateStr = $formatDate($dates->first()->tanggal);
+                                if ($sortedDates->count() == 1) {
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal);
                                 } else {
-                                    $dateStr = $formatDate($dates->first()->tanggal) . ' s/d ' . $formatDate($dates->last()->tanggal);
+                                    $dateStr = $formatDate($sortedDates->first()->tanggal) . ' s/d ' . $formatDate($sortedDates->last()->tanggal);
                                 }
                             } else {
                                 $groupedDates = [];
-                                foreach ($det->dates()->orderBy('tanggal')->get() as $d) {
+                                foreach ($sortedDates as $d) {
                                     $months = ['Jan'=>'Jan', 'Feb'=>'Peb', 'Mar'=>'Mar', 'Apr'=>'Apr', 'May'=>'Mei', 'Jun'=>'Jun', 'Jul'=>'Jul', 'Aug'=>'Ags', 'Sep'=>'Sep', 'Oct'=>'Okt', 'Nov'=>'Nop', 'Dec'=>'Des'];
                                     $engMon = date('M', strtotime($d->tanggal));
                                     $indMon = $months[$engMon] ?? $engMon;
@@ -165,13 +185,7 @@ class PdfCicCutiUnpaidController extends Controller
 
                                 $totalJumlah = 0;
                                 for ($m = 1; $m <= 12; $m++) {
-                                    $jml = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($k, $tahun) {
-                                        $q->whereIn('kategori', ['UNPAID', 'GANTI_HARI_LIBUR'])
-                                          ->whereHas('cicCuti', function($q2) use ($k, $tahun) {
-                                              $q2->where('cic_karyawan_id', $k->id)->where('tahun', $tahun);
-                                          });
-                                    })->whereMonth('tanggal', $m)->count();
-
+                                    $jml = $unpaidMap[$k->id][$m] ?? 0;
                                     $totalJumlah += $jml;
                                     $html .= "<td class=\"ac border-thin\">".($jml != 0 ? $jml : '')."</td>";
                                 }
