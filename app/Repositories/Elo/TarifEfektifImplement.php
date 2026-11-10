@@ -8,6 +8,7 @@ use App\Models\TarifEfektif;
 class TarifEfektifImplement implements TarifEfektifRepository {
 
     protected $model;
+    protected static $cachedTarif = null;
 
     function __construct(TarifEfektif $model) {
         $this->model = $model;
@@ -17,13 +18,24 @@ class TarifEfektifImplement implements TarifEfektifRepository {
         return $this->model->find($id);
     }
 
+    protected function getCachedTarif() {
+        if (self::$cachedTarif === null) {
+            self::$cachedTarif = $this->model->query()
+                ->orderBy('penghasilan', 'desc')
+                ->get()
+                ->groupBy('ter');
+        }
+        return self::$cachedTarif;
+    }
+
     public function findByTerAndPenghasilan($ter, $penghasilan) {
-        $model = $this->model->query()
-            ->where('ter', $ter)
-            ->where('penghasilan', '<=', $penghasilan)
-            ->orderBy('penghasilan', 'desc')
-            ->first();
-        return $model;
+        $cached = $this->getCachedTarif();
+        if (isset($cached[$ter])) {
+            return $cached[$ter]->first(function($item) use ($penghasilan) {
+                return $item->penghasilan <= $penghasilan;
+            });
+        }
+        return null;
     }
 
     public function findAll($inputs = []) {
@@ -40,6 +52,7 @@ class TarifEfektifImplement implements TarifEfektifRepository {
     }
 
     public function create(array $inputs) {
+        self::$cachedTarif = null;
         return $this->model->create($inputs);
     }
 
@@ -56,10 +69,12 @@ class TarifEfektifImplement implements TarifEfektifRepository {
         }
 
         $model->save();
+        self::$cachedTarif = null;
         return $model;
     }
 
     public function delete($id) {
+        self::$cachedTarif = null;
         return $this->model->destroy($id);
     }
 
