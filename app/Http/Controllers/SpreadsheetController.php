@@ -1856,7 +1856,13 @@ class SpreadsheetController extends Controller
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
 
-        $dataPhks = Phk::with(['karyawan', 'statusKerja', 'statusPhk'])
+        $dataPhks = Phk::with([
+            'karyawan' => function($q) {
+                $q->withCount(['anaks as jumlah_anak']);
+            },
+            'statusKerja',
+            'statusPhk'
+        ])
             ->whereYear('tanggal_akhir', '>=', $tahun_awal)
             ->whereYear('tanggal_akhir', '<=', $tahun_akhir)
             ->orderBy('tanggal_akhir', 'asc')

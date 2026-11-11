@@ -31,7 +31,13 @@ class PdfListExKaryawanController extends Controller
             .text-blue { color: #0000FF; font-weight: bold; }
         </style>";
 
-        $dataPhks = Phk::with(['karyawan', 'statusKerja', 'statusPhk'])
+        $dataPhks = Phk::with([
+            'karyawan' => function($q) {
+                $q->withCount(['anaks as jumlah_anak']);
+            },
+            'statusKerja',
+            'statusPhk'
+        ])
             ->whereYear('tanggal_akhir', '>=', $tahun_awal)
             ->whereYear('tanggal_akhir', '<=', $tahun_akhir)
             ->orderBy('tanggal_akhir', 'asc')

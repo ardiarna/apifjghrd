@@ -18,7 +18,7 @@ class Karyawan extends Model
         'nama', 'nik', 'nomor_ktp', 'tanggal_masuk', 'tanggal_keluar', 'agama_id', 'area_id', 'jabatan_id', 'divisi_id', 'tempat_lahir', 'tanggal_lahir', 'alamat_ktp', 'alamat_tinggal', 'telepon', 'email', 'kawin', 'kelamin', 'status_kerja_id', 'pendidikan_id', 'pendidikan_almamater', 'pendidikan_jurusan', 'aktif', 'staf', 'manajemen', 'nomor_kk', 'nomor_paspor', 'nomor_pwp', 'phk_id', 'ptkp_id'
     ];
 
-    protected $appends = ['uang_phk', 'payroll_phk'];
+    protected $appends = ['uang_phk', 'payroll_phk', 'jumlah_anak'];
 
     public function agama(): BelongsTo {
         return $this->belongsTo(Agama::class);
@@ -56,6 +56,13 @@ class Karyawan extends Model
         return $this->phk ? $this->phk->payrollPhk : null;
     }
 
+    public function getJumlahAnakAttribute() {
+        if (array_key_exists('jumlah_anak', $this->attributes) && $this->attributes['jumlah_anak'] !== null) {
+            return (int) $this->attributes['jumlah_anak'];
+        }
+        return $this->jumlahAnak();
+    }
+
     public function upah(): HasOne {
         return $this->hasOne(Upah::class);
     }
@@ -74,6 +81,15 @@ class Karyawan extends Model
     }
 
     public function jumlahAnak() {
+        if (array_key_exists('jumlah_anak', $this->attributes) && $this->attributes['jumlah_anak'] !== null) {
+            return (int) $this->attributes['jumlah_anak'];
+        }
+        if (array_key_exists('anaks_count', $this->attributes) && $this->attributes['anaks_count'] !== null) {
+            return (int) $this->attributes['anaks_count'];
+        }
+        if ($this->relationLoaded('anaks')) {
+            return $this->anaks->count();
+        }
         return $this->hasMany(KeluargaKaryawan::class)
             ->where('hubungan', 'A')
             ->count();

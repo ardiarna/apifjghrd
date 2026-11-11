@@ -15,13 +15,22 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findById($id) {
-        return $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp','upah'])
+        $model = $this->model->query()
+            ->select('karyawans.*')
+            ->withCount(['anaks as jumlah_anak'])
+            ->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp','upah'])
             ->find($id);
+        if ($model) {
+            $model->jumlah_anak = (int) $model->jumlah_anak;
+        }
+        return $model;
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp','upah'])
+        $hasil = $this->model->query()
             ->select('karyawans.*')
+            ->withCount(['anaks as jumlah_anak'])
+            ->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp','upah'])
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan');
@@ -48,7 +57,7 @@ class KaryawanImplement implements KaryawanRepository {
         $hasil->orderBy('karyawans.id');
         $hasil = $hasil->get();
         foreach ($hasil as $h) {
-            $h->jumlah_anak = $h->jumlahAnak();
+            $h->jumlah_anak = (int) $h->jumlah_anak;
             if($h->phk != null) {
                 $h->phk->statusPhk;
             }
