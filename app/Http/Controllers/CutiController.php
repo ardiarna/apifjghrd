@@ -33,8 +33,11 @@ class CutiController extends Controller
         $query->where('jenis_form', '!=', 'CUTI_MASAL');
         $cutis = $query->get();
             
-        $masals = CutiMasal::where('tahun', $tahun)
-            ->orderBy('created_at', 'desc')->get();
+        $masals = CutiMasal::with('dates')
+            ->withCount('cutis')
+            ->where('tahun', $tahun)
+            ->orderBy('created_at', 'desc')
+            ->get();
             
         $data = [];
         foreach ($cutis as $c) {
@@ -42,7 +45,7 @@ class CutiController extends Controller
         }
         
         foreach ($masals as $m) {
-            $count = Cuti::where('cuti_masal_id', $m->id)->count();
+            $count = $m->cutis_count;
             
             $data[] = [
                 'id' => (string)$m->id,
@@ -493,23 +496,41 @@ class CutiController extends Controller
                 }
             }
 
+            $karyawanIds = collect($request->karyawans)->pluck('karyawan_id')->unique()->filter()->values();
+            $tahun = $request->tahun;
+
+            $jatahSnaps = JatahCutiTahunan::whereIn('karyawan_id', $karyawanIds)
+                ->where('tahun', $tahun)
+                ->get()
+                ->keyBy('karyawan_id');
+
+            $sudahDiambilCounts = CutiDate::join('cuti_details', 'cuti_dates.cuti_detail_id', '=', 'cuti_details.id')
+                ->join('cutis', 'cuti_details.cuti_id', '=', 'cutis.id')
+                ->whereIn('cutis.karyawan_id', $karyawanIds)
+                ->where('cutis.tahun', $tahun)
+                ->whereIn('cuti_details.kategori', ['TAHUNAN', 'IJIN'])
+                ->groupBy('cutis.karyawan_id')
+                ->selectRaw('cutis.karyawan_id, count(*) as total')
+                ->pluck('total', 'karyawan_id');
+
+            $cutiMasalCounts = CutiDate::join('cuti_details', 'cuti_dates.cuti_detail_id', '=', 'cuti_details.id')
+                ->join('cutis', 'cuti_details.cuti_id', '=', 'cutis.id')
+                ->whereIn('cutis.karyawan_id', $karyawanIds)
+                ->where('cutis.tahun', $tahun)
+                ->where('cuti_details.kategori', 'CUTI_MASAL')
+                ->groupBy('cutis.karyawan_id')
+                ->selectRaw('cutis.karyawan_id, count(*) as total')
+                ->pluck('total', 'karyawan_id');
+
             foreach($request->karyawans as $k) {
                 $karyawanId = $k['karyawan_id'];
-                $tahun = $request->tahun;
 
-                $jatahSnap = JatahCutiTahunan::where('karyawan_id', $karyawanId)
-                    ->where('tahun', $tahun)->first();
+                $jatahSnap = $jatahSnaps->get($karyawanId);
                 $snapTotalHakCuti = $jatahSnap
                     ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
                     : 0;
-                $snapSudahDiambil = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
-                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
-                $snapCutiMasal = CutiDate::whereHas('cutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->where('kategori', 'CUTI_MASAL')
-                      ->whereHas('cuti', fn($q2) => $q2->where('karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
+                $snapSudahDiambil = (int)($sudahDiambilCounts[$karyawanId] ?? 0);
+                $snapCutiMasal = (int)($cutiMasalCounts[$karyawanId] ?? 0);
 
                 $cuti = Cuti::create([
                     'karyawan_id' => $karyawanId,

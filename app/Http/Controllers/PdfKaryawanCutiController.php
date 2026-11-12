@@ -83,14 +83,18 @@ class PdfKaryawanCutiController extends Controller
 
         $sheet->setCellValue('B9', $totalHak != 0 ? $totalHak : '');
         
+        $monthlyCounts = CutiDate::join('cuti_details', 'cuti_dates.cuti_detail_id', '=', 'cuti_details.id')
+            ->join('cutis', 'cuti_details.cuti_id', '=', 'cutis.id')
+            ->where('cutis.karyawan_id', $k->id)
+            ->where('cutis.tahun', $tahun)
+            ->whereIn('cuti_details.kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
+            ->selectRaw('MONTH(cuti_dates.tanggal) as bln, count(*) as total')
+            ->groupBy('bln')
+            ->pluck('total', 'bln');
+
         $totalDiambilTahunan = 0;
         for($m=1; $m<=12; $m++) {
-            $diambilBulan = CutiDate::whereHas('cutiDetail', function($q) use ($k, $tahun) {
-                $q->whereIn('kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
-                  ->whereHas('cuti', function($q2) use ($k, $tahun) {
-                      $q2->where('karyawan_id', $k->id)->where('tahun', $tahun);
-                  });
-            })->whereMonth('tanggal', $m)->count();
+            $diambilBulan = (int)($monthlyCounts[$m] ?? 0);
             $totalDiambilTahunan += $diambilBulan;
             $sheet->setCellValue($arrkol[2 + $m - 1].'9', $diambilBulan != 0 ? $diambilBulan : '');
         }
