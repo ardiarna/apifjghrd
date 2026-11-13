@@ -58,6 +58,8 @@ class PdfDataDivisiController extends Controller
                 }
             }
         }
+        $dataKaryawan = new \Illuminate\Database\Eloquent\Collection($dataKaryawan);
+        $dataKaryawan->load('trainingKaryawans.training');
 
         $details = [];
         $totalKaryawanPerArea = [];
@@ -121,7 +123,7 @@ class PdfDataDivisiController extends Controller
                 }
 
                 foreach ($karyawans as $d) {
-                    $trainings = $d->trainingKaryawans()->get();
+                    $trainings = $d->trainingKaryawans;
                     $numTrainings = $trainings->count();
                     $maxRows = max(1, $numTrainings);
 

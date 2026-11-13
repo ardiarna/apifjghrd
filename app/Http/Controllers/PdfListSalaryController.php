@@ -17,6 +17,11 @@ class PdfListSalaryController extends Controller
 
     public function listSalary() {
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
         $upahsData = Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
@@ -178,7 +183,7 @@ class PdfListSalaryController extends Controller
                     if (strpos($statusNamaRaw, 'tetap') !== false || strpos($statusNamaRaw, 'pkwtt') !== false) {
                         $statusTetap = 'TETAP/PKWTT';
                     } else if (strpos($statusNamaRaw, 'kontrak') !== false || strpos($statusNamaRaw, 'pkwt') !== false || strpos($statusNamaRaw, 'percobaan') !== false) {
-                        $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                        $perjanjians = $d->perjanjianKerjas;
                         if ($perjanjians->count() > 0) {
                             $latest = $perjanjians->last();
                             $bulanMap = [
@@ -197,7 +202,7 @@ class PdfListSalaryController extends Controller
                         }
                     } else {
                         if ($statusNamaRaw) {
-                            $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                            $perjanjians = $d->perjanjianKerjas;
                             if ($perjanjians->count() > 0) {
                                 $latest = $perjanjians->last();
                                 $bulanMap = [

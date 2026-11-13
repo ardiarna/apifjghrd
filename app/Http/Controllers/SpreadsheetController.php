@@ -1148,6 +1148,11 @@ class SpreadsheetController extends Controller
 
         // Data
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
         $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
@@ -1239,7 +1244,7 @@ class SpreadsheetController extends Controller
                         if (strpos($statusNama, 'tetap') !== false || strpos($statusNama, 'pkwtt') !== false) {
                             $si->setCellValue('K'.$bar, 'TETAP/PKWTT');
                         } else if (strpos($statusNama, 'kontrak') !== false || strpos($statusNama, 'pkwt') !== false || strpos($statusNama, 'percobaan') !== false) {
-                            $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                            $perjanjians = $d->perjanjianKerjas;
                             if ($perjanjians->count() > 0) {
                                 $latest = $perjanjians->last();
                                 $bulanMap = [
@@ -1262,7 +1267,7 @@ class SpreadsheetController extends Controller
                         } else {
                             // default to L if not Tetap
                             if ($statusNama) {
-                                $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                                $perjanjians = $d->perjanjianKerjas;
                                 if ($perjanjians->count() > 0) {
                                     $latest = $perjanjians->last();
                                     $bulanMap = [
@@ -1511,6 +1516,14 @@ class SpreadsheetController extends Controller
 
         // Data
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'keluargas',
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc')->with('statusKerja');
+            },
+            'trainingKaryawans.training',
+            'keluargaKontaks',
+        ]);
         $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
@@ -1565,9 +1578,9 @@ class SpreadsheetController extends Controller
                 }
 
                 foreach ($karyawans as $d) {
-                    $keluargas = $d->keluargas()->get();
-                    $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
-                    $trainings = $d->trainingKaryawans()->get();
+                    $keluargas = $d->keluargas;
+                    $perjanjians = $d->perjanjianKerjas;
+                    $trainings = $d->trainingKaryawans;
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
@@ -1578,7 +1591,7 @@ class SpreadsheetController extends Controller
                     $alamatTinggalArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_tinggal))));
                     $alamatTinggalArr = array_values($alamatTinggalArr);
 
-                    $kontaks = $d->keluargaKontaks()->get();
+                    $kontaks = $d->keluargaKontaks;
                     $kontakArr = [];
                     foreach ($kontaks as $k_kontak) {
                         $kontakArr[] = $k_kontak->telepon ? "'" . $k_kontak->telepon : '';
@@ -1890,7 +1903,13 @@ class SpreadsheetController extends Controller
 
         $dataPhks = Phk::with([
             'karyawan' => function($q) {
-                $q->withCount(['anaks as jumlah_anak']);
+                $q->withCount(['anaks as jumlah_anak'])
+                  ->with([
+                      'keluargas',
+                      'perjanjianKerjas' => function($pq) {
+                          $pq->orderBy('tanggal_awal', 'asc');
+                      }
+                  ]);
             },
             'statusKerja',
             'statusPhk'
@@ -1995,8 +2014,8 @@ class SpreadsheetController extends Controller
                     foreach ($phksGrouped as $phk) {
                         $d = $phk->karyawan;
 
-                        $keluargas = $d->keluargas()->get();
-                        $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                        $keluargas = $d->keluargas;
+                        $perjanjians = $d->perjanjianKerjas;
 
                         $numKeluarga = $keluargas->count();
                         $numPerjanjian = $perjanjians->count();

@@ -44,6 +44,11 @@ class PdfDataStatusKaryawanController extends Controller
         </style>";
 
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
 
         $details = [];
         $totalKaryawanPerStatus = [];
@@ -163,7 +168,7 @@ class PdfDataStatusKaryawanController extends Controller
                     $html .= "<td class=\"al\">".$pendidikanFormat."</td>";
 
                     $statusNamaCell = $d->statusKerja ? $d->statusKerja->nama : '';
-                    $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                    $perjanjians = $d->perjanjianKerjas;
                     $numPerjanjian = $perjanjians->count();
 
                     if ($numPerjanjian > 0) {

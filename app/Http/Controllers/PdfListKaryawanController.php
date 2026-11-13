@@ -44,6 +44,14 @@ class PdfListKaryawanController extends Controller
         </style>";
 
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'keluargas',
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc')->with('statusKerja');
+            },
+            'trainingKaryawans.training',
+            'keluargaKontaks',
+        ]);
         $activeAreas = [];
         foreach ($dataKaryawan as $d) {
             $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
@@ -142,9 +150,9 @@ class PdfListKaryawanController extends Controller
                 }
 
                 foreach ($karyawans as $d) {
-                    $keluargas = $d->keluargas()->get();
-                    $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
-                    $trainings = $d->trainingKaryawans()->get();
+                    $keluargas = $d->keluargas;
+                    $perjanjians = $d->perjanjianKerjas;
+                    $trainings = $d->trainingKaryawans;
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
@@ -155,7 +163,7 @@ class PdfListKaryawanController extends Controller
                     $alamatTinggalArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_tinggal))));
                     $alamatTinggalArr = array_values($alamatTinggalArr);
 
-                    $kontaks = $d->keluargaKontaks()->get();
+                    $kontaks = $d->keluargaKontaks;
                     $kontakArr = [];
                     foreach ($kontaks as $k_kontak) {
                         $kontakArr[] = $k_kontak->telepon ? "" . $k_kontak->telepon : '';

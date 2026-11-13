@@ -209,6 +209,8 @@ class SpreadKaryawanCustomController extends Controller
                 }
             }
         }
+        $dataKaryawan = new \Illuminate\Database\Eloquent\Collection($dataKaryawan);
+        $dataKaryawan->load('trainingKaryawans.training');
 
         $details = [];
         $totalKaryawanPerStatus = [];
@@ -313,7 +315,7 @@ class SpreadKaryawanCustomController extends Controller
                 }
 
                 foreach ($karyawans as $d) {
-                    $trainings = $d->trainingKaryawans()->get();
+                    $trainings = $d->trainingKaryawans;
                     $numTrainings = $trainings->count();
                     $maxRows = max(1, $numTrainings);
 
@@ -1449,6 +1451,11 @@ class SpreadKaryawanCustomController extends Controller
 
         // Data Setup
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
         $details = [];
         $totalKaryawanPerStatus = [];
         $totalKaryawanPerStatusPerArea = [];
@@ -1527,7 +1534,7 @@ class SpreadKaryawanCustomController extends Controller
 
                     // Status & Perjanjian
                     $statusNamaCell = $d->statusKerja ? $d->statusKerja->nama : '';
-                    $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                    $perjanjians = $d->perjanjianKerjas;
                     $numPerjanjian = $perjanjians->count();
 
                     if ($numPerjanjian > 0) {

@@ -33,7 +33,13 @@ class PdfListExKaryawanController extends Controller
 
         $dataPhks = Phk::with([
             'karyawan' => function($q) {
-                $q->withCount(['anaks as jumlah_anak']);
+                $q->withCount(['anaks as jumlah_anak'])
+                  ->with([
+                      'keluargas',
+                      'perjanjianKerjas' => function($pq) {
+                          $pq->orderBy('tanggal_awal', 'asc');
+                      }
+                  ]);
             },
             'statusKerja',
             'statusPhk'
@@ -123,8 +129,8 @@ class PdfListExKaryawanController extends Controller
 
                     foreach ($phks as $phk) {
                         $d = $phk->karyawan;
-                        $keluargas = $d->keluargas()->get();
-                        $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                        $keluargas = $d->keluargas;
+                        $perjanjians = $d->perjanjianKerjas;
 
                         $numKeluarga = $keluargas->count();
                         $numPerjanjian = $perjanjians->count();
