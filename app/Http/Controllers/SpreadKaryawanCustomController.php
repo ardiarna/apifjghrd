@@ -380,8 +380,14 @@ class SpreadKaryawanCustomController extends Controller
                             }
 
                             $tInfo = $tName;
-                            if ($tk->tanggal) {
-                                $tInfo .= " - " . date('d-m-Y', strtotime($tk->tanggal));
+                            $tglAwal = $tk->tanggal_awal ? date('d-m-Y', strtotime($tk->tanggal_awal)) : '';
+                            $tglAkhir = $tk->tanggal_akhir ? date('d-m-Y', strtotime($tk->tanggal_akhir)) : '';
+                            $tglRange = $tglAwal;
+                            if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                                $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
+                            }
+                            if ($tglRange) {
+                                $tInfo .= " - " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "\n" . trim($tk->keterangan);
@@ -1309,8 +1315,14 @@ class SpreadKaryawanCustomController extends Controller
             $startTable = $bar;
             foreach ($trainings as $tr) {
                 $trainingName = $tr->training ? $tr->training->nama : '';
+                $tglAwal = $tr->tanggal_awal ? date('d-m-Y', strtotime($tr->tanggal_awal)) : '';
+                $tglAkhir = $tr->tanggal_akhir ? date('d-m-Y', strtotime($tr->tanggal_akhir)) : '';
+                $tglStr = $tglAwal;
+                if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                    $tglStr .= ($tglStr ? ' s/d ' : '') . $tglAkhir;
+                }
                 $si->setCellValue('B'.$bar, $trainingName); $si->mergeCells('B'.$bar.':C'.$bar);
-                $si->setCellValue('D'.$bar, $tr->tanggal ? date('d-m-Y', strtotime($tr->tanggal)) : '');
+                $si->setCellValue('D'.$bar, $tglStr);
                 $si->setCellValue('E'.$bar, $tr->keterangan); $si->mergeCells('E'.$bar.':H'.$bar);
                 $si->getRowDimension($bar)->setRowHeight(18);
                 $bar++;

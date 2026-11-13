@@ -34,13 +34,17 @@ class TrainingKaryawanController extends Controller
         $this->validate($request, [
             'karyawan_id' => 'required|exists:karyawans,id',
             'training_id' => 'required|exists:trainings,id',
-            'tanggal' => 'nullable|date',
+            'tanggal_awal' => 'nullable|date',
+            'tanggal_akhir' => 'nullable|date',
             'keterangan' => 'nullable|string'
         ]);
 
         $inputs = $request->all();
-        if (isset($inputs['tanggal']) && $inputs['tanggal'] === '') {
-            $inputs['tanggal'] = null;
+        if (isset($inputs['tanggal_awal']) && $inputs['tanggal_awal'] === '') {
+            $inputs['tanggal_awal'] = null;
+        }
+        if (isset($inputs['tanggal_akhir']) && $inputs['tanggal_akhir'] === '') {
+            $inputs['tanggal_akhir'] = null;
         }
         $data = $this->repo->create($inputs);
         $data = $this->repo->findById($data->id);
@@ -52,13 +56,17 @@ class TrainingKaryawanController extends Controller
     {
         $this->validate($request, [
             'training_id' => 'nullable|exists:trainings,id',
-            'tanggal' => 'nullable|date',
+            'tanggal_awal' => 'nullable|date',
+            'tanggal_akhir' => 'nullable|date',
             'keterangan' => 'nullable|string'
         ]);
 
         $inputs = $request->all();
-        if (isset($inputs['tanggal']) && $inputs['tanggal'] === '') {
-            $inputs['tanggal'] = null;
+        if (isset($inputs['tanggal_awal']) && $inputs['tanggal_awal'] === '') {
+            $inputs['tanggal_awal'] = null;
+        }
+        if (isset($inputs['tanggal_akhir']) && $inputs['tanggal_akhir'] === '') {
+            $inputs['tanggal_akhir'] = null;
         }
         $data = $this->repo->update($id, $inputs);
         $data = $this->repo->findById($data->id);

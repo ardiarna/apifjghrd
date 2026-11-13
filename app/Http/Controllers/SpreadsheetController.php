@@ -1449,9 +1449,9 @@ class SpreadsheetController extends Controller
 
         // Title
         $si->setCellValue('A2', 'LIST KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
-        $si->mergeCells('A2:U2');
+        $si->mergeCells('A2:V2');
         $si->setCellValue('A3', $areaString);
-        $si->mergeCells('A3:U3');
+        $si->mergeCells('A3:V3');
 
         $styleJudul = [
             'font' => [
@@ -1466,7 +1466,7 @@ class SpreadsheetController extends Controller
                 'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
             ]
         ];
-        $si->getStyle('A2:U3')->applyFromArray($styleJudul);
+        $si->getStyle('A2:V3')->applyFromArray($styleJudul);
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
@@ -1495,15 +1495,16 @@ class SpreadsheetController extends Controller
         $si->setCellValue('S5', 'EMAIL PRIBADI'); $si->mergeCells('S5:S6');
         $si->setCellValue('T5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('T5:T6');
         $si->setCellValue('U5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('U5:U6');
+        $si->setCellValue('V5', 'TRAINING'); $si->mergeCells('V5:V6');
 
-        $si->getStyle('A5:U6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
-        $si->getStyle('A5:U6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
-        $si->getStyle('A5:U6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $si->getStyle('A5:V6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:V6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:V6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $si->getRowDimension(5)->setRowHeight(18);
         $si->getRowDimension(6)->setRowHeight(15);
 
         // Column Widths
-        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>11.00, 'E'=>11.00, 'F'=>16.00, 'G'=>10.77, 'H'=>40.14, 'I'=>18.10, 'J'=>21.33, 'K'=>48.00, 'L'=>30.00, 'M'=>56, 'N'=>57.10, 'O'=>18.00, 'P'=>25.00, 'Q'=>15.66, 'R'=>45.00, 'S'=>28.55, 'T'=>56.88, 'U'=>40.00];
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>10.77, 'D'=>11.00, 'E'=>11.00, 'F'=>16.00, 'G'=>10.77, 'H'=>40.14, 'I'=>18.10, 'J'=>21.33, 'K'=>48.00, 'L'=>30.00, 'M'=>56, 'N'=>57.10, 'O'=>18.00, 'P'=>25.00, 'Q'=>15.66, 'R'=>45.00, 'S'=>28.55, 'T'=>56.88, 'U'=>40.00, 'V'=>60.00];
         foreach ($widths as $col => $width) {
             $si->getColumnDimension($col)->setWidth($width);
         }
@@ -1566,9 +1567,11 @@ class SpreadsheetController extends Controller
                 foreach ($karyawans as $d) {
                     $keluargas = $d->keluargas()->get();
                     $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                    $trainings = $d->trainingKaryawans()->get();
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
+                    $numTrainings = $trainings->count();
 
                     $alamatKtpArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_ktp))));
                     $alamatKtpArr = array_values($alamatKtpArr);
@@ -1606,7 +1609,7 @@ class SpreadsheetController extends Controller
 
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr), $numTrainings);
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -1680,7 +1683,7 @@ class SpreadsheetController extends Controller
                             elseif ($statusId == '5') $bgColor = 'FFB9F6CA';
                             elseif ($statusId != '1') $bgColor = 'FFF44336';
                             if ($bgColor) {
-                                $si->getStyle('A'.$bar.':U'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
+                                $si->getStyle('A'.$bar.':V'.$bar)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)->getStartColor()->setARGB($bgColor);
                             }
                         } else {
                             $offset = $hasPaspor ? 1 : 0;
@@ -1755,7 +1758,34 @@ class SpreadsheetController extends Controller
                             $si->setCellValue('S'.$bar, $emailArr[$i]);
                         }
 
-                        $si->getStyle('A'.$bar.':U'.$bar)->getAlignment()->setVertical('top');
+                        // Training
+                        if ($i < $numTrainings) {
+                            $tk = $trainings[$i];
+                            $tName = '';
+                            if ($tk->training) {
+                                $tName = $tk->training->nama;
+                            } else {
+                                $tName = 'Training ID: ' . $tk->training_id;
+                            }
+
+                            $tInfo = $tName;
+                            $tglAwal = $tk->tanggal_awal ? date('d-m-Y', strtotime($tk->tanggal_awal)) : '';
+                            $tglAkhir = $tk->tanggal_akhir ? date('d-m-Y', strtotime($tk->tanggal_akhir)) : '';
+                            $tglRange = $tglAwal;
+                            if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                                $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
+                            }
+                            if ($tglRange) {
+                                $tInfo .= " - " . $tglRange;
+                            }
+                            if ($tk->keterangan) {
+                                $tInfo .= "\n" . trim($tk->keterangan);
+                            }
+
+                            $si->setCellValue('V'.$bar, $tInfo);
+                        }
+
+                        $si->getStyle('A'.$bar.':V'.$bar)->getAlignment()->setVertical('top');
                         $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('C'.$bar.':G'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('I'.$bar.':J'.$bar)->getAlignment()->setHorizontal('center');
@@ -1768,12 +1798,14 @@ class SpreadsheetController extends Controller
                     }
 
                     if ($maxRows > 1) {
-                        // Set WrapText for R, U for the whole block of this employee
+                        // Set WrapText for R, U, V for the whole block of this employee
                         $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
                         $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
+                        $si->getStyle('V'.$startBar.':V'.($bar-1))->getAlignment()->setWrapText(true);
                     }
                     $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
                     $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
+                    $si->getStyle('V'.$startBar.':V'.($bar-1))->getAlignment()->setWrapText(true);
 
                     $bar++; // Insert empty row between employees
                     $nomor++;
@@ -1782,9 +1814,9 @@ class SpreadsheetController extends Controller
         }
 
         if ($bar > 7) {
-            $si->getStyle('A7:U'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:U'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:U'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $si->getStyle('A7:V'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:V'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:V'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         $bar += 2;

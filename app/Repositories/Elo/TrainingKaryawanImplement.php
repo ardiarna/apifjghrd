@@ -19,7 +19,7 @@ class TrainingKaryawanImplement implements TrainingKaryawanRepository
         if (isset($inputs['karyawan_id'])) {
             $query->where('karyawan_id', $inputs['karyawan_id']);
         }
-        return $query->with('training')->orderBy('tanggal', 'desc')->get();
+        return $query->with('training')->orderBy('tanggal_awal', 'desc')->get();
     }
 
     public function findById($id)

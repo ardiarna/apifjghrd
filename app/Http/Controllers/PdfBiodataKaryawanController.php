@@ -177,7 +177,12 @@ class PdfBiodataKaryawanController extends Controller
             $html .= "<tr><th style=\"width:40%;\">Nama Training</th><th style=\"width:20%;\">Tanggal</th><th style=\"width:40%;\">Keterangan</th></tr>";
             foreach ($trainings as $tr) {
                 $trainingName = $tr->training ? $tr->training->nama : '';
-                $tgl = $tr->tanggal ? date('d-m-Y', strtotime($tr->tanggal)) : '';
+                $tglAwal = $tr->tanggal_awal ? date('d-m-Y', strtotime($tr->tanggal_awal)) : '';
+                $tglAkhir = $tr->tanggal_akhir ? date('d-m-Y', strtotime($tr->tanggal_akhir)) : '';
+                $tgl = $tglAwal;
+                if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                    $tgl .= ($tgl ? ' s/d ' : '') . $tglAkhir;
+                }
                 $html .= "<tr><td class=\"al\">{$trainingName}</td><td class=\"ac\">{$tgl}</td><td class=\"al\">{$tr->keterangan}</td></tr>";
             }
             $html .= "</table>";

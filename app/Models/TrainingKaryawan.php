@@ -9,7 +9,7 @@ class TrainingKaryawan extends Model
 {
     protected $table = 'training_karyawans';
     protected $fillable = [
-        'karyawan_id', 'training_id', 'tanggal', 'keterangan'
+        'karyawan_id', 'training_id', 'tanggal_awal', 'tanggal_akhir', 'keterangan'
     ];
 
     public function karyawan(): BelongsTo {

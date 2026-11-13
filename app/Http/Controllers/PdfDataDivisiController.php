@@ -193,8 +193,14 @@ class PdfDataDivisiController extends Controller
                             }
 
                             $tInfo = $tName;
-                            if ($tk->tanggal) {
-                                $tInfo .= " - " . date('d-m-Y', strtotime($tk->tanggal));
+                            $tglAwal = $tk->tanggal_awal ? date('d-m-Y', strtotime($tk->tanggal_awal)) : '';
+                            $tglAkhir = $tk->tanggal_akhir ? date('d-m-Y', strtotime($tk->tanggal_akhir)) : '';
+                            $tglRange = $tglAwal;
+                            if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                                $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
+                            }
+                            if ($tglRange) {
+                                $tInfo .= " - " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "<br/>" . trim($tk->keterangan);

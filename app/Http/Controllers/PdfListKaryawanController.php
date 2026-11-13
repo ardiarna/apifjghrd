@@ -67,7 +67,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<table>";
 
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
-        $widths = [10, 55, 20, 12, 12, 30, 20, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 50, 80, 60];
+        $widths = [10, 55, 20, 12, 12, 30, 20, 60, 30, 40, 60, 45, 75, 75, 30, 30, 35, 60, 50, 80, 60, 60];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
         $html .= "</tr>";
 
@@ -90,6 +90,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<th rowspan=\"2\">EMAIL PRIBADI</th>";
         $html .= "<th rowspan=\"2\">NOMOR PERJANJIAN KERJA</th>";
         $html .= "<th rowspan=\"2\">STATUS KARYAWAN PKWT / KONTRAK</th>";
+        $html .= "<th rowspan=\"2\">TRAINING</th>";
         $html .= "</tr>";
 
         $html .= "<tr>";
@@ -133,19 +134,21 @@ class PdfListKaryawanController extends Controller
         $nomor = 1;
         foreach ($details as $staf => $areas) {
             if($staf == 'N') {
-                $html .= "<tr><td></td><td colspan=\"18\" class=\"al text-blue\">NON STAF :</td></tr>";
+                $html .= "<tr><td></td><td colspan=\"21\" class=\"al text-blue\">NON STAF :</td></tr>";
             }
             foreach ($areas as $area => $karyawans) {
                 if($staf == 'Y') {
-                    $html .= "<tr><td></td><td colspan=\"18\" class=\"al text-blue\">".$area." :</td></tr>";
+                    $html .= "<tr><td></td><td colspan=\"21\" class=\"al text-blue\">".$area." :</td></tr>";
                 }
 
                 foreach ($karyawans as $d) {
                     $keluargas = $d->keluargas()->get();
                     $perjanjians = $d->perjanjianKerjas()->orderBy('tanggal_awal', 'asc')->get();
+                    $trainings = $d->trainingKaryawans()->get();
 
                     $numKeluarga = $keluargas->count();
                     $numPerjanjian = $perjanjians->count();
+                    $numTrainings = $trainings->count();
 
                     $alamatKtpArr = array_filter(explode("\n", str_replace("\r", "", trim((string)$d->alamat_ktp))));
                     $alamatKtpArr = array_values($alamatKtpArr);
@@ -183,7 +186,7 @@ class PdfListKaryawanController extends Controller
 
                     $hasPaspor = $d->nomor_ktp && $d->nomor_paspor;
                     $identitasRows = 1 + ($hasPaspor ? 1 : 0) + $numKeluarga;
-                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr));
+                    $maxRows = max($identitasRows, $numPerjanjian, count($alamatKtpArr), count($alamatTinggalArr), count($kontakArr), count($teleponArr), count($emailArr), $numTrainings);
                     if ($maxRows < 1) $maxRows = 1;
 
                     $pendidikanFormat = '';
@@ -355,6 +358,33 @@ class PdfListKaryawanController extends Controller
                             $html .= "<td class=\"ac\">".$statusNamaCell."</td>";
                         } else {
                             $html .= "<td></td><td></td>";
+                        }
+
+                        if ($i < $numTrainings) {
+                            $tk = $trainings[$i];
+                            if ($tk->training) {
+                                $tName = $tk->training->nama;
+                            } else {
+                                $tName = 'Training ID: ' . $tk->training_id;
+                            }
+
+                            $tInfo = $tName;
+                            $tglAwal = $tk->tanggal_awal ? date('d-m-Y', strtotime($tk->tanggal_awal)) : '';
+                            $tglAkhir = $tk->tanggal_akhir ? date('d-m-Y', strtotime($tk->tanggal_akhir)) : '';
+                            $tglRange = $tglAwal;
+                            if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                                $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
+                            }
+                            if ($tglRange) {
+                                $tInfo .= " - " . $tglRange;
+                            }
+                            if ($tk->keterangan) {
+                                $tInfo .= "<br/>" . trim($tk->keterangan);
+                            }
+
+                            $html .= "<td class=\"al\">".$tInfo."</td>";
+                        } else {
+                            $html .= "<td></td>";
                         }
 
                         $html .= "</tr>";
