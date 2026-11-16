@@ -27,10 +27,30 @@ class KaryawanImplement implements KaryawanRepository {
     }
 
     public function findAll($inputs = []) {
+        $relations = [
+            'area',
+            'jabatan',
+            'divisi',
+            'agama',
+            'pendidikan',
+            'statusKerja',
+            'ptkp',
+            'upah',
+        ];
+
+        // Relasi PHK bertingkat hanya dimuat jika mengambil mantan karyawan ('N') atau jika status aktif tidak disaring
+        $isAktif = isset($inputs['aktif']) ? $inputs['aktif'] : null;
+        if ($isAktif === 'N' || empty($isAktif)) {
+            $relations[] = 'phk.uangPhk';
+            $relations[] = 'phk.payrollPhk';
+            $relations[] = 'phk.statusPhk';
+            $relations[] = 'phk.statusKerja';
+        }
+
         $hasil = $this->model->query()
             ->select('karyawans.*')
             ->withCount(['anaks as jumlah_anak'])
-            ->with(['area','jabatan','divisi','agama','pendidikan','statusKerja','phk.uangPhk','phk.payrollPhk','phk.statusPhk','phk.statusKerja','ptkp','upah'])
+            ->with($relations)
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->orderBy('karyawans.staf')
             ->orderBy('areas.urutan');
