@@ -192,4 +192,146 @@ class KaryawanImplement implements KaryawanRepository {
         return $hasil;
     }
 
+    public function demografi() {
+        // 1. Total per Area
+        $perArea = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select('areas.kode', DB::raw('COUNT(*) as total'))
+            ->groupBy('areas.kode')
+            ->get();
+
+        $totalPerArea = ['TOTAL KARYAWAN' => 0];
+        foreach ($perArea as $r) {
+            $totalPerArea[$r->kode] = (int)$r->total;
+            $totalPerArea['TOTAL KARYAWAN'] += (int)$r->total;
+        }
+
+        // 2. Per Kelamin
+        $perKelaminRaw = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select('karyawans.kelamin', 'areas.kode', DB::raw('COUNT(*) as total'))
+            ->groupBy('karyawans.kelamin', 'areas.kode')
+            ->get();
+
+        $totalPerKelamin = [];
+        foreach ($perKelaminRaw as $r) {
+            $k = $r->kelamin ?: 'Lainnya';
+            if (!isset($totalPerKelamin[$k])) {
+                $totalPerKelamin[$k] = ['TOTAL KARYAWAN' => 0];
+            }
+            $totalPerKelamin[$k][$r->kode] = (int)$r->total;
+            $totalPerKelamin[$k]['TOTAL KARYAWAN'] += (int)$r->total;
+        }
+
+        // 3. Per Kawin
+        $perKawinRaw = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select('karyawans.kawin', 'areas.kode', DB::raw('COUNT(*) as total'))
+            ->groupBy('karyawans.kawin', 'areas.kode')
+            ->get();
+
+        $totalPerKawin = [];
+        foreach ($perKawinRaw as $r) {
+            $k = $r->kawin ?: 'N';
+            if (!isset($totalPerKawin[$k])) {
+                $totalPerKawin[$k] = ['TOTAL KARYAWAN' => 0];
+            }
+            $totalPerKawin[$k][$r->kode] = (int)$r->total;
+            $totalPerKawin[$k]['TOTAL KARYAWAN'] += (int)$r->total;
+        }
+
+        // 4. Per Agama
+        $perAgamaRaw = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->leftJoin('agamas', 'karyawans.agama_id', '=', 'agamas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select(DB::raw('COALESCE(agamas.nama, "Lainnya") as agama'), 'areas.kode', DB::raw('COUNT(*) as total'))
+            ->groupBy('agamas.nama', 'areas.kode')
+            ->get();
+
+        $totalPerAgama = [];
+        foreach ($perAgamaRaw as $r) {
+            $a = $r->agama;
+            if (!isset($totalPerAgama[$a])) {
+                $totalPerAgama[$a] = ['TOTAL KARYAWAN' => 0];
+            }
+            $totalPerAgama[$a][$r->kode] = (int)$r->total;
+            $totalPerAgama[$a]['TOTAL KARYAWAN'] += (int)$r->total;
+        }
+
+        // 5. Per Pendidikan
+        $perPendidikanRaw = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->leftJoin('pendidikans', 'karyawans.pendidikan_id', '=', 'pendidikans.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select(DB::raw('COALESCE(pendidikans.nama, "Lainnya") as pendidikan'), 'areas.kode', DB::raw('COUNT(*) as total'))
+            ->groupBy('pendidikans.nama', 'areas.kode')
+            ->get();
+
+        $totalPerPendidikan = [];
+        foreach ($perPendidikanRaw as $r) {
+            $p = $r->pendidikan;
+            if (!isset($totalPerPendidikan[$p])) {
+                $totalPerPendidikan[$p] = ['TOTAL KARYAWAN' => 0];
+            }
+            $totalPerPendidikan[$p][$r->kode] = (int)$r->total;
+            $totalPerPendidikan[$p]['TOTAL KARYAWAN'] += (int)$r->total;
+        }
+
+        // 6. Per Usia
+        $tglLahirList = DB::table('karyawans')
+            ->join('areas', 'karyawans.area_id', '=', 'areas.id')
+            ->where('karyawans.aktif', 'Y')
+            ->select('karyawans.tanggal_lahir', 'areas.kode')
+            ->get();
+
+        $totalPerUsia = [];
+        $now = new \DateTime();
+        foreach ($tglLahirList as $r) {
+            $grp = '0';
+            if ($r->tanggal_lahir) {
+                $birth = new \DateTime($r->tanggal_lahir);
+                $age = $now->diff($birth)->y;
+                if ($age < 20) $grp = '< 20';
+                else if ($age <= 25) $grp = '20–25';
+                else if ($age <= 30) $grp = '26–30';
+                else if ($age <= 35) $grp = '31–35';
+                else if ($age <= 40) $grp = '36–40';
+                else if ($age <= 45) $grp = '41–45';
+                else if ($age <= 50) $grp = '46–50';
+                else if ($age <= 55) $grp = '51–55';
+                else $grp = '56+';
+            }
+            if (!isset($totalPerUsia[$grp])) {
+                $totalPerUsia[$grp] = ['TOTAL KARYAWAN' => 0];
+            }
+            $totalPerUsia[$grp][$r->kode] = ($totalPerUsia[$grp][$r->kode] ?? 0) + 1;
+            $totalPerUsia[$grp]['TOTAL KARYAWAN'] += 1;
+        }
+
+        return [
+            'total_per_area' => $totalPerArea,
+            'total_per_kelamin' => $totalPerKelamin,
+            'total_per_kawin' => $totalPerKawin,
+            'total_per_agama' => $totalPerAgama,
+            'total_per_pendidikan' => $totalPerPendidikan,
+            'total_per_usia' => $totalPerUsia,
+        ];
+    }
+
+    public function ulangTahun($bulan = null) {
+        if (!$bulan) {
+            $bulan = (int)date('n');
+        }
+
+        return DB::table('karyawans')
+            ->where('karyawans.aktif', 'Y')
+            ->whereRaw('MONTH(karyawans.tanggal_lahir) = ?', [$bulan])
+            ->select('karyawans.id', 'karyawans.nama', 'karyawans.tanggal_lahir')
+            ->orderByRaw('DAY(karyawans.tanggal_lahir) ASC')
+            ->get();
+    }
 }

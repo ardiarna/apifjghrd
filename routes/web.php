@@ -86,6 +86,8 @@ $router->group(['prefix' => 'jabatan', 'middleware' => 'auth:api'], function () 
 
 $router->group(['prefix' => 'karyawan', 'middleware' => 'auth:api'], function () use ($router) {
     $router->get('/', 'KaryawanController@findAll');
+    $router->get('demografi', 'KaryawanController@demografi');
+    $router->get('ulang-tahun', 'KaryawanController@ulangTahun');
     $router->get('{id}', 'KaryawanController@findById');
     $router->get('{karyawan_id}/keluarga', 'KeluargaKaryawanController@findAll');
     $router->get('{karyawan_id}/keluarga/{id}', 'KeluargaKaryawanController@findById');

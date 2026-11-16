@@ -172,4 +172,15 @@ class KaryawanController extends Controller
         return $this->successResponse($output);
     }
 
+    public function demografi(Request $req) {
+        $data = $this->repo->demografi();
+        return $this->successResponse($data);
+    }
+
+    public function ulangTahun(Request $req) {
+        $bulan = $req->query('bulan');
+        $data = $this->repo->ulangTahun($bulan);
+        return $this->successResponse($data);
+    }
+
 }

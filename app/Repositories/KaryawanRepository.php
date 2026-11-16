@@ -11,4 +11,6 @@ interface KaryawanRepository {
     public function setAktif($id);
     public function setNonAktif($id, $phk_id, $tanggal_keluar);
     public function rekapKaryawanByAreaAndKelamin();
+    public function demografi();
+    public function ulangTahun($bulan = null);
 }
