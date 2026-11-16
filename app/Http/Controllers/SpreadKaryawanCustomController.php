@@ -1305,7 +1305,7 @@ class SpreadKaryawanCustomController extends Controller
         $addSectionHeader('IV. RIWAYAT TRAINING', $bar);
         $bar += 2;
 
-        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->get() : [];
+        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->with('training')->get() : [];
         if (count($trainings) > 0) {
             $si->setCellValue('B'.$bar, 'Nama Training'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Tanggal');
@@ -1341,7 +1341,7 @@ class SpreadKaryawanCustomController extends Controller
         $addSectionHeader('V. PERJANJIAN KERJA', $bar);
         $bar += 2;
 
-        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->orderBy('tanggal_awal')->get() : [];
+        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->with('statusKerja')->orderBy('tanggal_awal')->get() : [];
         if (count($perjanjians) > 0) {
             $si->setCellValue('B'.$bar, 'Nomor Kontrak'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Status Kerja');

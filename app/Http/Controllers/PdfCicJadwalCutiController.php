@@ -82,13 +82,18 @@ class PdfCicJadwalCutiController extends Controller
             }
         }
 
+        $allHariLiburs = HariLibur::whereYear('tanggal', $tahun)->orderBy('tanggal')->get();
+        $hariLibursByMonth = $allHariLiburs->groupBy(function($hl) {
+            return (int)date('m', strtotime($hl->tanggal));
+        });
+
         for ($m = 1; $m <= 12; $m++) {
             if (!$firstPage) { $html .= "<pagebreak />"; }
             $firstPage = false;
 
             $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $m, $tahun);
 
-            $hariLiburs       = HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
+            $hariLiburs       = $hariLibursByMonth->get($m, collect());
             $holidayDatesRed  = $hariLiburs->where('iscutber', 'N')->pluck('tanggal')->toArray();
             $holidayDatesGreen = $hariLiburs->where('iscutber', 'Y')->pluck('tanggal')->toArray();
 

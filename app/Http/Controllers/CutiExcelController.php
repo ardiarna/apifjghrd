@@ -110,6 +110,11 @@ class CutiExcelController extends Controller
             }
         }
 
+        $allHariLiburs = HariLibur::whereYear('tanggal', $tahun)->orderBy('tanggal')->get();
+        $hariLibursByMonth = $allHariLiburs->groupBy(function($hl) {
+            return (int)date('m', strtotime($hl->tanggal));
+        });
+
         for($m = 1; $m <= 12; $m++) {
             if($m > 1) {
                 $spreadsheet->createSheet();
@@ -125,7 +130,7 @@ class CutiExcelController extends Controller
 
             $row = 2;
 
-            $hariLiburs = HariLibur::whereYear('tanggal', $tahun)->whereMonth('tanggal', $m)->orderBy('tanggal')->get();
+            $hariLiburs = $hariLibursByMonth->get($m, collect());
             $holidayDatesRed = $hariLiburs->where('iscutber', 'N')->pluck('tanggal')->toArray();
             $holidayDatesGreen = $hariLiburs->where('iscutber', 'Y')->pluck('tanggal')->toArray();
             $drawTable = function($title, $isManajemen) use (&$sheet, &$row, $details, $m, $tahun, $daysInMonth, $arrkol, $bulanIndo, $holidayDatesRed, $holidayDatesGreen, $allJatahs, $datesByKaryawanAndMonth, $cutiDiambilCumulative) {

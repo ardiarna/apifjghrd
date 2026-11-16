@@ -171,7 +171,7 @@ class PdfBiodataKaryawanController extends Controller
 
         // --- 4. RIWAYAT TRAINING ---
         $html .= "<div class=\"section-header\">IV. RIWAYAT TRAINING</div>";
-        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->get() : [];
+        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->with('training')->get() : [];
         if (count($trainings) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:40%;\">Nama Training</th><th style=\"width:20%;\">Tanggal</th><th style=\"width:40%;\">Keterangan</th></tr>";
@@ -193,7 +193,7 @@ class PdfBiodataKaryawanController extends Controller
 
         // --- 5. PERJANJIAN KERJA ---
         $html .= "<div class=\"section-header\">V. PERJANJIAN KERJA</div>";
-        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->orderBy('tanggal_awal')->get() : [];
+        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->with('statusKerja')->orderBy('tanggal_awal')->get() : [];
         if (count($perjanjians) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:30%;\">Nomor Kontrak</th><th style=\"width:30%;\">Status Kerja</th><th style=\"width:20%;\">Mulai</th><th style=\"width:20%;\">Berakhir</th></tr>";
