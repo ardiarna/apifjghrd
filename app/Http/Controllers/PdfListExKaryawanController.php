@@ -35,6 +35,11 @@ class PdfListExKaryawanController extends Controller
             'karyawan' => function($q) {
                 $q->withCount(['anaks as jumlah_anak'])
                   ->with([
+                      'area',
+                      'agama',
+                      'jabatan',
+                      'pendidikan',
+                      'statusKerja',
                       'keluargas',
                       'perjanjianKerjas' => function($pq) {
                           $pq->orderBy('tanggal_awal', 'asc');
