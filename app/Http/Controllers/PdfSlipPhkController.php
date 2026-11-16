@@ -36,7 +36,7 @@ class PdfSlipPhkController extends Controller
             return response()->json(['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif']);
         }
 
-        $phk = Phk::with(['uangPhk', 'payrollPhk'])->find($karyawan->phk_id);
+        $phk = $karyawan->phk ?: Phk::with(['uangPhk', 'payrollPhk'])->find($karyawan->phk_id);
         $uangPhk = ($phk && $phk->uangPhk) ? $phk->uangPhk : null;
 
         $payrollPhk = ($phk && $phk->payrollPhk)
