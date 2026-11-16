@@ -84,19 +84,19 @@ class CicCutiController extends Controller
             $bolehMinus = $jatah->boleh_minus;
         }
 
-        $sudahDiambil = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-            $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
-              ->whereHas('cicCuti', function($q2) use ($karyawanId, $tahun) {
-                  $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun);
-              });
-        })->count();
+        $cutiCounts = CicCutiDate::join('cic_cuti_details', 'cic_cuti_dates.cic_cuti_detail_id', '=', 'cic_cuti_details.id')
+            ->join('cic_cutis', 'cic_cuti_details.cic_cuti_id', '=', 'cic_cutis.id')
+            ->where('cic_cutis.cic_karyawan_id', $karyawanId)
+            ->where('cic_cutis.tahun', $tahun)
+            ->whereIn('cic_cuti_details.kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
+            ->selectRaw("
+                SUM(CASE WHEN cic_cuti_details.kategori IN ('TAHUNAN', 'IJIN') THEN 1 ELSE 0 END) as sudah_diambil,
+                SUM(CASE WHEN cic_cuti_details.kategori = 'CUTI_MASAL' THEN 1 ELSE 0 END) as cuti_masal
+            ")
+            ->first();
 
-        $cutiMasal = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-            $q->where('kategori', 'CUTI_MASAL')
-              ->whereHas('cicCuti', function($q2) use ($karyawanId, $tahun) {
-                  $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun);
-              });
-        })->count();
+        $sudahDiambil = $cutiCounts ? (int)$cutiCounts->sudah_diambil : 0;
+        $cutiMasal = $cutiCounts ? (int)$cutiCounts->cuti_masal : 0;
 
         $belumDiambil = $totalHakCuti - $sudahDiambil - $cutiMasal;
 
@@ -133,34 +133,37 @@ class CicCutiController extends Controller
         }
         $cic_karyawans = $query->get();
         
-        $jatahs = CicJatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('cic_karyawan_id');
-        
-        $cutiDates = CicCutiDate::whereHas('cicCutiDetail.cicCuti', function($q) use ($tahun) {
-            $q->where('tahun', $tahun);
-        })->with('cicCutiDetail.cicCuti')->get();
-
-        $sudahDiambilMap = [];
-        $cutiMasalMap = [];
-
-        foreach($cutiDates as $cd) {
-            $cicCuti = $cd->cicCutiDetail->cicCuti;
-            $kId = $cicCuti->cic_karyawan_id;
-            
-            if ($cd->cicCutiDetail->kategori == 'CUTI_MASAL') {
-                if (!isset($cutiMasalMap[$kId])) $cutiMasalMap[$kId] = 0;
-                $cutiMasalMap[$kId]++;
-            } elseif (in_array($cd->cicCutiDetail->kategori, ['TAHUNAN', 'IJIN'])) {
-                if (!isset($sudahDiambilMap[$kId])) $sudahDiambilMap[$kId] = 0;
-                $sudahDiambilMap[$kId]++;
-            }
+        $jatahsQuery = CicJatahCutiTahunan::where('tahun', $tahun);
+        if ($request->has('cic_karyawan_id')) {
+            $jatahsQuery->where('cic_karyawan_id', $request->cic_karyawan_id);
         }
+        $jatahs = $jatahsQuery->get()->keyBy('cic_karyawan_id');
+        
+        $countsQuery = CicCutiDate::join('cic_cuti_details', 'cic_cuti_dates.cic_cuti_detail_id', '=', 'cic_cuti_details.id')
+            ->join('cic_cutis', 'cic_cuti_details.cic_cuti_id', '=', 'cic_cutis.id')
+            ->where('cic_cutis.tahun', $tahun)
+            ->whereIn('cic_cuti_details.kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL']);
+
+        if ($request->has('cic_karyawan_id')) {
+            $countsQuery->where('cic_cutis.cic_karyawan_id', $request->cic_karyawan_id);
+        }
+
+        $cutiCounts = $countsQuery->groupBy('cic_cutis.cic_karyawan_id')
+            ->selectRaw("
+                cic_cutis.cic_karyawan_id,
+                SUM(CASE WHEN cic_cuti_details.kategori IN ('TAHUNAN', 'IJIN') THEN 1 ELSE 0 END) as sudah_diambil,
+                SUM(CASE WHEN cic_cuti_details.kategori = 'CUTI_MASAL' THEN 1 ELSE 0 END) as cuti_masal
+            ")
+            ->get()
+            ->keyBy('cic_karyawan_id');
 
         $result = [];
         foreach($cic_karyawans as $k) {
             $jatah = $jatahs[$k->id] ?? null;
             $totalHakCuti = $jatah ? ($jatah->jumlah_cuti + $jatah->plus_tahun_lalu - $jatah->min_tahun_lalu) : 0;
-            $sudahDiambil = $sudahDiambilMap[$k->id] ?? 0;
-            $cutiMasal = $cutiMasalMap[$k->id] ?? 0;
+            $counts = $cutiCounts->get($k->id);
+            $sudahDiambil = $counts ? (int)$counts->sudah_diambil : 0;
+            $cutiMasal = $counts ? (int)$counts->cuti_masal : 0;
             $belumDiambil = $totalHakCuti - $sudahDiambil - $cutiMasal;
             
             $result[] = [
@@ -250,14 +253,18 @@ class CicCutiController extends Controller
                 $snapTotalHakCuti = $jatahSnap
                     ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
                     : 0;
-                $snapSudahDiambil = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
-                      ->whereHas('cicCuti', fn($q2) => $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
-                $snapCutiMasal = CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->where('kategori', 'CUTI_MASAL')
-                      ->whereHas('cicCuti', fn($q2) => $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
+                $cutiCounts = CicCutiDate::join('cic_cuti_details', 'cic_cuti_dates.cic_cuti_detail_id', '=', 'cic_cuti_details.id')
+                    ->join('cic_cutis', 'cic_cuti_details.cic_cuti_id', '=', 'cic_cutis.id')
+                    ->where('cic_cutis.cic_karyawan_id', $karyawanId)
+                    ->where('cic_cutis.tahun', $tahun)
+                    ->whereIn('cic_cuti_details.kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
+                    ->selectRaw("
+                        SUM(CASE WHEN cic_cuti_details.kategori IN ('TAHUNAN', 'IJIN') THEN 1 ELSE 0 END) as sudah_diambil,
+                        SUM(CASE WHEN cic_cuti_details.kategori = 'CUTI_MASAL' THEN 1 ELSE 0 END) as cuti_masal
+                    ")
+                    ->first();
+                $snapSudahDiambil = $cutiCounts ? (int)$cutiCounts->sudah_diambil : 0;
+                $snapCutiMasal = $cutiCounts ? (int)$cutiCounts->cuti_masal : 0;
 
                 $cicCuti = CicCuti::create([
                     'cic_karyawan_id' => $karyawanId,
@@ -422,23 +429,38 @@ class CicCutiController extends Controller
         
         DB::beginTransaction();
         try {
+            $karyawanIds = collect($request->cic_karyawans)->pluck('cic_karyawan_id')->unique()->filter()->values();
+            $tahun = $masal->tahun;
+
+            $jatahSnaps = \App\Models\CicJatahCutiTahunan::whereIn('cic_karyawan_id', $karyawanIds)
+                ->where('tahun', $tahun)
+                ->get()
+                ->keyBy('cic_karyawan_id');
+
+            $cutiCounts = \App\Models\CicCutiDate::join('cic_cuti_details', 'cic_cuti_dates.cic_cuti_detail_id', '=', 'cic_cuti_details.id')
+                ->join('cic_cutis', 'cic_cuti_details.cic_cuti_id', '=', 'cic_cutis.id')
+                ->whereIn('cic_cutis.cic_karyawan_id', $karyawanIds)
+                ->where('cic_cutis.tahun', $tahun)
+                ->whereIn('cic_cuti_details.kategori', ['TAHUNAN', 'IJIN', 'CUTI_MASAL'])
+                ->groupBy('cic_cutis.cic_karyawan_id')
+                ->selectRaw("
+                    cic_cutis.cic_karyawan_id,
+                    SUM(CASE WHEN cic_cuti_details.kategori IN ('TAHUNAN', 'IJIN') THEN 1 ELSE 0 END) as sudah_diambil,
+                    SUM(CASE WHEN cic_cuti_details.kategori = 'CUTI_MASAL' THEN 1 ELSE 0 END) as cuti_masal
+                ")
+                ->get()
+                ->keyBy('cic_karyawan_id');
+
             foreach($request->cic_karyawans as $k) {
                 $karyawanId = $k['cic_karyawan_id'];
-                $tahun = $masal->tahun;
-                
-                $jatahSnap = \App\Models\CicJatahCutiTahunan::where('cic_karyawan_id', $karyawanId)
-                    ->where('tahun', $tahun)->first();
+
+                $jatahSnap = $jatahSnaps->get($karyawanId);
                 $snapTotalHakCuti = $jatahSnap
                     ? ($jatahSnap->jumlah_cuti + $jatahSnap->plus_tahun_lalu - $jatahSnap->min_tahun_lalu)
                     : 0;
-                $snapSudahDiambil = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->whereIn('kategori', ['TAHUNAN', 'IJIN'])
-                      ->whereHas('cicCuti', fn($q2) => $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
-                $snapCutiMasal = \App\Models\CicCutiDate::whereHas('cicCutiDetail', function($q) use ($karyawanId, $tahun) {
-                    $q->where('kategori', 'CUTI_MASAL')
-                      ->whereHas('cicCuti', fn($q2) => $q2->where('cic_karyawan_id', $karyawanId)->where('tahun', $tahun));
-                })->count();
+                $counts = $cutiCounts->get($karyawanId);
+                $snapSudahDiambil = $counts ? (int)$counts->sudah_diambil : 0;
+                $snapCutiMasal = $counts ? (int)$counts->cuti_masal : 0;
 
                 $cuti = \App\Models\CicCuti::create([
                     'cic_karyawan_id' => $karyawanId,
