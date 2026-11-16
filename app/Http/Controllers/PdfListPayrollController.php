@@ -60,6 +60,10 @@ class PdfListPayrollController extends Controller
             $arrBulanReq = explode("-", $bulans);
             $dataHeaders = $dataHeaders->whereIn("bulan", $arrBulanReq);
         }
+        $headerIds = $dataHeaders->pluck('id')->all();
+        $allDetailsGrouped = !empty($headerIds)
+            ? $this->repoDetail->findAll(['header_ids' => $headerIds])->groupBy('payroll_header_id')
+            : collect();
 
         foreach ($dataHeaders as $dh) {
             $headers[$dh->bulan]["overtime"] = $dh->overtime_fjg + $dh->overtime_cus;
@@ -111,7 +115,7 @@ class PdfListPayrollController extends Controller
         $i = 0;
 
         foreach ($dataHeaders as $dh) {
-            $dataDetails = $this->repoDetail->findAll(["header_id" => $dh->id]);
+            $dataDetails = $allDetailsGrouped->get($dh->id, collect());
             $details = [];
             foreach ($dataDetails as $dt) {
                 $details[$dt->karyawan->staf][$dt->karyawan->area->nama][$dt->id] = $dt;

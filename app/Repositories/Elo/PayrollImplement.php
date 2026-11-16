@@ -38,6 +38,9 @@ class PayrollImplement implements PayrollRepository {
         if(isset($inputs['header_id']) && $inputs['header_id'] != '') {
             $hasil->where('payrolls.payroll_header_id', $inputs['header_id']);
         }
+        if(isset($inputs['header_ids']) && is_array($inputs['header_ids']) && count($inputs['header_ids']) > 0) {
+            $hasil->whereIn('payrolls.payroll_header_id', $inputs['header_ids']);
+        }
         if(isset($inputs['karyawan_id']) && $inputs['karyawan_id'] != '') {
             $hasil->where('payrolls.karyawan_id', $inputs['karyawan_id']);
         }
