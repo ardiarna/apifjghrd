@@ -183,7 +183,7 @@ class PdfBiodataKaryawanController extends Controller
                 if ($tglAkhir && $tglAkhir !== $tglAwal) {
                     $tgl .= ($tgl ? ' s/d ' : '') . $tglAkhir;
                 }
-                $html .= "<tr><td class=\"al\">{$trainingName}</td><td class=\"ac\">{$tgl}</td><td class=\"al\">{$tr->keterangan}</td></tr>";
+                $html .= "<tr><td class=\"al\">{$trainingName}</td><td class=\"al\">{$tgl}</td><td class=\"al\">{$tr->keterangan}</td></tr>";
             }
             $html .= "</table>";
         } else {

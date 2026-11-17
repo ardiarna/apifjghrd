@@ -98,7 +98,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<th rowspan=\"2\">EMAIL PRIBADI</th>";
         $html .= "<th rowspan=\"2\">NOMOR PERJANJIAN KERJA</th>";
         $html .= "<th rowspan=\"2\">STATUS KARYAWAN PKWT / KONTRAK</th>";
-        $html .= "<th rowspan=\"2\">TRAINING</th>";
+        $html .= "<th rowspan=\"2\">TRAINING - MEETING - PAMERAN - TUGAS LN</th>";
         $html .= "</tr>";
 
         $html .= "<tr>";
@@ -384,7 +384,7 @@ class PdfListKaryawanController extends Controller
                                 $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
                             }
                             if ($tglRange) {
-                                $tInfo .= " - " . $tglRange;
+                                $tInfo .= " : " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "<br/>" . trim($tk->keterangan);

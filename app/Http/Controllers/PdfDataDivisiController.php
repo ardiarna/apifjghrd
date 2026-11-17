@@ -108,7 +108,7 @@ class PdfDataDivisiController extends Controller
         $html .= "<th>YEARS OF<br/>SERVICE</th>";
         $html .= "<th>POSITION</th>";
         $html .= "<th>LAST EDUCATION</th>";
-        $html .= "<th>TRAINING</th>";
+        $html .= "<th>TRAINING - MEETING - PAMERAN - TUGAS LN</th>";
         $html .= "</tr>";
 
         $nomor = 1;
@@ -202,7 +202,7 @@ class PdfDataDivisiController extends Controller
                                 $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
                             }
                             if ($tglRange) {
-                                $tInfo .= " - " . $tglRange;
+                                $tInfo .= " : " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "<br/>" . trim($tk->keterangan);

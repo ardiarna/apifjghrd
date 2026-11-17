@@ -280,7 +280,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->getRowDimension(2)->setRowHeight(22);
         $si->getRowDimension(3)->setRowHeight(22);
 
-        $headers = ['A'=>'NO', 'B'=>'N A M E', 'C'=>'DATE OF BIRTH', 'D'=>'START WORKING', 'E'=>'AGE (YEARS)', 'F'=>'YEARS OF SERVICE', 'G'=>'POSITION', 'H'=>'LAST EDUCATION', 'I'=>'TRAINING'];
+        $headers = ['A'=>'NO', 'B'=>'N A M E', 'C'=>'DATE OF BIRTH', 'D'=>'START WORKING', 'E'=>'AGE (YEARS)', 'F'=>'YEARS OF SERVICE', 'G'=>'POSITION', 'H'=>'LAST EDUCATION', 'I'=>'TRAINING - MEETING - PAMERAN - TUGAS LN'];
         foreach ($headers as $col => $title) {
             $si->setCellValue($col.'5', $title);
             $si->mergeCells($col.'5:'.$col.'6');
@@ -389,7 +389,7 @@ class SpreadKaryawanCustomController extends Controller
                                 $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
                             }
                             if ($tglRange) {
-                                $tInfo .= " - " . $tglRange;
+                                $tInfo .= " : " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "\n" . trim($tk->keterangan);
@@ -404,7 +404,7 @@ class SpreadKaryawanCustomController extends Controller
                         $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('I'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('I'.$bar)->getAlignment()->setHorizontal('left');
                         $si->getStyle('B'.$bar.':I'.$bar)->getAlignment()->setWrapText(true);
 
                         $bar++;

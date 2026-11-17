@@ -1505,7 +1505,7 @@ class SpreadsheetController extends Controller
         $si->setCellValue('S5', 'EMAIL PRIBADI'); $si->mergeCells('S5:S6');
         $si->setCellValue('T5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('T5:T6');
         $si->setCellValue('U5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('U5:U6');
-        $si->setCellValue('V5', 'TRAINING'); $si->mergeCells('V5:V6');
+        $si->setCellValue('V5', 'TRAINING - MEETING - PAMERAN - TUGAS LN'); $si->mergeCells('V5:V6');
 
         $si->getStyle('A5:V6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
         $si->getStyle('A5:V6')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
@@ -1794,7 +1794,7 @@ class SpreadsheetController extends Controller
                                 $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
                             }
                             if ($tglRange) {
-                                $tInfo .= " - " . $tglRange;
+                                $tInfo .= " : " . $tglRange;
                             }
                             if ($tk->keterangan) {
                                 $tInfo .= "\n" . trim($tk->keterangan);
@@ -1811,6 +1811,7 @@ class SpreadsheetController extends Controller
                         $si->getStyle('Q'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('T'.$bar)->getAlignment()->setHorizontal('center');
                         $si->getStyle('U'.$bar)->getAlignment()->setHorizontal('center');
+                        $si->getStyle('V'.$bar)->getAlignment()->setHorizontal('left');
 
                         $bar++;
                     }
