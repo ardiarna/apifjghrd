@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Repositories\KaryawanRepository;
 use Mpdf\Mpdf;
-use App\Models\Upah;
 use App\Models\Area;
 
 class PdfListSalaryController extends Controller
@@ -22,7 +21,6 @@ class PdfListSalaryController extends Controller
                 $q->orderBy('tanggal_awal', 'asc');
             }
         ]);
-        $upahsData = Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
         $totalKaryawanPerStatusPerArea = [];
@@ -157,7 +155,7 @@ class PdfListSalaryController extends Controller
                     $tgl_lahir = $d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '';
                     $jabatan = $d->jabatan ? htmlspecialchars($d->jabatan->nama) : '';
 
-                    $upah = isset($upahsData[$d->id]) ? $upahsData[$d->id] : null;
+                    $upah = $d->upah;
                     $gaji = $upah ? (float)$upah->gaji : 0;
                     $sumGaji += $gaji;
 

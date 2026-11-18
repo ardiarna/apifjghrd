@@ -1158,7 +1158,6 @@ class SpreadsheetController extends Controller
                 $q->orderBy('tanggal_awal', 'asc');
             }
         ]);
-        $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
         $totalKaryawanPerStatusPerArea = [];
@@ -1223,7 +1222,7 @@ class SpreadsheetController extends Controller
 
                     $si->setCellValue('F'.$bar, $d->jabatan ? $d->jabatan->nama : '');
 
-                    $upah = isset($upahsData[$d->id]) ? $upahsData[$d->id] : null;
+                    $upah = $d->upah;
                     $gaji = $upah ? $upah->gaji : 0;
                     $si->setCellValue('G'.$bar, $gaji);
                     $si->getStyle('G'.$bar)->getNumberFormat()->setFormatCode('#,##0');
@@ -1529,7 +1528,6 @@ class SpreadsheetController extends Controller
             'trainingKaryawans.training',
             'keluargaKontaks',
         ]);
-        $upahsData = \App\Models\Upah::all()->keyBy('karyawan_id');
         $details = [];
         $totalKaryawanPerStatus = [];
         $totalKaryawanPerStatusPerArea = [];
