@@ -83,14 +83,14 @@ class CutiController extends Controller
 
     public function hariIni(Request $request)
     {
-        $tanggal = $request->tanggal ?? date('Y-m-d');
+        $tanggal = $request->filled('tanggal') ? date('Y-m-d', strtotime($request->tanggal)) : date('Y-m-d');
 
         $cutiDates = CutiDate::with([
             'cutiDetail.cuti.karyawan.divisi',
             'cutiDetail.cuti.karyawan.jabatan',
             'cutiDetail.jenisKhusus'
         ])
-        ->whereDate('tanggal', $tanggal)
+        ->where('tanggal', $tanggal)
         ->get();
 
         $data = [];
@@ -131,7 +131,7 @@ class CutiController extends Controller
 
         if (class_exists(CutiMasalDate::class)) {
             $masalDates = CutiMasalDate::with(['cutiMasal.cutis.karyawan.divisi', 'cutiMasal.cutis.karyawan.jabatan'])
-                ->whereDate('tanggal', $tanggal)
+                ->where('tanggal', $tanggal)
                 ->get();
 
             foreach ($masalDates as $md) {
@@ -162,7 +162,7 @@ class CutiController extends Controller
                 'cicCutiDetail.cicCuti.cicKaryawan.jabatan',
                 'cicCutiDetail.cicJenisCutiKhusus'
             ])
-            ->whereDate('tanggal', $tanggal)
+            ->where('tanggal', $tanggal)
             ->get();
 
             foreach ($cicDates as $cd) {
@@ -202,7 +202,7 @@ class CutiController extends Controller
 
         if (class_exists(CicCutiMasalDate::class)) {
             $cicMasalDates = CicCutiMasalDate::with(['cicCutiMasal.cutis.cicKaryawan.divisi', 'cicCutiMasal.cutis.cicKaryawan.jabatan'])
-                ->whereDate('tanggal', $tanggal)
+                ->where('tanggal', $tanggal)
                 ->get();
 
             foreach ($cicMasalDates as $md) {

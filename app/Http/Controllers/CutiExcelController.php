@@ -110,7 +110,7 @@ class CutiExcelController extends Controller
             }
         }
 
-        $allHariLiburs = HariLibur::whereYear('tanggal', $tahun)->orderBy('tanggal')->get();
+        $allHariLiburs = HariLibur::whereBetween('tanggal', ["$tahun-01-01", "$tahun-12-31"])->orderBy('tanggal')->get();
         $hariLibursByMonth = $allHariLiburs->groupBy(function($hl) {
             return (int)date('m', strtotime($hl->tanggal));
         });

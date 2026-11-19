@@ -62,6 +62,8 @@ class PdfRekapPayrollPerKaryawanController extends Controller
             'area' => $area == 'all' ? '' : $area,
             'engineer' => $jenis == '1' ? 'Y' : ($jenis == '2' ? 'N' : ''),
         ]);
+        $dataPhks->load('phk.uangPhk');
+        $allUangPhk = UangPhk::where('tahun', $tahun)->get()->keyBy('karyawan_id');
         $detailsPhk = array();
         foreach ($dataPhks as $dt) {
             $detailsPhk[$dt->tahun][$dt->karyawan->id][$dt->bulan] = $dt;
@@ -228,7 +230,7 @@ class PdfRekapPayrollPerKaryawanController extends Controller
                             }
                             $uangPhk = ($d->phk && $d->phk->uangPhk)
                                 ? $d->phk->uangPhk
-                                : UangPhk::where('karyawan_id', $d->karyawan_id)->where('tahun', $d->tahun)->first();
+                                : ($allUangPhk[$d->karyawan_id] ?? null);
                             if ($uangPhk) {
                                 if (!empty($uangPhk->ket_lain)) {
                                     $ketsPhk[] = trim($uangPhk->ket_lain);

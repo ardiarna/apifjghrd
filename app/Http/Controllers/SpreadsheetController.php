@@ -1439,13 +1439,21 @@ class SpreadsheetController extends Controller
 
         // Calculate active areas
         $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
+        $dataKaryawan->load([
+            'keluargas',
+            'perjanjianKerjas' => function($q) {
+                $q->orderBy('tanggal_awal', 'asc')->with('statusKerja');
+            },
+            'trainingKaryawans.training',
+            'keluargaKontaks',
+        ]);
         $activeAreas = [];
         foreach ($dataKaryawan as $d) {
             $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
             $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
         }
         $activeAreasSorted = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -1519,15 +1527,6 @@ class SpreadsheetController extends Controller
         }
 
         // Data
-        $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y']);
-        $dataKaryawan->load([
-            'keluargas',
-            'perjanjianKerjas' => function($q) {
-                $q->orderBy('tanggal_awal', 'asc')->with('statusKerja');
-            },
-            'trainingKaryawans.training',
-            'keluargaKontaks',
-        ]);
         $details = [];
         $totalKaryawanPerStatus = [];
         $totalKaryawanPerStatusPerArea = [];

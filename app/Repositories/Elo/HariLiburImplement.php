@@ -18,13 +18,17 @@ class HariLiburImplement implements HariLiburRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->whereYear('tanggal', '=', $inputs['tahun']);
-        if($inputs['search_by'] && $inputs['value']) {
+        $hasil = $this->model->query();
+        if (!empty($inputs['tahun'])) {
+            $tahun = $inputs['tahun'];
+            $hasil->whereBetween('tanggal', ["$tahun-01-01", "$tahun-12-31"]);
+        }
+        if (!empty($inputs['search_by']) && !empty($inputs['value'])) {
             $value = $inputs['value'];
             $hasil->where($inputs['search_by'], 'like', "%$value%");
         }
-        if($inputs['sort_by']) {
-            $sort_order = $inputs['sort_order'] ? strtolower($inputs['sort_order']) : 'asc';
+        if (!empty($inputs['sort_by'])) {
+            $sort_order = !empty($inputs['sort_order']) ? strtolower($inputs['sort_order']) : 'asc';
             $hasil->orderBy($inputs['sort_by'], $sort_order);
         } else {
             $hasil->orderBy('tanggal');

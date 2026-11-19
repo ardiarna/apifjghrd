@@ -8,24 +8,35 @@ use App\Models\JenisCutiKhusus;
 class JenisCutiKhususImplement implements JenisCutiKhususRepository
 {
     protected $model;
+    protected static $cachedData = null;
 
     function __construct(JenisCutiKhusus $model)
     {
         $this->model = $model;
     }
 
+    protected function getCachedData()
+    {
+        if (self::$cachedData === null) {
+            self::$cachedData = $this->model->orderBy('urutan')->get();
+        }
+        return self::$cachedData;
+    }
+
     public function findAll($inputs = [])
     {
-        return $this->model->orderBy('urutan')->get();
+        return $this->getCachedData();
     }
 
     public function findById($id)
     {
-        return $this->model->find($id);
+        $cached = $this->getCachedData();
+        return $cached->firstWhere('id', $id) ?? $this->model->find($id);
     }
 
     public function create(array $inputs)
     {
+        self::$cachedData = null;
         return $this->model->create($inputs);
     }
 
@@ -33,25 +44,27 @@ class JenisCutiKhususImplement implements JenisCutiKhususRepository
     {
         $model = $this->model->findOrFail($id);
 
-        if ($inputs['nama'] !== null) {
+        if (isset($inputs['nama']) && $inputs['nama'] !== null) {
             $model->nama = $inputs['nama'];
         }
-        if ($inputs['lama_hari'] !== null) {
+        if (isset($inputs['lama_hari']) && $inputs['lama_hari'] !== null) {
             $model->lama_hari = $inputs['lama_hari'];
         }
-        if ($inputs['satuan'] !== null) {
+        if (isset($inputs['satuan']) && $inputs['satuan'] !== null) {
             $model->satuan = $inputs['satuan'];
         }
-        if ($inputs['urutan'] !== null) {
+        if (isset($inputs['urutan']) && $inputs['urutan'] !== null) {
             $model->urutan = $inputs['urutan'];
         }
 
         $model->save();
+        self::$cachedData = null;
         return $model;
     }
 
     public function delete($id)
     {
+        self::$cachedData = null;
         return $this->model->destroy($id);
     }
 }
