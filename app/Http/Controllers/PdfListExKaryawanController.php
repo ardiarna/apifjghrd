@@ -49,8 +49,8 @@ class PdfListExKaryawanController extends Controller
             'statusKerja',
             'statusPhk'
         ])
-            ->whereYear('tanggal_akhir', '>=', $tahun_awal)
-            ->whereYear('tanggal_akhir', '<=', $tahun_akhir)
+            ->where('tanggal_akhir', '>=', "$tahun_awal-01-01")
+            ->where('tanggal_akhir', '<=', "$tahun_akhir-12-31")
             ->orderBy('tanggal_akhir', 'asc')
             ->get();
 
@@ -64,7 +64,7 @@ class PdfListExKaryawanController extends Controller
             }
         }
 
-        $areasLookup = Area::pluck('urutan', 'nama')->toArray();
+        $areasLookup = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('urutan', 'nama')->toArray();
         foreach ($detailsByYear as &$stafs) {
             foreach ($stafs as &$areas) {
                 uksort($areas, function($a, $b) use ($areasLookup) {

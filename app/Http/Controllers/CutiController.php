@@ -383,9 +383,13 @@ class CutiController extends Controller
                     CutiDetail::where('cuti_id', $cuti->id)->delete();
                 }
 
+                $existingDetails = !empty($submittedDetailIds)
+                    ? CutiDetail::where('cuti_id', $cuti->id)->whereIn('id', $submittedDetailIds)->get()->keyBy('id')
+                    : collect();
+
                 foreach ($request->details as $detail) {
                     if (!empty($detail['id'])) {
-                        $cd = CutiDetail::find($detail['id']);
+                        $cd = $existingDetails->get($detail['id']);
                         if ($cd) {
                             $cd->update([
                                 'kategori' => $detail['kategori'],

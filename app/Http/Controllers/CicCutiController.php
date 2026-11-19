@@ -212,9 +212,13 @@ class CicCutiController extends Controller
                     CicCutiDetail::where('cic_cuti_id', $cicCuti->id)->delete();
                 }
 
+                $existingDetails = !empty($submittedDetailIds)
+                    ? CicCutiDetail::where('cic_cuti_id', $cicCuti->id)->whereIn('id', $submittedDetailIds)->get()->keyBy('id')
+                    : collect();
+
                 foreach ($request->details as $detail) {
                     if (!empty($detail['id'])) {
-                        $cd = CicCutiDetail::find($detail['id']);
+                        $cd = $existingDetails->get($detail['id']);
                         if ($cd) {
                             $cd->update([
                                 'kategori' => $detail['kategori'],

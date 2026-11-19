@@ -274,7 +274,7 @@ class PdfListSalaryController extends Controller
         $html .= '<br><br>';
 
         // Footer Summary: KETERANGAN STATUS KARYAWAN
-        $dbAreas = Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
+        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {

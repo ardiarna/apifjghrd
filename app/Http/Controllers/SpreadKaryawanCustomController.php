@@ -16,7 +16,7 @@ class SpreadKaryawanCustomController extends Controller
         if ($id == 'PS') {
             $namaDivisi = 'PROFESSIONAL SERVICE';
         } else {
-            $divisi = \App\Models\Divisi::find($id);
+            $divisi = app(\App\Repositories\DivisiRepository::class)->findById($id);
             if (!$divisi) return response()->json(['success' => false, 'message' => 'Divisi not found']);
             $namaDivisi = $divisi->nama;
         }
@@ -58,7 +58,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);
@@ -183,7 +183,7 @@ class SpreadKaryawanCustomController extends Controller
         if ($id == 'PS') {
             $namaDivisi = 'PROFESSIONAL SERVICE';
         } else {
-            $divisi = \App\Models\Divisi::find($id);
+            $divisi = app(\App\Repositories\DivisiRepository::class)->findById($id);
             if (!$divisi) return response()->json(['success' => false, 'message' => 'Divisi not found']);
             $namaDivisi = $divisi->nama;
         }
@@ -246,7 +246,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);
@@ -625,7 +625,7 @@ class SpreadKaryawanCustomController extends Controller
 
             $areaString = '';
             $activeAreasSorted = [];
-            $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+            $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
             foreach ($dbAreasModels as $a) {
                 if (isset($activeAreas[$a->kode])) {
                     $activeAreasSorted[] = strtoupper($a->nama);
@@ -778,7 +778,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreasSorted = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -910,7 +910,7 @@ class SpreadKaryawanCustomController extends Controller
         $divisiStart = $bar;
         $bar++; // blank row inside border (top)
 
-        $divisis = \App\Models\Divisi::orderBy('nama', 'asc')->get();
+        $divisis = app(\App\Repositories\DivisiRepository::class)->findAll()->sortBy('nama')->values();
         foreach ($divisis as $div) {
             $si->setCellValue('B'.$bar, $div->nama);
             $si->setCellValue('C'.$bar, $div->kode);
@@ -963,7 +963,7 @@ class SpreadKaryawanCustomController extends Controller
             $details[$staf][$area][] = $d;
         }
         $activeAreasSorted = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -1396,7 +1396,7 @@ class SpreadKaryawanCustomController extends Controller
             7 => 'JULI', 8 => 'AGUSTUS', 9 => 'SEPTEMBER', 10 => 'OKTOBER', 11 => 'NOPEMBER', 12 => 'DESEMBER'
         ];
 
-        $dbAreas = \App\Models\Area::orderBy('urutan', 'asc')->pluck('nama')->toArray();
+        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('nama')->toArray();
         $areaString = implode(' - ', $dbAreas);
 
         // Title Rows
@@ -1596,7 +1596,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $bar += 2;
-        $allAreas = \App\Models\Area::orderBy('urutan', 'asc')->pluck('kode')->toArray();
+        $allAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {
                 $allAreas[] = $a;

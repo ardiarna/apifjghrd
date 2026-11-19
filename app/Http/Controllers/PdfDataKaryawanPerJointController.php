@@ -78,7 +78,7 @@ class PdfDataKaryawanPerJointController extends Controller
             }
 
             $activeAreasSorted = [];
-            $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+            $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
             foreach ($dbAreasModels as $a) {
                 if (isset($activeAreas[$a->kode])) {
                     $activeAreasSorted[] = strtoupper($a->nama);

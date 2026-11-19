@@ -51,7 +51,7 @@ class PdfNikTlpKaryawanController extends Controller
         }
 
         $activeAreasSorted = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -140,7 +140,7 @@ class PdfNikTlpKaryawanController extends Controller
         $html .= "<td style=\"width:30%; padding:0; border:none;\"></td>";
         $html .= "</tr>";
         
-        $divisis = \App\Models\Divisi::orderBy('nama', 'asc')->get();
+        $divisis = app(\App\Repositories\DivisiRepository::class)->findAll()->sortBy('nama')->values();
         foreach ($divisis as $div) {
             $html .= "<tr>";
             $html .= "<td class=\"al\">".$div->nama."</td>";

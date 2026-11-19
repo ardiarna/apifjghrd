@@ -20,7 +20,7 @@ class PdfDataDivisiController extends Controller
         if ($id == 'PS') {
             $namaDivisi = 'PROFESSIONAL SERVICE';
         } else {
-            $divisi = \App\Models\Divisi::find($id);
+            $divisi = app(\App\Repositories\DivisiRepository::class)->findById($id);
             if (!$divisi) return response()->json(['success' => false, 'message' => 'Divisi not found']);
             $namaDivisi = $divisi->nama;
         }
@@ -78,7 +78,7 @@ class PdfDataDivisiController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = \App\Models\Area::orderBy('urutan', 'asc')->get();
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);
