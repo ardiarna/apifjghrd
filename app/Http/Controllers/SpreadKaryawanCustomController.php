@@ -29,19 +29,13 @@ class SpreadKaryawanCustomController extends Controller
         $si->setTitle('ALAMAT ' . strtoupper(substr($namaDivisi, 0, 20)));
 
         // Fetch Data
-        $all = $this->repoKaryawan->findAll(['aktif' => 'Y']);
-        $dataKaryawan = [];
-        foreach ($all as $d) {
-            if ($id == 'PS') {
-                if ($d->jabatan && strtoupper($d->jabatan->nama) == 'PROFESSIONAL SERVICE') {
-                    $dataKaryawan[] = $d;
-                }
-            } else {
-                if ($d->divisi_id == $id) {
-                    $dataKaryawan[] = $d;
-                }
-            }
+        $filter = ['aktif' => 'Y'];
+        if ($id == 'PS') {
+            $filter['jabatan_nama'] = 'PROFESSIONAL SERVICE';
+        } else {
+            $filter['divisi_id'] = $id;
         }
+        $dataKaryawan = $this->repoKaryawan->findAll($filter);
 
         $details = [];
         $totalKaryawanPerArea = [];
@@ -139,14 +133,6 @@ class SpreadKaryawanCustomController extends Controller
                     $si->setCellValue('F'.$bar, $d->alamat_ktp);
                     $si->setCellValue('G'.$bar, $d->alamat_tinggal);
 
-                    $si->getStyle('A'.$bar.':G'.$bar)->getAlignment()->setVertical('top');
-                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('F'.$bar)->getAlignment()->setWrapText(true);
-                    $si->getStyle('G'.$bar)->getAlignment()->setWrapText(true);
-                    $si->getStyle('B'.$bar.':G'.$bar)->getAlignment()->setWrapText(true);
-
                     $bar++;
                     $nomor++;
 
@@ -158,6 +144,11 @@ class SpreadKaryawanCustomController extends Controller
 
         $lastDataRow = $bar - 1;
         if ($lastDataRow >= 7) {
+            $si->getStyle('A7:G'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:D'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('B7:G'.$lastDataRow)->getAlignment()->setWrapText(true);
+
             $si->getStyle('A7:G'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:G'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:G'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
@@ -196,20 +187,13 @@ class SpreadKaryawanCustomController extends Controller
         $si->setTitle('DATA ' . strtoupper(substr($namaDivisi, 0, 25)));
 
         // Fetch Data
-        $all = $this->repoKaryawan->findAll(['aktif' => 'Y']);
-        $dataKaryawan = [];
-        foreach ($all as $d) {
-            if ($id == 'PS') {
-                if ($d->jabatan && strtoupper($d->jabatan->nama) == 'PROFESSIONAL SERVICE') {
-                    $dataKaryawan[] = $d;
-                }
-            } else {
-                if ($d->divisi_id == $id) {
-                    $dataKaryawan[] = $d;
-                }
-            }
+        $filter = ['aktif' => 'Y'];
+        if ($id == 'PS') {
+            $filter['jabatan_nama'] = 'PROFESSIONAL SERVICE';
+        } else {
+            $filter['divisi_id'] = $id;
         }
-        $dataKaryawan = new \Illuminate\Database\Eloquent\Collection($dataKaryawan);
+        $dataKaryawan = $this->repoKaryawan->findAll($filter);
         $dataKaryawan->load('trainingKaryawans.training');
 
         $details = [];
@@ -398,15 +382,6 @@ class SpreadKaryawanCustomController extends Controller
                             $si->setCellValue('I'.$bar, $tInfo);
                         }
 
-                        $si->getStyle('A'.$bar.':I'.$bar)->getAlignment()->setVertical('top');
-                        $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('I'.$bar)->getAlignment()->setHorizontal('left');
-                        $si->getStyle('B'.$bar.':I'.$bar)->getAlignment()->setWrapText(true);
-
                         $bar++;
                     }
                     $nomor++;
@@ -419,6 +394,12 @@ class SpreadKaryawanCustomController extends Controller
 
         $lastDataRow = $bar - 1;
         if ($lastDataRow >= 7) {
+            $si->getStyle('A7:I'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:F'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('I7:I'.$lastDataRow)->getAlignment()->setHorizontal('left');
+            $si->getStyle('B7:I'.$lastDataRow)->getAlignment()->setWrapText(true);
+
             $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);

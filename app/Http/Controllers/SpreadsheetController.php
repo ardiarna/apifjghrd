@@ -1800,28 +1800,8 @@ class SpreadsheetController extends Controller
                             $si->setCellValue('V'.$bar, $tInfo);
                         }
 
-                        $si->getStyle('A'.$bar.':V'.$bar)->getAlignment()->setVertical('top');
-                        $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('C'.$bar.':G'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('I'.$bar.':J'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('O'.$bar.':P'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('Q'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('T'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('U'.$bar)->getAlignment()->setHorizontal('center');
-                        $si->getStyle('V'.$bar)->getAlignment()->setHorizontal('left');
-
                         $bar++;
                     }
-
-                    if ($maxRows > 1) {
-                        // Set WrapText for R, U, V for the whole block of this employee
-                        $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('V'.$startBar.':V'.($bar-1))->getAlignment()->setWrapText(true);
-                    }
-                    $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
-                    $si->getStyle('U'.$startBar.':U'.($bar-1))->getAlignment()->setWrapText(true);
-                    $si->getStyle('V'.$startBar.':V'.($bar-1))->getAlignment()->setWrapText(true);
 
                     $bar++; // Insert empty row between employees
                     $nomor++;
@@ -1830,9 +1810,21 @@ class SpreadsheetController extends Controller
         }
 
         if ($bar > 7) {
-            $si->getStyle('A7:V'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:V'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:V'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+            $lastDataRow = $bar - 1;
+            $si->getStyle('A7:V'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:G'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('I7:J'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('O7:P'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('Q7:Q'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('T7:U'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('V7:V'.$lastDataRow)->getAlignment()->setHorizontal('left');
+            $si->getStyle('R7:R'.$lastDataRow)->getAlignment()->setWrapText(true);
+            $si->getStyle('U7:V'.$lastDataRow)->getAlignment()->setWrapText(true);
+
+            $si->getStyle('A7:V'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:V'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:V'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         $bar += 2;
@@ -2116,29 +2108,14 @@ class SpreadsheetController extends Controller
                                 $si->setCellValue('P'.$bar, $pj->nomor);
                             }
 
-                            $si->getStyle('A'.$bar.':R'.$bar)->getAlignment()->setVertical('top');
-                            $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('C'.$bar.':D'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('F'.$bar.':G'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('L'.$bar.':M'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('N'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('P'.$bar)->getAlignment()->setHorizontal('center');
-                            $si->getStyle('R'.$bar)->getAlignment()->setHorizontal('left');
-
                             $bar++;
                         }
-
-                        // Set WrapText for J, K, O, R for the whole block of this employee
-                        $si->getStyle('J'.$startBar.':K'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('O'.$startBar.':O'.($bar-1))->getAlignment()->setWrapText(true);
-                        $si->getStyle('R'.$startBar.':R'.($bar-1))->getAlignment()->setWrapText(true);
 
                         // Merge cells vertically for this employee
                         if ($maxRows > 1) {
                             $colsToMerge = ['J', 'K', 'R'];
                             foreach ($colsToMerge as $col) {
                                 $si->mergeCells($col.$startBar.':'.$col.($bar-1));
-                                $si->getStyle($col.$startBar.':'.$col.($bar-1))->getAlignment()->setVertical('top');
                             }
                         }
 
@@ -2150,9 +2127,22 @@ class SpreadsheetController extends Controller
             }
 
             if ($bar > 5) {
-                $si->getStyle('A5:R'.($bar-1))->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-                $si->getStyle('A5:R'.($bar-1))->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-                $si->getStyle('A5:R'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
+                $lastRow = $bar - 1;
+                $si->getStyle('A5:R'.$lastRow)->getAlignment()->setVertical('top');
+                $si->getStyle('A5:A'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('C5:D'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('F5:G'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('L5:M'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('N5:N'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('P5:P'.$lastRow)->getAlignment()->setHorizontal('center');
+                $si->getStyle('R5:R'.$lastRow)->getAlignment()->setHorizontal('left');
+                $si->getStyle('J5:K'.$lastRow)->getAlignment()->setWrapText(true);
+                $si->getStyle('O5:O'.$lastRow)->getAlignment()->setWrapText(true);
+                $si->getStyle('R5:R'.$lastRow)->getAlignment()->setWrapText(true);
+
+                $si->getStyle('A5:R'.$lastRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                $si->getStyle('A5:R'.$lastRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                $si->getStyle('A5:R'.$lastRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
             }
 
             $sheetIndex++;

@@ -63,6 +63,21 @@ class KaryawanImplement implements KaryawanRepository {
         if(isset($inputs['area']) && $inputs['area'] != '') {
             $hasil->where('karyawans.area_id', $inputs['area']);
         }
+        if(isset($inputs['divisi_id']) && $inputs['divisi_id'] != '') {
+            $hasil->where('karyawans.divisi_id', $inputs['divisi_id']);
+        }
+        if(isset($inputs['divisi']) && $inputs['divisi'] != '') {
+            $hasil->where('karyawans.divisi_id', $inputs['divisi']);
+        }
+        if(isset($inputs['jabatan_id']) && $inputs['jabatan_id'] != '') {
+            $hasil->where('karyawans.jabatan_id', $inputs['jabatan_id']);
+        }
+        if(isset($inputs['jabatan_nama']) && $inputs['jabatan_nama'] != '') {
+            $jabatanNama = $inputs['jabatan_nama'];
+            $hasil->whereHas('jabatan', function($q) use ($jabatanNama) {
+                $q->where('nama', $jabatanNama);
+            });
+        }
         if(isset($inputs['status_kerja']) && $inputs['status_kerja'] != '') {
             $hasil->where('karyawans.status_kerja_id', $inputs['status_kerja']);
         }

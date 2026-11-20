@@ -26,6 +26,7 @@ class KaryawanController extends Controller
             'aktif' => $req->query('aktif'),
             'staf' => $req->query('staf'),
             'area' => $req->query('area'),
+            'divisi_id' => $req->query('divisi_id') ?: $req->query('divisi'),
             'status_kerja' => $req->query('status_kerja'),
             'search_by' => $req->query('search_by'),
             'value' => $req->query('value'),

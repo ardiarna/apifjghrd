@@ -45,19 +45,13 @@ class PdfAlamatDivisiController extends Controller
             .text-blue { color: #0000FF; font-weight: bold; }
         </style>";
 
-        $all = $this->repoKaryawan->findAll(['aktif' => 'Y']);
-        $dataKaryawan = [];
-        foreach ($all as $d) {
-            if ($id == 'PS') {
-                if ($d->jabatan && strtoupper($d->jabatan->nama) == 'PROFESSIONAL SERVICE') {
-                    $dataKaryawan[] = $d;
-                }
-            } else {
-                if ($d->divisi_id == $id) {
-                    $dataKaryawan[] = $d;
-                }
-            }
+        $filter = ['aktif' => 'Y'];
+        if ($id == 'PS') {
+            $filter['jabatan_nama'] = 'PROFESSIONAL SERVICE';
+        } else {
+            $filter['divisi_id'] = $id;
         }
+        $dataKaryawan = $this->repoKaryawan->findAll($filter);
 
         $details = [];
         $totalKaryawanPerArea = [];
