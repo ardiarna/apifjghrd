@@ -6,7 +6,6 @@ use App\Models\Karyawan;
 use App\Models\Phk;
 use App\Models\UangPhk;
 use App\Models\PayrollPhk;
-use App\Models\Upah;
 use App\Repositories\NoteRepository;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -163,7 +162,7 @@ class SpreadSlipPhkController extends Controller
         $si->setCellValue('A10', 'Divisi');
         $si->setCellValue('C10', ': ' . ($karyawan->divisi ? $karyawan->divisi->nama : ''));
 
-        $upah = $karyawan->upah ?: Upah::where('karyawan_id', $karyawan_id)->first();
+        $upah = $karyawan->upah;
         $gajiTunjangan = 0;
         if ($upah) {
             $gajiTunjangan = (strtoupper((string)$upah->makan_harian) === 'N')

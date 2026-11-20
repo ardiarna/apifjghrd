@@ -6,7 +6,6 @@ use App\Models\Karyawan;
 use App\Models\Phk;
 use App\Models\UangPhk;
 use App\Models\PayrollPhk;
-use App\Models\Upah;
 use App\Repositories\NoteRepository;
 use Mpdf\Mpdf;
 
@@ -56,7 +55,7 @@ class PdfSlipPhkController extends Controller
             return response()->json(['status' => false, 'message' => 'Data Uang PHK / Payroll PHK tidak ditemukan']);
         }
 
-        $upah = $karyawan->upah ?: Upah::where('karyawan_id', $karyawan_id)->first();
+        $upah = $karyawan->upah;
         $gajiTunjangan = 0;
         if ($upah) {
             $gajiTunjangan = (strtoupper((string)$upah->makan_harian) === 'N')
