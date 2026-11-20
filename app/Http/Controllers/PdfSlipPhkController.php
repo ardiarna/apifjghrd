@@ -7,11 +7,17 @@ use App\Models\Phk;
 use App\Models\UangPhk;
 use App\Models\PayrollPhk;
 use App\Models\Upah;
-use App\Models\Note;
+use App\Repositories\NoteRepository;
 use Mpdf\Mpdf;
 
 class PdfSlipPhkController extends Controller
 {
+    protected $repoNote;
+
+    public function __construct(NoteRepository $repoNote)
+    {
+        $this->repoNote = $repoNote;
+    }
     private function fmt($val): string
     {
         return number_format((float)$val, 0, ',', '.');
@@ -316,7 +322,7 @@ class PdfSlipPhkController extends Controller
         $stempelB64 = $this->imgB64(public_path('images/stempel_full.png'), 'png');
 
         // Note content
-        $dbNote = Note::where('kode', 'NOTE_SLIP_PHK')->first();
+        $dbNote = $this->repoNote->findByKode('NOTE_SLIP_PHK');
         $defaultNote = "Hak Karyawan sesuai dengan Peraturan Pemerintah No.35 Tahun 2021 yang berlaku &\n" .
             "tercantum dalam Peraturan Perusahaan (PP) Pasal 31 (tiga puluh satu) tentang Hak Karyawan\n" .
             "serta Kompensasi yang sudah dapat Pengesahan dari Kementrian Ketenagakerjaan RI";
