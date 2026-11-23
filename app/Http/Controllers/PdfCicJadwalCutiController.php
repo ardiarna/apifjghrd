@@ -60,9 +60,7 @@ class PdfCicJadwalCutiController extends Controller
 
         $allJatahs = CicJatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('cic_karyawan_id');
         $allCutiDatesForYear = CicCutiDate::with('cicCutiDetail.cicCuti')
-            ->whereHas('cicCutiDetail.cicCuti', function($q) use ($tahun) {
-                $q->where('tahun', $tahun);
-            })
+            ->whereBetween('tanggal', ["$tahun-01-01", "$tahun-12-31"])
             ->get();
 
         $datesByKaryawanAndMonth = [];

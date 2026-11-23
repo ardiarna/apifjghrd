@@ -45,6 +45,7 @@ class PdfDataKaryawanPerJointController extends Controller
 
         $idxSheet = 0;
         $hasData = false;
+        $dbAreasModels = $this->repoArea->findAll();
 
         for ($tahun = $tahunAwal; $tahun <= $tahunAkhir; $tahun++) {
             $karyawanTahunIni = [];
@@ -78,7 +79,6 @@ class PdfDataKaryawanPerJointController extends Controller
             }
 
             $activeAreasSorted = [];
-            $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
             foreach ($dbAreasModels as $a) {
                 if (isset($activeAreas[$a->kode])) {
                     $activeAreasSorted[] = strtoupper($a->nama);

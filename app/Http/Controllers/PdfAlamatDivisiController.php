@@ -70,7 +70,7 @@ class PdfAlamatDivisiController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);

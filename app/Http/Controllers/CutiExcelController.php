@@ -88,9 +88,7 @@ class CutiExcelController extends Controller
 
         $allJatahs = JatahCutiTahunan::where('tahun', $tahun)->get()->keyBy('karyawan_id');
         $allCutiDatesForYear = CutiDate::with('cutiDetail.cuti')
-            ->whereHas('cutiDetail.cuti', function($q) use ($tahun) {
-                $q->where('tahun', $tahun);
-            })
+            ->whereBetween('tanggal', ["$tahun-01-01", "$tahun-12-31"])
             ->get();
 
         $datesByKaryawanAndMonth = [];

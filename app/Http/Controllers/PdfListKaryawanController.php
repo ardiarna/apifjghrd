@@ -58,7 +58,7 @@ class PdfListKaryawanController extends Controller
             $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
         }
         $activeAreasSorted = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -403,7 +403,7 @@ class PdfListKaryawanController extends Controller
         }
         $html .= "</table>";
 
-        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
+        $dbAreas = $dbAreasModels->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {

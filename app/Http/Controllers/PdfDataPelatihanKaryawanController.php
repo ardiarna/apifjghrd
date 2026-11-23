@@ -59,7 +59,7 @@ class PdfDataPelatihanKaryawanController extends Controller
         }
 
         $activeAreasSorted = [];
-        $dbAreasModels = app(AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);

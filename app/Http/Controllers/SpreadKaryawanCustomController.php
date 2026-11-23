@@ -572,6 +572,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $idxSheet = 0;
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
         for ($tahun = $tahunAwal; $tahun <= $tahunAkhir; $tahun++) {
             if ($idxSheet > 0) {
                 $spreadsheet->createSheet();
@@ -607,7 +608,6 @@ class SpreadKaryawanCustomController extends Controller
 
             $areaString = '';
             $activeAreasSorted = [];
-            $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
             foreach ($dbAreasModels as $a) {
                 if (isset($activeAreas[$a->kode])) {
                     $activeAreasSorted[] = strtoupper($a->nama);
