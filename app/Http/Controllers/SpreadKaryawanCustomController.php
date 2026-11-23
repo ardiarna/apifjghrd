@@ -1092,6 +1092,234 @@ class SpreadKaryawanCustomController extends Controller
         $writer->save('php://output');
     }
 
+    public function dataPelatihanKaryawan() {
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(10)->setBold(TRUE);
+
+        $si = $spreadsheet->getActiveSheet();
+        $si->setShowGridlines(false);
+        $si->setTitle('DATA PELATIHAN');
+
+        // Fetch Data - only active employees with training data
+        $dataKaryawan = $this->repoKaryawan->findAll(['aktif' => 'Y', 'has_training' => true]);
+        $dataKaryawan->load([
+            'trainingKaryawans' => function($q) {
+                $q->with('training')->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
+
+        $activeAreas = [];
+        $details = [];
+
+        foreach ($dataKaryawan as $d) {
+            if ($d->trainingKaryawans->isEmpty()) {
+                continue;
+            }
+            $staf = $d->staf;
+            $area = $d->area ? $d->area->nama : 'Lainnya';
+            $kodeArea = $d->area ? $d->area->kode : 'Lainnya';
+            $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
+            $details[$staf][$area][] = $d;
+        }
+
+        $activeAreasSorted = [];
+        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        foreach ($dbAreasModels as $a) {
+            if (isset($activeAreas[$a->kode])) {
+                $activeAreasSorted[] = strtoupper($a->nama);
+            }
+        }
+        if (isset($activeAreas['Lainnya'])) {
+            $activeAreasSorted[] = 'LAINNYA';
+        }
+        $areaString = implode(' - ', $activeAreasSorted);
+
+        // Title
+        $si->setCellValue('A2', 'DATA PELATIHAN KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
+        $si->mergeCells('A2:I2');
+        $si->setCellValue('A3', $areaString);
+        $si->mergeCells('A3:I3');
+
+        $styleJudul = [
+            'font' => [
+                'name' => 'Malgun Gothic',
+                'size' => 14,
+                'bold' => true,
+                'underline' => true,
+                'color' => ['argb' => '0000FF'],
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ]
+        ];
+        $si->getStyle('A2:I3')->applyFromArray($styleJudul);
+        $si->getRowDimension(2)->setRowHeight(22);
+        $si->getRowDimension(3)->setRowHeight(22);
+
+        // Headers
+        $headers = [
+            'A' => 'NO',
+            'B' => 'N A M E',
+            'C' => 'DATE OF BIRTH',
+            'D' => 'START WORKING',
+            'E' => 'AGE (YEARS)',
+            'F' => 'YEARS OF SERVICE',
+            'G' => 'POSITION',
+            'H' => 'LAST EDUCATION',
+            'I' => 'TRAINING - MEETING - PAMERAN - TUGAS LN'
+        ];
+        foreach ($headers as $col => $title) {
+            $si->setCellValue($col.'5', $title);
+            $si->mergeCells($col.'5:'.$col.'6');
+        }
+        $si->getStyle('A5:I6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
+        $si->getStyle('A5:I6')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setARGB('FFFFC000');
+        $si->getStyle('A5:I6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $si->getRowDimension(5)->setRowHeight(18);
+        $si->getRowDimension(6)->setRowHeight(15);
+
+        // Column Widths
+        $widths = ['A'=>4.55, 'B'=>38.00, 'C'=>18.00, 'D'=>18.00, 'E'=>11.07, 'F'=>15.00, 'G'=>39.95, 'H'=>58.04, 'I'=>60.00];
+        foreach ($widths as $col => $width) {
+            $si->getColumnDimension($col)->setWidth($width);
+        }
+
+        $si->freezePane('C7');
+        $bar = 7;
+        $nomor = 1;
+        $today = date_create('today');
+
+        krsort($details);
+        foreach ($details as $staf => $areas) {
+            if($staf == 'N') {
+                $si->setCellValue('B'.$bar, 'NON STAF :');
+                $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
+                $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
+                $bar++;
+            }
+            foreach ($areas as $area => $karyawans) {
+                if($staf == 'Y') {
+                    $si->setCellValue('B'.$bar, $area.' :');
+                    $si->getStyle('B'.$bar)->getAlignment()->setHorizontal('center');
+                    $si->getStyle('B'.$bar)->getFont()->getColor()->setARGB('0000FF');
+                    $bar++;
+                }
+
+                foreach ($karyawans as $d) {
+                    $trainings = $d->trainingKaryawans;
+                    $numTrainings = $trainings->count();
+                    $maxRows = max(1, $numTrainings);
+
+                    $pendidikanFormat = '';
+                    $pendidikanJurusan = '';
+                    if ($d->pendidikan) {
+                        $pendidikanFormat = $d->pendidikan->nama;
+                        $almamater = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_almamater));
+                        $jurusan = trim(preg_replace('/\s+/', ' ', (string)$d->pendidikan_jurusan));
+                        if ($almamater) $pendidikanFormat .= ' ' . $almamater;
+                        if ($jurusan) {
+                            if ($maxRows >= 2) {
+                                $pendidikanJurusan = 'Jurusan: ' . $jurusan;
+                            } else {
+                                $pendidikanFormat .= ', Jurusan: ' . $jurusan;
+                            }
+                        }
+                    }
+
+                    for ($i = 0; $i < $maxRows; $i++) {
+                        if ($i == 0) {
+                            $si->setCellValue('A'.$bar, $nomor);
+                            $si->setCellValue('B'.$bar, $d->nama);
+
+                            $tglLahir = $d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '';
+                            $si->setCellValue('C'.$bar, $tglLahir);
+
+                            $tglMasuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
+                            $si->setCellValue('D'.$bar, $tglMasuk);
+
+                            $age = '';
+                            if ($d->tanggal_lahir) {
+                                $dt1 = date_create($d->tanggal_lahir);
+                                $age = date_diff($dt1, $today)->y;
+                            }
+                            $si->setCellValue('E'.$bar, $age);
+
+                            $service = '';
+                            if ($d->tanggal_masuk) {
+                                $dt1 = date_create($d->tanggal_masuk);
+                                $service = date_diff($dt1, $today)->y;
+                            }
+                            $si->setCellValue('F'.$bar, $service);
+
+                            $si->setCellValue('G'.$bar, $d->jabatan ? $d->jabatan->nama : '');
+                            $si->setCellValue('H'.$bar, $pendidikanFormat);
+                        }
+
+                        if ($i == 1 && $pendidikanJurusan != '') {
+                            $si->setCellValue('H'.$bar, $pendidikanJurusan);
+                        }
+
+                        if ($i < $numTrainings) {
+                            $tk = $trainings[$i];
+                            $tName = $tk->training ? $tk->training->nama : ('Training ID: ' . $tk->training_id);
+
+                            $tInfo = $tName;
+                            $tglAwal = $tk->tanggal_awal ? date('d-m-Y', strtotime($tk->tanggal_awal)) : '';
+                            $tglAkhir = $tk->tanggal_akhir ? date('d-m-Y', strtotime($tk->tanggal_akhir)) : '';
+                            $tglRange = $tglAwal;
+                            if ($tglAkhir && $tglAkhir !== $tglAwal) {
+                                $tglRange .= ($tglRange ? ' s/d ' : '') . $tglAkhir;
+                            }
+                            if ($tglRange) {
+                                $tInfo .= " : " . $tglRange;
+                            }
+                            if ($tk->keterangan) {
+                                $tInfo .= "\n" . trim($tk->keterangan);
+                            }
+
+                            $si->setCellValue('I'.$bar, $tInfo);
+                        }
+
+                        $bar++;
+                    }
+                    $nomor++;
+
+                    // 1 blank row after each employee
+                    $bar++;
+                }
+            }
+        }
+
+        $lastDataRow = $bar - 1;
+        if ($lastDataRow >= 7) {
+            $si->getStyle('A7:I'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:F'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('I7:I'.$lastDataRow)->getAlignment()->setHorizontal('left');
+            $si->getStyle('B7:I'.$lastDataRow)->getAlignment()->setWrapText(true);
+
+            $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:I'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="DATA_PELATIHAN_KARYAWAN.xlsx"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        exit;
+    }
+
                         public function biodataKaryawan($id) {
         $karyawan = $this->repoKaryawan->findById($id);
         if (!$karyawan) return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan']);

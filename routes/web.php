@@ -316,6 +316,8 @@ $router->group(["prefix" => "excel", "middleware" => "auth:api"], function () us
     $router->get('pdf-data-jabatan-karyawan', 'PdfDataJabatanKaryawanController@rekap');
     $router->get('data-pendidikan-karyawan', 'SpreadKaryawanCustomController@dataPendidikanKaryawan');
     $router->get('pdf-data-pendidikan-karyawan', 'PdfDataPendidikanKaryawanController@rekap');
+    $router->get('data-pelatihan-karyawan', 'SpreadKaryawanCustomController@dataPelatihanKaryawan');
+    $router->get('pdf-data-pelatihan-karyawan', 'PdfDataPelatihanKaryawanController@rekap');
     $router->get('data-status-karyawan', 'SpreadKaryawanCustomController@dataStatusKaryawan');
     $router->get('pdf-data-status-karyawan', 'PdfDataStatusKaryawanController@rekap');
     $router->get('biodata-karyawan/{id}', 'SpreadKaryawanCustomController@biodataKaryawan');
