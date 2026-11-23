@@ -17,6 +17,15 @@ class PdfBiodataKaryawanController extends Controller
         $karyawan = $this->repoKaryawan->findById($id);
         if (!$karyawan) return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan']);
 
+        $karyawan->load([
+            'keluargas',
+            'keluargaKontaks',
+            'trainingKaryawans.training',
+            'perjanjianKerjas' => function($q) {
+                $q->with('statusKerja')->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
+
         $mpdf = new Mpdf([
             'format'        => 'A4-P',
             'margin_left'   => 10,
@@ -137,7 +146,7 @@ class PdfBiodataKaryawanController extends Controller
         $html .= "<div class=\"section-header\">II. ANGGOTA KELUARGA</div>";
         $mapHubungan = ['S' => 'Suami', 'I' => 'Istri', 'A' => 'Anak', 'M' => 'Menantu', 'C' => 'Cucu', 'O' => 'Orang Tua', 'T' => 'Mertua', 'F' => 'Famili Lain'];
         
-        $keluargas = method_exists($karyawan, 'keluargas') ? $karyawan->keluargas()->get() : [];
+        $keluargas = $karyawan->keluargas ?? [];
         if (count($keluargas) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:30%;\">Nama Lengkap</th><th style=\"width:20%;\">Nomor KTP</th><th style=\"width:15%;\">Hubungan</th><th style=\"width:35%;\">Tempat & Tanggal Lahir</th></tr>";
@@ -155,7 +164,7 @@ class PdfBiodataKaryawanController extends Controller
 
         // --- 3. KONTAK DARURAT ---
         $html .= "<div class=\"section-header\">III. KONTAK DARURAT KELUARGA</div>";
-        $kontaks = method_exists($karyawan, 'keluargaKontaks') ? $karyawan->keluargaKontaks()->get() : [];
+        $kontaks = $karyawan->keluargaKontaks ?? [];
         if (count($kontaks) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:30%;\">No. Telepon</th><th style=\"width:70%;\">Keterangan</th></tr>";
@@ -171,7 +180,7 @@ class PdfBiodataKaryawanController extends Controller
 
         // --- 4. RIWAYAT TRAINING ---
         $html .= "<div class=\"section-header\">IV. RIWAYAT TRAINING</div>";
-        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->with('training')->get() : [];
+        $trainings = $karyawan->trainingKaryawans ?? [];
         if (count($trainings) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:40%;\">Nama Training</th><th style=\"width:20%;\">Tanggal</th><th style=\"width:40%;\">Keterangan</th></tr>";
@@ -193,7 +202,7 @@ class PdfBiodataKaryawanController extends Controller
 
         // --- 5. PERJANJIAN KERJA ---
         $html .= "<div class=\"section-header\">V. PERJANJIAN KERJA</div>";
-        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->with('statusKerja')->orderBy('tanggal_awal')->get() : [];
+        $perjanjians = $karyawan->perjanjianKerjas ?? [];
         if (count($perjanjians) > 0) {
             $html .= "<table class=\"grid-table\">";
             $html .= "<tr><th style=\"width:30%;\">Nomor Kontrak</th><th style=\"width:30%;\">Status Kerja</th><th style=\"width:20%;\">Mulai</th><th style=\"width:20%;\">Berakhir</th></tr>";

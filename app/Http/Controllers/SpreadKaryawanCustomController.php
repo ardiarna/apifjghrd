@@ -1096,6 +1096,15 @@ class SpreadKaryawanCustomController extends Controller
         $karyawan = $this->repoKaryawan->findById($id);
         if (!$karyawan) return response()->json(['success' => false, 'message' => 'Karyawan tidak ditemukan']);
 
+        $karyawan->load([
+            'keluargas',
+            'keluargaKontaks',
+            'trainingKaryawans.training',
+            'perjanjianKerjas' => function($q) {
+                $q->with('statusKerja')->orderBy('tanggal_awal', 'asc');
+            }
+        ]);
+
         $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         $spreadsheet->getDefaultStyle()->getFont()->setName('Calibri')->setSize(11);
         $si = $spreadsheet->getActiveSheet();
@@ -1226,7 +1235,7 @@ class SpreadKaryawanCustomController extends Controller
             'F' => 'Famili Lain',
         ];
 
-        $keluargas = method_exists($karyawan, 'keluargas') ? $karyawan->keluargas()->get() : [];
+        $keluargas = $karyawan->keluargas ?? [];
         if (count($keluargas) > 0) {
             $si->setCellValue('B'.$bar, 'Nama Lengkap'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Nomor KTP');
@@ -1259,7 +1268,7 @@ class SpreadKaryawanCustomController extends Controller
         $addSectionHeader('III. KONTAK DARURAT KELUARGA', $bar);
         $bar += 2;
 
-        $kontaks = method_exists($karyawan, 'keluargaKontaks') ? $karyawan->keluargaKontaks()->get() : [];
+        $kontaks = $karyawan->keluargaKontaks ?? [];
         if (count($kontaks) > 0) {
             $si->setCellValue('B'.$bar, 'No. Telepon'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Keterangan'); $si->mergeCells('D'.$bar.':H'.$bar);
@@ -1286,7 +1295,7 @@ class SpreadKaryawanCustomController extends Controller
         $addSectionHeader('IV. RIWAYAT TRAINING', $bar);
         $bar += 2;
 
-        $trainings = method_exists($karyawan, 'trainingKaryawans') ? $karyawan->trainingKaryawans()->with('training')->get() : [];
+        $trainings = $karyawan->trainingKaryawans ?? [];
         if (count($trainings) > 0) {
             $si->setCellValue('B'.$bar, 'Nama Training'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Tanggal');
@@ -1322,7 +1331,7 @@ class SpreadKaryawanCustomController extends Controller
         $addSectionHeader('V. PERJANJIAN KERJA', $bar);
         $bar += 2;
 
-        $perjanjians = method_exists($karyawan, 'perjanjianKerjas') ? $karyawan->perjanjianKerjas()->with('statusKerja')->orderBy('tanggal_awal')->get() : [];
+        $perjanjians = $karyawan->perjanjianKerjas ?? [];
         if (count($perjanjians) > 0) {
             $si->setCellValue('B'.$bar, 'Nomor Kontrak'); $si->mergeCells('B'.$bar.':C'.$bar);
             $si->setCellValue('D'.$bar, 'Status Kerja');
