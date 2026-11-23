@@ -25,7 +25,8 @@ class SpreadSlipGajiController extends Controller
 
     public function cetak($tahun, $bulan, $jenis, $area) {
         // jenis   =>   1.ENGINEER   2.STAFF   3.NON STAF    4.ALL
-        $arrBulan = ['Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $arrBulanFull = ['Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $arrBulan = ['Des', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Juni', 'Juli', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         // $px = 11/64;        //100 -> 103
         // $px = 10.5/64;      //100 -> 98
         $px = 10.7/64;      //100 -> 100;
@@ -169,7 +170,7 @@ class SpreadSlipGajiController extends Controller
             $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
             $si->getRowDimension($bar)->setRowHeight(21);
             $bar++;
-            $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[$bulan-1]."'".substr($bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[$bulan]."'".substr($tahun, -2));
+            $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[(int)$bulan-1]."'".substr($bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[(int)$bulan]."'".substr($tahun, -2));
             $si->setCellValue('G'.$bar, '=');
             $si->setCellValue('H'.$bar, $d->gaji);
             $si->setCellValue('J'.$bar, 'Keterlambatan Kehadiran 25%');
@@ -215,7 +216,7 @@ class SpreadSlipGajiController extends Controller
                 $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                 $si->setCellValue('A'.$bar, '(Per: '.$ttgl[2]." ".$arrBulan[intval($ttgl[1])]."'".substr($ttgl[0], -2)." s/d ".$ttgm[2]." ".$arrBulan[intval($ttgm[1])]."'".substr($ttgm[0], -2).')');
             } else {
-                $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[$bulan].' '.$tahun);
+                $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[(int)$bulan].' '.$tahun);
             }
             $si->setCellValue('J'.$bar, 'Pinjaman / Cicilan');
             if(isset($potongans[$d->karyawan->id]['CC'])) {
@@ -407,7 +408,7 @@ class SpreadSlipGajiController extends Controller
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="SLIP_GAJI_'.($jenis == '1' ? 'ENGINEERING_' : ($jenis == '2' ? 'STAF_' : ($jenis == '3' ? 'NON_STAF_' : ''))).str_replace(' ', '_', $namaArea).strtoupper($arrBulan[$bulan]).'_'.substr($tahun, -2). '.xlsx"');
+        header('Content-Disposition: attachment;filename="SLIP_GAJI_'.($jenis == '1' ? 'ENGINEERING_' : ($jenis == '2' ? 'STAF_' : ($jenis == '3' ? 'NON_STAF_' : ''))).str_replace(' ', '_', $namaArea).strtoupper($arrBulanFull[$bulan]).'_'.substr($tahun, -2). '.xlsx"');
         header('Cache-Control: max-age=0');
         header('Cache-Control: max-age=1');
         header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
@@ -421,7 +422,7 @@ class SpreadSlipGajiController extends Controller
 
     public function perKaryawan($karyawan_id, $tahun, $bulans) {
         $bulans = explode('-', $bulans);
-        $arrBulan = ['Desember', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        $arrBulan = ['Des', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Juni', 'Juli', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         $arrBulanPendek = [1 => 'Jan', 2 => 'Feb', 3 => 'Mar', 4 => 'Apr', 5 => 'Mei', 6 => 'Jun', 7 => 'Jul', 8 => 'Agu', 9 => 'Sep', 10 => 'Okt', 11 => 'Nov', 12 => 'Des'];
         $px = 10.7/64;      //100 -> 100;
         $spreadsheet = new Spreadsheet();
@@ -549,7 +550,7 @@ class SpreadSlipGajiController extends Controller
                 $si->getStyle('A'.$bar.':P'.$bar)->getFont()->setUnderline(TRUE)->getColor()->setARGB('0070C0');
                 $si->getRowDimension($bar)->setRowHeight(21);
                 $bar++;
-                $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[$d->bulan-1]."'".substr($d->bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[$d->bulan]."'".substr($tahun, -2));
+                $si->setCellValue('A'.$bar, 'Gaji Pokok Per : 26 '.$arrBulan[(int)$d->bulan-1]."'".substr($d->bulan == '1' ? $tahun-1 : $tahun, -2).' - 25 '.$arrBulan[(int)$d->bulan]."'".substr($tahun, -2));
                 $si->setCellValue('G'.$bar, '=');
                 $si->setCellValue('H'.$bar, $d->gaji);
                 $si->setCellValue('J'.$bar, 'Keterlambatan Kehadiran 25%');
@@ -592,10 +593,10 @@ class SpreadSlipGajiController extends Controller
                 $bar++;
                 if ($d->makan_harian == 'Y') {
                     $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
-                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
+                    $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $si->setCellValue('A'.$bar, '(Per: '.$ttgl[2]." ".$arrBulan[intval($ttgl[1])]."'".substr($ttgl[0], -2)." s/d ".$ttgm[2]." ".$arrBulan[intval($ttgm[1])]."'".substr($ttgm[0], -2).')');
                 } else {
-                    $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[$d->bulan].' '.$tahun);
+                    $si->setCellValue('A'.$bar, 'Bulan '.$arrBulan[(int)$d->bulan].' '.$tahun);
                 }
                 $si->setCellValue('J'.$bar, 'Pinjaman / Cicilan');
                 if(isset($potongans[$d->bulan]['CC'])) {

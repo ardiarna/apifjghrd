@@ -28,7 +28,8 @@ class PdfSlipGajiController extends Controller
         ini_set('memory_limit', '512M');
         set_time_limit(300);
 
-        $arrBulan = ['Desember','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        $arrBulanFull = ['Desember','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+        $arrBulan = ['Des','Jan','Feb','Mar','Apr','Mei','Juni','Juli','Agu','Sep','Okt','Nov','Des'];
         $bulanInt = (int)$bulan;
 
         $rpArea = app(AreaRepository::class);
@@ -145,7 +146,7 @@ class PdfSlipGajiController extends Controller
                 if ($d->makan_harian == 'Y') {
                     $uMakanLabel = 'U/makan &amp; Transport';
                     $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
-                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
+                    $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $uMakanSub = '(Per: '.$ttgl[2].' '.$arrBulan[(int)$ttgl[1]]."'".substr($ttgl[0],-2)
                                .' s/d '.$ttgm[2].' '.$arrBulan[(int)$ttgm[1]]."'".substr($ttgm[0],-2).')';
                     $makanC = $this->n($d->uang_makan_harian);
@@ -351,10 +352,10 @@ class PdfSlipGajiController extends Controller
                 <td colspan="3" class="bb"></td>
                 </tr>';
 
-                $noteVal = !empty($d->note) ? trim($d->note) : '';
-                if (!empty($noteVal)) {
+                $noteVal = !empty($d->note) ? rtrim($d->note) : '';
+                if (trim($noteVal) !== '') {
                     $noteTd1 = '<td colspan="10" class="cblue ul" style="vertical-align:bottom; padding-left:2mm;">Note :</td>';
-                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . nl2br(htmlspecialchars($noteVal)) . '</td>';
+                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . $this->formatNote($noteVal) . '</td>';
                     $noteTd3 = '';
                 } else {
                     $noteTd1 = '<td colspan="10"></td>';
@@ -384,7 +385,7 @@ class PdfSlipGajiController extends Controller
         }
 
         $jenisStr = ($jenis == '1' ? 'ENGINEERING_' : ($jenis == '2' ? 'STAF_' : ($jenis == '3' ? 'NON_STAF_' : '')));
-        $namaFile = 'PDF_SLIP_GAJI_'.$jenisStr.str_replace(' ', '_', $namaArea).strtoupper($arrBulan[$bulanInt]).'_'.substr($tahun, -2).'.pdf';
+        $namaFile = 'PDF_SLIP_GAJI_'.$jenisStr.str_replace(' ', '_', $namaArea).strtoupper($arrBulanFull[$bulanInt]).'_'.substr($tahun, -2).'.pdf';
 
         $mpdf->Output($namaFile, \Mpdf\Output\Destination::DOWNLOAD);
         exit;
@@ -394,8 +395,8 @@ class PdfSlipGajiController extends Controller
     {
         $bulansList = explode('-', $bulans);
         $arrBulan   = [
-            'Desember','Januari','Februari','Maret','April','Mei',
-            'Juni','Juli','Agustus','September','Oktober','November','Desember'
+            'Des','Jan','Feb','Mar','Apr','Mei',
+            'Juni','Juli','Agu','Sep','Okt','Nov','Des'
         ];
 
         $karyawan = $this->repoKaryawan->findById($karyawan_id);
@@ -516,7 +517,7 @@ class PdfSlipGajiController extends Controller
                 if ($d->makan_harian == 'Y') {
                     $uMakanLabel = 'U/makan &amp; Transport';
                     $ttgl = explode('-', $d->makan_tgl_awal ?? $d->tanggal_awal);
-                $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
+                    $ttgm = explode('-', $d->makan_tgl_akhir ?? $d->tanggal_akhir);
                     $uMakanSub = '(Per: '.$ttgl[2].' '.$arrBulan[(int)$ttgl[1]]."'".substr($ttgl[0],-2)
                                .' s/d '.$ttgm[2].' '.$arrBulan[(int)$ttgm[1]]."'".substr($ttgm[0],-2).')';
                     $makanC = $this->n($d->uang_makan_harian);
@@ -752,10 +753,10 @@ class PdfSlipGajiController extends Controller
                 <td colspan="3" class="bb"></td>
                 </tr>';
 
-                $noteVal = !empty($d->note) ? trim($d->note) : '';
-                if (!empty($noteVal)) {
+                $noteVal = !empty($d->note) ? rtrim($d->note) : '';
+                if (trim($noteVal) !== '') {
                     $noteTd1 = '<td colspan="10" class="cblue ul" style="vertical-align:bottom; padding-left:2mm;">Note :</td>';
-                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . nl2br(htmlspecialchars($noteVal)) . '</td>';
+                    $noteTd2 = '<td colspan="10" rowspan="2" class="cblue" style="vertical-align:top; font-size:6.5pt; font-weight:bold; line-height:1.25; padding-left:2mm; padding-top:1mm;">' . $this->formatNote($noteVal) . '</td>';
                     $noteTd3 = '';
                 } else {
                     $noteTd1 = '<td colspan="10"></td>';
@@ -800,5 +801,25 @@ class PdfSlipGajiController extends Controller
     {
         if (!file_exists($path)) return null;
         return 'data:image/'.$mime.';base64,'.base64_encode(file_get_contents($path));
+    }
+
+    private function formatNote(string $note): string
+    {
+        $normalized = str_replace(["\r\n", "\r"], "\n", $note);
+        $lines = explode("\n", $normalized);
+        foreach ($lines as &$line) {
+            $line = str_replace("\t", '    ', $line);
+            $len = strlen($line);
+            $trimmed = ltrim($line, ' ');
+            $numSpaces = $len - strlen($trimmed);
+            $encodedTrimmed = htmlspecialchars($trimmed, ENT_QUOTES, 'UTF-8');
+            $encodedTrimmed = preg_replace('/ {2}/', '&nbsp; ', $encodedTrimmed);
+            if ($numSpaces > 0) {
+                $line = str_repeat('&nbsp;', $numSpaces) . $encodedTrimmed;
+            } else {
+                $line = $encodedTrimmed;
+            }
+        }
+        return implode('<br />', $lines);
     }
 }
