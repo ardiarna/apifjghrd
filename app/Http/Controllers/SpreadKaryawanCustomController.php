@@ -526,11 +526,6 @@ class SpreadKaryawanCustomController extends Controller
                     }
                     $si->setCellValue('E'.$bar, $service);
 
-                    $si->getStyle('A'.$bar.':E'.$bar)->getAlignment()->setVertical('top');
-                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('C'.$bar)->getAlignment()->setWrapText(true);
-                    $si->getStyle('D'.$bar.':E'.$bar)->getAlignment()->setHorizontal('center');
-
                     $bar++;
                     $nomor++;
                 }
@@ -540,10 +535,16 @@ class SpreadKaryawanCustomController extends Controller
             }
         }
 
-        if ($bar > 7) {
-            $si->getStyle('A7:E'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:E'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A7:E'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+        $lastDataRow = $bar - 1;
+        if ($lastDataRow >= 7) {
+            $si->getStyle('A7:E'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:C'.$lastDataRow)->getAlignment()->setWrapText(true);
+            $si->getStyle('D7:E'.$lastDataRow)->getAlignment()->setHorizontal('center');
+
+            $si->getStyle('A7:E'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:E'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A7:E'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -861,16 +862,6 @@ class SpreadKaryawanCustomController extends Controller
                     }
                     $si->setCellValue('H'.$bar, $service);
 
-                    $si->getStyle('A'.$bar.':H'.$bar)->getAlignment()->setVertical('top');
-                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('G'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('H'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('B'.$bar.':H'.$bar)->getAlignment()->setWrapText(true);
-
                     $bar++;
                     $nomor++;
                 }
@@ -881,6 +872,11 @@ class SpreadKaryawanCustomController extends Controller
 
         $lastDataRow = $bar - 1;
         if ($lastDataRow >= 7) {
+            $si->getStyle('A7:H'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:H'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('B7:H'.$lastDataRow)->getAlignment()->setWrapText(true);
+
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
@@ -1059,14 +1055,6 @@ class SpreadKaryawanCustomController extends Controller
                     }
                     $si->setCellValue('H'.$bar, $pendidikanFormat);
 
-                    $si->getStyle('A'.$bar.':H'.$bar)->getAlignment()->setVertical('top');
-                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('C'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('D'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('E'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('F'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('B'.$bar.':H'.$bar)->getAlignment()->setWrapText(true);
-
                     $bar++;
                     $nomor++;
                 }
@@ -1077,6 +1065,11 @@ class SpreadKaryawanCustomController extends Controller
 
         $lastDataRow = $bar - 1;
         if ($lastDataRow >= 7) {
+            $si->getStyle('A7:H'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A7:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C7:F'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('B7:H'.$lastDataRow)->getAlignment()->setWrapText(true);
+
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
             $si->getStyle('A7:H'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_HAIR);
@@ -1780,11 +1773,6 @@ class SpreadKaryawanCustomController extends Controller
                     }
                     $si->setCellValue('G'.$bar, $statusNamaCell);
 
-                    $si->getStyle('A'.$bar.':G'.$bar)->getAlignment()->setVertical('top');
-                    $si->getStyle('A'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('C'.$bar.':D'.$bar)->getAlignment()->setHorizontal('center');
-                    $si->getStyle('F'.$bar.':G'.$bar)->getAlignment()->setWrapText(true);
-
                     // Coloring
                     $statusId = $d->status_kerja_id;
                     $bgColor = null;
@@ -1807,10 +1795,16 @@ class SpreadKaryawanCustomController extends Controller
             }
         }
 
-        if ($bar > 8) {
-            $si->getStyle('A8:G'.($bar-1))->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A8:G'.($bar-1))->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
-            $si->getStyle('A8:G'.($bar-1))->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
+        $lastDataRow = $bar - 1;
+        if ($lastDataRow >= 8) {
+            $si->getStyle('A8:G'.$lastDataRow)->getAlignment()->setVertical('top');
+            $si->getStyle('A8:A'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('C8:D'.$lastDataRow)->getAlignment()->setHorizontal('center');
+            $si->getStyle('F8:G'.$lastDataRow)->getAlignment()->setWrapText(true);
+
+            $si->getStyle('A8:G'.$lastDataRow)->getBorders()->getOutline()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A8:G'.$lastDataRow)->getBorders()->getVertical()->setBorderStyle(Border::BORDER_THIN);
+            $si->getStyle('A8:G'.$lastDataRow)->getBorders()->getHorizontal()->setBorderStyle(Border::BORDER_HAIR);
         }
 
         $bar += 2;
