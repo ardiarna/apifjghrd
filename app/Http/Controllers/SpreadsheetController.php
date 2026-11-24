@@ -1511,7 +1511,7 @@ class SpreadsheetController extends Controller
         $si->setCellValue('R5', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('R5:R6');
         $si->setCellValue('S5', 'EMAIL PRIBADI'); $si->mergeCells('S5:S6');
         $si->setCellValue('T5', 'NOMOR PERJANJIAN KERJA'); $si->mergeCells('T5:T6');
-        $si->setCellValue('U5', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('U5:U6');
+        $si->setCellValue('U5', 'STATUS KARYAWAN'); $si->mergeCells('U5:U6');
         $si->setCellValue('V5', 'TRAINING - MEETING - PAMERAN - TUGAS LN'); $si->mergeCells('V5:V6');
 
         $si->getStyle('A5:V6')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);

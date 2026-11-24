@@ -56,7 +56,7 @@ class PdfDataStatusKaryawanController extends Controller
         $totalKaryawanPerArea = [];
         $totalKaryawan = 0;
         $statusNamaToId = [];
-        
+
         $activeAreas = [];
 
         foreach ($dataKaryawan as $d) {
@@ -108,7 +108,7 @@ class PdfDataStatusKaryawanController extends Controller
         $html .= "<table>";
         $html .= "<tr style=\"height:0; line-height:0; font-size:0;\">";
         // Widths: A=4.55, B=38.00, C=30.00, D=15.00, E=40.14, F=45.00, G=45.00 => Total ~217
-        $widths = [15, 60, 45, 25, 60, 60, 60]; 
+        $widths = [15, 60, 45, 25, 60, 60, 60];
         foreach ($widths as $w) $html .= "<td style=\"width:{$w}mm; padding:0; border:none; height:0;\"></td>";
         $html .= "</tr>";
 
@@ -119,7 +119,7 @@ class PdfDataStatusKaryawanController extends Controller
         $html .= "<th>TANGGAL GABUNG</th>";
         $html .= "<th>J A B A T A N</th>";
         $html .= "<th>PENDIDIKAN TERAKHIR</th>";
-        $html .= "<th>STATUS KARYAWAN PKWT / KONTRAK</th>";
+        $html .= "<th>STATUS KARYAWAN</th>";
         $html .= "</tr>";
 
         $nomor = 1;
@@ -143,15 +143,15 @@ class PdfDataStatusKaryawanController extends Controller
                     elseif ($statusId != '1' && $statusId != null) $bgClass = 'bg-red';
 
                     $html .= "<tr class=\"$bgClass\">";
-                    
+
                     $html .= "<td class=\"ac\">".$nomor."</td>";
                     $html .= "<td class=\"al\">".$d->nama."</td>";
                     $ttl = $d->tempat_lahir . ', ' . ($d->tanggal_lahir ? date('d-m-Y', strtotime($d->tanggal_lahir)) : '');
                     $html .= "<td class=\"al\">".$ttl."</td>";
-                    
+
                     $tgl_masuk = $d->tanggal_masuk ? date('d-m-Y', strtotime($d->tanggal_masuk)) : '';
                     $html .= "<td class=\"ac\">".$tgl_masuk."</td>";
-                    
+
                     $html .= "<td class=\"al\">".($d->jabatan ? $d->jabatan->nama : '')."</td>";
 
                     $pendidikanFormat = '';
@@ -175,7 +175,7 @@ class PdfDataStatusKaryawanController extends Controller
                         $latestPerjanjian = $perjanjians[$numPerjanjian - 1];
                         $bulanMapSingkat = [
                             1 => "JAN", 2 => "PEB", 3 => "MAR", 4 => "APR", 5 => "MEI", 6 => "JUN",
-                            7 => "JUL", 8 => "AGUSTUS", 9 => "SEP", 10 => "OKT", 11 => "NOP", 12 => "DES"
+                            7 => "JUL", 8 => "AGU", 9 => "SEP", 10 => "OKT", 11 => "NOP", 12 => "DES"
                         ];
 
                         if ($statusId == '1') {
@@ -194,7 +194,7 @@ class PdfDataStatusKaryawanController extends Controller
                         }
                     }
                     $html .= "<td class=\"al\">".$statusNamaCell."</td>";
-                    
+
                     $html .= "</tr>";
                     $nomor++;
                 }
@@ -226,14 +226,14 @@ class PdfDataStatusKaryawanController extends Controller
             $html .= "<tr>";
             $html .= "<td style=\"border:none; $textStyle\">".$statusNama."</td>";
             $html .= "<td style=\"border:none; $textStyle\">: ".$total."</td>";
-            
+
             foreach ($allAreas as $kodeArea) {
                 $nilai = isset($totalKaryawanPerStatusPerArea[$statusNama][$kodeArea]) ? $totalKaryawanPerStatusPerArea[$statusNama][$kodeArea] : 0;
                 $html .= "<td style=\"border:none; padding-left:20px; $textStyle\">".$kodeArea.": ".$nilai."</td>";
             }
             $html .= "</tr>";
         }
-        
+
         $html .= "<tr>";
         $html .= "<td style=\"border:none; color: #FF0000;\">TOTAL KARYAWAN</td>";
         $html .= "<td style=\"border:none; color: #FF0000;\">: ".$totalKaryawan."</td>";
@@ -243,7 +243,7 @@ class PdfDataStatusKaryawanController extends Controller
         }
         $html .= "</tr>";
         $html .= "</table>";
-        
+
         $mpdf->WriteHTML($html);
         $mpdf->Output('DATA_STATUS_KARYAWAN.pdf', \Mpdf\Output\Destination::DOWNLOAD);
         exit;

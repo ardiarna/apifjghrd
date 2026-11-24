@@ -1646,7 +1646,7 @@ class SpreadKaryawanCustomController extends Controller
         $si->setCellValue('D6', 'TANGGAL GABUNG'); $si->mergeCells('D6:D7');
         $si->setCellValue('E6', 'J A B A T A N'); $si->mergeCells('E6:E7');
         $si->setCellValue('F6', 'PENDIDIKAN TERAKHIR'); $si->mergeCells('F6:F7');
-        $si->setCellValue('G6', 'STATUS KARYAWAN PKWT / KONTRAK'); $si->mergeCells('G6:G7');
+        $si->setCellValue('G6', 'STATUS KARYAWAN'); $si->mergeCells('G6:G7');
 
         $si->getStyle('A6:G7')->getAlignment()->setHorizontal('center')->setVertical('center')->setWrapText(true);
         $si->getStyle('A6:G7')->getFill()->setFillType('solid')->getStartColor()->setARGB('FFFFC000');
@@ -1753,7 +1753,7 @@ class SpreadKaryawanCustomController extends Controller
                         $statusId = $d->status_kerja_id;
                         $bulanMapSingkat = [
                             1 => "JAN", 2 => "PEB", 3 => "MAR", 4 => "APR", 5 => "MEI", 6 => "JUN",
-                            7 => "JUL", 8 => "AGUSTUS", 9 => "SEP", 10 => "OKT", 11 => "NOP", 12 => "DES"
+                            7 => "JUL", 8 => "AGU", 9 => "SEP", 10 => "OKT", 11 => "NOP", 12 => "DES"
                         ];
 
                         if ($statusId == '1') {

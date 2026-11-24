@@ -97,7 +97,7 @@ class PdfListKaryawanController extends Controller
         $html .= "<th rowspan=\"2\">PENDIDIKAN TERAKHIR</th>";
         $html .= "<th rowspan=\"2\">EMAIL PRIBADI</th>";
         $html .= "<th rowspan=\"2\">NOMOR PERJANJIAN KERJA</th>";
-        $html .= "<th rowspan=\"2\">STATUS KARYAWAN PKWT / KONTRAK</th>";
+        $html .= "<th rowspan=\"2\">STATUS KARYAWAN</th>";
         $html .= "<th rowspan=\"2\">TRAINING - MEETING - PAMERAN - TUGAS LN</th>";
         $html .= "</tr>";
 
