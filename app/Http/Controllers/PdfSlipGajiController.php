@@ -11,14 +11,15 @@ use App\Repositories\AreaRepository;
 
 class PdfSlipGajiController extends Controller
 {
-    protected $repoKaryawan, $repo, $repoPhk, $rpPotongan;
+    protected $repoKaryawan, $repo, $repoPhk, $rpPotongan, $rpArea;
 
-    public function __construct(KaryawanRepository $repoKaryawan, PayrollRepository $repo, PayrollPhkRepository $repoPhk, PotonganRepository $rpPotongan
+    public function __construct(KaryawanRepository $repoKaryawan, PayrollRepository $repo, PayrollPhkRepository $repoPhk, PotonganRepository $rpPotongan, AreaRepository $rpArea
     ) {
         $this->repoKaryawan = $repoKaryawan;
         $this->repo         = $repo;
         $this->repoPhk      = $repoPhk;
         $this->rpPotongan   = $rpPotongan;
+        $this->rpArea       = $rpArea;
     }
 
     public function cetak($tahun, $bulan, $jenis, $area)
@@ -32,7 +33,7 @@ class PdfSlipGajiController extends Controller
         $arrBulan = ['Des','Jan','Feb','Mar','Apr','Mei','Juni','Juli','Agu','Sep','Okt','Nov','Des'];
         $bulanInt = (int)$bulan;
 
-        $rpArea = app(AreaRepository::class);
+        $rpArea = $this->rpArea;
         if($area == 'all') {
             $namaArea = '';
         } else {

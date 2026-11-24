@@ -3,15 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Repositories\KaryawanRepository;
+use App\Repositories\AreaRepository;
 use Mpdf\Mpdf;
 use App\Models\Area;
 
 class PdfListSalaryController extends Controller
 {
-    protected $repoKaryawan;
+    protected $repoKaryawan, $repoArea;
 
-    public function __construct(KaryawanRepository $repoKaryawan) {
+    public function __construct(KaryawanRepository $repoKaryawan, AreaRepository $repoArea) {
         $this->repoKaryawan = $repoKaryawan;
+        $this->repoArea = $repoArea;
     }
 
     public function listSalary() {
@@ -274,7 +276,7 @@ class PdfListSalaryController extends Controller
         $html .= '<br><br>';
 
         // Footer Summary: KETERANGAN STATUS KARYAWAN
-        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
+        $dbAreas = $this->repoArea->findAll()->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {

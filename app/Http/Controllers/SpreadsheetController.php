@@ -8,6 +8,7 @@ use App\Repositories\PayrollPhkRepository;
 use App\Repositories\PayrollRepository;
 use App\Repositories\UangPhkRepository;
 use App\Repositories\KaryawanRepository;
+use App\Repositories\AreaRepository;
 use App\Traits\AFhelper;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -21,15 +22,16 @@ class SpreadsheetController extends Controller
 {
     use AFhelper;
 
-    protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk, $repoPhk, $repoKaryawan;
+    protected $repoHeader, $repoDetail, $repoOncall, $repoUangPhk, $repoPhk, $repoKaryawan, $repoArea;
 
-    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk, PayrollPhkRepository $repoPhk, KaryawanRepository $repoKaryawan) {
+    public function __construct(PayrollHeaderRepository $repoHeader, PayrollRepository $repoDetail, OncallCustomerRepository $repoOncall, UangPhkRepository $repoUangPhk, PayrollPhkRepository $repoPhk, KaryawanRepository $repoKaryawan, AreaRepository $repoArea) {
         $this->repoHeader = $repoHeader;
         $this->repoDetail = $repoDetail;
         $this->repoOncall = $repoOncall;
         $this->repoUangPhk = $repoUangPhk;
         $this->repoPhk = $repoPhk;
         $this->repoKaryawan = $repoKaryawan;
+        $this->repoArea = $repoArea;
     }
 
     public function listPayroll($tahun, $bulans = null) {
@@ -1344,7 +1346,7 @@ class SpreadsheetController extends Controller
         }
 
         $bar += 2;
-        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
+        $dbAreas = $this->repoArea->findAll()->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {
@@ -1453,7 +1455,7 @@ class SpreadsheetController extends Controller
             $activeAreas[$kodeArea] = strtoupper($d->area ? $d->area->nama : 'Lainnya');
         }
         $activeAreasSorted = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -1828,7 +1830,7 @@ class SpreadsheetController extends Controller
         }
 
         $bar += 2;
-        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
+        $dbAreas = $dbAreasModels->pluck('kode')->toArray();
         $allAreas = $dbAreas;
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {
@@ -1929,7 +1931,7 @@ class SpreadsheetController extends Controller
             }
         }
 
-        $areasLookup = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('urutan', 'nama')->toArray();
+        $areasLookup = $this->repoArea->findAll()->pluck('urutan', 'nama')->toArray();
         foreach ($detailsByYear as &$stafs) {
             foreach ($stafs as &$areas) {
                 uksort($areas, function($a, $b) use ($areasLookup) {

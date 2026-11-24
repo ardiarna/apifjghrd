@@ -9,6 +9,12 @@ use Mpdf\Mpdf;
 
 class PdfListExKaryawanController extends Controller
 {
+    protected $repoArea;
+
+    public function __construct(AreaRepository $repoArea) {
+        $this->repoArea = $repoArea;
+    }
+
     public function rekap($tahun_awal, $tahun_akhir) {
         $mpdf = new Mpdf([
             'format'        => 'A2-L',
@@ -64,7 +70,7 @@ class PdfListExKaryawanController extends Controller
             }
         }
 
-        $areasLookup = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('urutan', 'nama')->toArray();
+        $areasLookup = $this->repoArea->findAll()->pluck('urutan', 'nama')->toArray();
         foreach ($detailsByYear as &$stafs) {
             foreach ($stafs as &$areas) {
                 uksort($areas, function($a, $b) use ($areasLookup) {

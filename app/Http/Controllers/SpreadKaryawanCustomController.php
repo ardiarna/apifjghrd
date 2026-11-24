@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\AreaRepository;
 use App\Repositories\KaryawanRepository;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -52,7 +53,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);
@@ -230,7 +231,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreas = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($totalKaryawanPerArea[$a->kode])) {
                 $activeAreas[] = strtoupper($a->nama);
@@ -419,10 +420,11 @@ class SpreadKaryawanCustomController extends Controller
         exit;
     }
 
-    protected $repoKaryawan;
+    protected $repoKaryawan, $repoArea;
 
-    public function __construct(KaryawanRepository $repoKaryawan) {
+    public function __construct(KaryawanRepository $repoKaryawan, AreaRepository $repoArea) {
         $this->repoKaryawan = $repoKaryawan;
+        $this->repoArea     = $repoArea;
     }
 
     public function dataJabatanKaryawan() {
@@ -572,7 +574,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $idxSheet = 0;
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         for ($tahun = $tahunAwal; $tahun <= $tahunAkhir; $tahun++) {
             if ($idxSheet > 0) {
                 $spreadsheet->createSheet();
@@ -760,7 +762,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreasSorted = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -940,7 +942,7 @@ class SpreadKaryawanCustomController extends Controller
             $details[$staf][$area][] = $d;
         }
         $activeAreasSorted = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -1116,7 +1118,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $activeAreasSorted = [];
-        $dbAreasModels = app(\App\Repositories\AreaRepository::class)->findAll();
+        $dbAreasModels = $this->repoArea->findAll();
         foreach ($dbAreasModels as $a) {
             if (isset($activeAreas[$a->kode])) {
                 $activeAreasSorted[] = strtoupper($a->nama);
@@ -1607,8 +1609,9 @@ class SpreadKaryawanCustomController extends Controller
             7 => 'JULI', 8 => 'AGUSTUS', 9 => 'SEPTEMBER', 10 => 'OKTOBER', 11 => 'NOPEMBER', 12 => 'DESEMBER'
         ];
 
-        $dbAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('nama')->toArray();
-        $areaString = implode(' - ', $dbAreas);
+        $dbAreasModels = $this->repoArea->findAll();
+        $dbAreas       = $dbAreasModels->pluck('nama')->toArray();
+        $areaString    = implode(' - ', $dbAreas);
 
         // Title Rows
         $si->setCellValue('A2', 'STATUS KARYAWAN PT.FRATEKINDO JAYA GEMILANG');
@@ -1808,7 +1811,7 @@ class SpreadKaryawanCustomController extends Controller
         }
 
         $bar += 2;
-        $allAreas = app(\App\Repositories\AreaRepository::class)->findAll()->pluck('kode')->toArray();
+        $allAreas = $dbAreasModels->pluck('kode')->toArray();
         foreach (array_keys($totalKaryawanPerArea) as $a) {
             if (!in_array($a, $allAreas)) {
                 $allAreas[] = $a;
