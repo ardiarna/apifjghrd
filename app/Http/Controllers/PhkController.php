@@ -69,13 +69,29 @@ class PhkController extends Controller
             $inputs['payroll_phk_id'] = !empty($req->input('payroll_phk_id')) ? $req->input('payroll_phk_id') : null;
         }
         $phk = $this->repo->update($id, $inputs);
-        $this->karyawanRepo->setNonAktif($karyawan_id, $id, $inputs['tanggal_akhir']);
+        if (!$req->input('is_history') && !$req->query('is_history')) {
+            $karyawan = $this->karyawanRepo->findById($karyawan_id);
+            if ($karyawan && $karyawan->phk_id == $id) {
+                $this->karyawanRepo->setNonAktif($karyawan_id, $id, $inputs['tanggal_akhir']);
+            }
+        }
         return $this->successResponse($phk, 'PHK berhasil diubah');
     }
 
     public function delete($karyawan_id, $id) {
+        $karyawan = $this->karyawanRepo->findById($karyawan_id);
+        $isAktifPhk = ($karyawan && $karyawan->phk_id == $id);
+        $destroy = request()->query('destroy') == '1' || request()->input('destroy') == 1;
+
+        if (!$isAktifPhk || $destroy) {
+            $this->repo->delete($id);
+            if ($isAktifPhk) {
+                $this->karyawanRepo->setAktif($karyawan_id);
+            }
+            return $this->successResponse(1, 'Data PHK berhasil dihapus');
+        }
+
         $this->karyawanRepo->setAktif($karyawan_id);
-        
         return $this->successResponse(1, 'Karyawan berhasil diaktifkan kembali');
     }
 

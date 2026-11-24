@@ -237,6 +237,12 @@ class PayrollImplement implements PayrollRepository {
         if(array_key_exists('note', $inputs)) {
             $model->note = empty($inputs['note']) ? null : $inputs['note'];
         }
+        if(array_key_exists('makan_tgl_awal', $inputs)) {
+            $model->makan_tgl_awal = empty($inputs['makan_tgl_awal']) ? null : $inputs['makan_tgl_awal'];
+        }
+        if(array_key_exists('makan_tgl_akhir', $inputs)) {
+            $model->makan_tgl_akhir = empty($inputs['makan_tgl_akhir']) ? null : $inputs['makan_tgl_akhir'];
+        }
         $model->save();
         $listHasil = [
             [

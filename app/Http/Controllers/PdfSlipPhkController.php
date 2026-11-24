@@ -37,19 +37,23 @@ class PdfSlipPhkController extends Controller
             return response()->json(['status' => false, 'message' => 'Data Karyawan tidak ditemukan']);
         }
 
-        if (!$karyawan->phk_id) {
-            return response()->json(['status' => false, 'message' => 'Karyawan tidak memiliki data PHK aktif']);
+        $phkId = request()->query('phk_id') ?: $karyawan->phk_id;
+        if (!$phkId) {
+            return response()->json(['status' => false, 'message' => 'Data PHK tidak ditemukan']);
         }
 
-        $phk = $karyawan->phk ?: Phk::with(['uangPhk', 'payrollPhk'])->find($karyawan->phk_id);
+        $phk = ($phkId == $karyawan->phk_id && $karyawan->phk) ? $karyawan->phk : Phk::with(['uangPhk', 'payrollPhk'])->find($phkId);
         $uangPhk = ($phk && $phk->uangPhk) ? $phk->uangPhk : null;
 
         $payrollPhk = ($phk && $phk->payrollPhk)
             ? $phk->payrollPhk
-            : PayrollPhk::where('karyawan_id', $karyawan_id)
+            : ($phk && $phk->payroll_phk_id ? PayrollPhk::find($phk->payroll_phk_id) : null);
+        if (!$payrollPhk) {
+            $payrollPhk = PayrollPhk::where('karyawan_id', $karyawan_id)
                 ->orderBy('tahun', 'desc')
                 ->orderBy('bulan', 'desc')
                 ->first();
+        }
 
         if (!$uangPhk && !$payrollPhk) {
             return response()->json(['status' => false, 'message' => 'Data Uang PHK / Payroll PHK tidak ditemukan']);

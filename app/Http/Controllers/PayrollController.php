@@ -202,6 +202,8 @@ class PayrollController extends Controller
             'total_diterima' => 'numeric',
             'keterangan' => 'nullable|string',
             'note' => 'nullable|string',
+            'makan_tgl_awal' => 'nullable|date',
+            'makan_tgl_akhir' => 'nullable|date',
         ]);
         $inputs['payroll_header_id'] = $header_id;
         $inputs['karyawan_id'] = $req->input('karyawan_id');
