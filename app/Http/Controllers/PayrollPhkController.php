@@ -248,12 +248,14 @@ class PayrollPhkController extends Controller
             $inputs['id'] = $req->input('id');
         }
         $data = $this->repo->updateOrCreate($inputs);
-        if ($req->has('phk_id') && $req->input('phk_id')) {
-            \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $data->id]);
-        } else {
-            $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
-            if ($karyawan && $karyawan->phk_id) {
-                \App\Models\Phk::where('id', $karyawan->phk_id)->update(['payroll_phk_id' => $data->id]);
+        if ($req->input('skip_link_phk') != '1') {
+            if ($req->has('phk_id') && $req->input('phk_id')) {
+                \App\Models\Phk::where('id', $req->input('phk_id'))->update(['payroll_phk_id' => $data->id]);
+            } else {
+                $karyawan = \App\Models\Karyawan::find($data->karyawan_id);
+                if ($karyawan && $karyawan->phk_id) {
+                    \App\Models\Phk::where('id', $karyawan->phk_id)->update(['payroll_phk_id' => $data->id]);
+                }
             }
         }
         return $this->successResponse($data, 'Payroll PHK berhasil disimpan');

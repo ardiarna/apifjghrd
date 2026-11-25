@@ -27,7 +27,7 @@ class PayrollPhkImplement implements PayrollPhkRepository {
     }
 
     public function findAll($inputs = []) {
-        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'karyawan.divisi', 'karyawan.ptkp'])
+        $hasil = $this->model->query()->with(['karyawan.area', 'karyawan.jabatan', 'karyawan.divisi', 'karyawan.ptkp', 'phk.uangPhk'])
             ->join('karyawans', 'payroll_phks.karyawan_id', '=', 'karyawans.id')
             ->join('areas', 'karyawans.area_id', '=', 'areas.id')
             ->select('payroll_phks.*')
